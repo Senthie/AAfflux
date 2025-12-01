@@ -6,21 +6,21 @@
 
 已创建完整的项目目录结构：
 
-```
+```sh
 app/
-├── api/              # API 路由层
+├── api/             # API 路由层
 │   └── v1/          # API v1 版本
-├── core/            # 核心配置模块 ✅
+├── core/            # 核sh心配置模块 ✅
 ├── models/          # 数据模型
 ├── schemas/         # Pydantic schemas
 ├── services/        # 业务逻辑层
 ├── repositories/    # 数据访问层
 ├── middleware/      # 中间件
 ├── engine/          # 工作流引擎
-│   └── nodes/      # 节点类型
+│   └── nodes/       # 节点类型
 ├── tasks/           # Celery 异步任务
 └── utils/           # 工具函数
-    └── llm/        # LLM 客户端
+    └── llm/         # LLM 客户端
 ```
 
 ### 2. 核心配置模块 (app/core/)
