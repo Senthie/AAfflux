@@ -10,6 +10,15 @@ from alembic import context
 # Add the project root to the Python path
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv()
+except ImportError:
+    # dotenv not available, skip loading .env file
+    pass
+
 # Import all models to ensure they are registered with SQLModel
 from app.models import (
     User,
