@@ -1,6 +1,6 @@
 # 实施计划
 
-- [ ] 1. 项目初始化和基础设施搭建
+- [x] 1. 项目初始化和基础设施搭建
   - 创建 app/ 目录结构（api/, core/, models/, schemas/, services/, repositories/, middleware/, utils/）
   - 实现 app/core/config.py（使用 pydantic-settings 管理环境变量）
   - 实现 app/core/database.py（PostgreSQL 连接和会话管理）
@@ -13,11 +13,11 @@
   - _需求: 16.1, 14.1_
 
 - [ ]* 1.1 编写项目初始化的单元测试
-  - 测试数据库连接
+  - 测试数据库连接x
   - 测试配置加载
   - _需求: 16.1_
 
-- [ ] 2. 实现数据模型（SQLModel）
+- [x] 2. 实现数据模型（SQLModel）
   - 实现 app/models/user.py（User, Organization, Team, TeamMember, Workspace）
   - 实现 app/models/workflow.py（Workflow, Node, Connection）
   - 实现 app/models/execution.py（ExecutionRecord, NodeExecutionResult）
