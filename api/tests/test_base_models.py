@@ -4,6 +4,8 @@ import pytest
 from datetime import datetime
 from uuid import UUID, uuid4
 from typing import Optional
+from hypothesis import given, strategies as st
+import inspect
 
 from app.models.base import BaseModel, TimestampMixin, SoftDeleteMixin, AuditMixin, WorkspaceMixin
 
@@ -199,3 +201,63 @@ class TestMixinCombination:
         assert hasattr(item, "updated_by")
         assert item.created_by == created_by
         assert item.updated_by == updated_by
+
+
+class TestBaseModelPropertyTests:
+    """Property-based tests for BaseModel functionality."""
+
+    def create_test_model_class(self, class_name: str):
+        """Create a test model class that inherits from BaseModel."""
+
+        class TestModel(BaseModel):
+            """Dynamically created test model for property testing."""
+
+            name: str
+
+        # Set the class name for better test output
+        TestModel.__name__ = class_name
+        TestModel.__qualname__ = class_name
+
+        return TestModel
+
+    @given(
+        st.text(min_size=1, max_size=50).filter(
+            lambda x: x.isidentifier() and not x.startswith("_")
+        )
+    )
+    def test_base_class_field_inheritance_consistency(self, class_name: str):
+        """
+        # Feature: model-base-refactor, Property 1: 基类字段继承一致性
+
+        Property test to verify that any model class inheriting from BaseModel
+        contains an id field with UUID type.
+
+        **Validates: Requirements 1.2**
+        """
+        # Create a test model class that inherits from BaseModel
+        TestModel = self.create_test_model_class(class_name)
+
+        # Check that id field is defined in the model fields (this is how Pydantic/SQLModel works)
+        assert (
+            "id" in TestModel.model_fields
+        ), f"Model {class_name} should have 'id' in model_fields"
+
+        # Verify the id field type is UUID
+        id_field = TestModel.model_fields["id"]
+        assert (
+            id_field.annotation == UUID
+        ), f"Model {class_name} id field should be of type UUID, got {id_field.annotation}"
+
+        # Create an instance and verify the id field behavior
+        instance = TestModel(name="test")
+
+        # Verify instance has id attribute
+        assert hasattr(instance, "id"), f"Model instance should have 'id' attribute"
+
+        # Verify the id is actually a UUID instance
+        assert isinstance(
+            instance.id, UUID
+        ), f"Model instance id should be UUID instance, got {type(instance.id)}"
+
+        # Verify id is set (not None)
+        assert instance.id is not None, f"Model instance id should not be None"
