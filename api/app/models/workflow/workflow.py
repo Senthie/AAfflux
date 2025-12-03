@@ -12,8 +12,8 @@
 
 from datetime import datetime
 from uuid import UUID, uuid4
-from typing import Optional
-from sqlmodel import SQLModel, Field, Column
+from typing import Optional, List
+from sqlmodel import SQLModel, Field, Column, Relationship
 from sqlalchemy.dialects.postgresql import JSONB
 
 

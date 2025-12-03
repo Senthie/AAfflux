@@ -21,16 +21,16 @@
 """
 
 # 基础模型
-from api.app.models.base import BaseModel, TimestampMixin, UUIDMixin
+from app.models.base import BaseModel, TimestampMixin, UUIDMixin
 
 # 认证域
-from api.app.models.auth import User, RefreshToken, PasswordReset, APIKey
+from app.models.auth import User, RefreshToken, PasswordReset, APIKey
 
 # 租户域
-from api.app.models.tenant import Organization, Team, Workspace, TeamMember, TeamInvitation
+from app.models.tenant import Organization, Team, Workspace, TeamMember, TeamInvitation
 
 # 工作流域
-from api.app.models.workflow import (
+from app.models.workflow import (
     Workflow,
     Node,
     Connection,
@@ -39,7 +39,7 @@ from api.app.models.workflow import (
 )
 
 # 应用域
-from api.app.models.application import (
+from app.models.application import (
     Application,
     LLMProvider,
     PromptTemplate,
@@ -47,7 +47,7 @@ from api.app.models.application import (
 )
 
 # 对话域
-from api.app.models.conversation import (
+from app.models.conversation import (
     Conversation,
     Message,
     MessageAnnotation,
@@ -56,7 +56,7 @@ from api.app.models.conversation import (
 )
 
 # 知识库域
-from api.app.models.dataset import (
+from app.models.dataset import (
     Dataset,
     Document,
     DocumentSegment,
@@ -64,10 +64,10 @@ from api.app.models.dataset import (
 )
 
 # 插件域
-from api.app.models.plugin import Plugin, InstalledPlugin
+from app.models.plugin import Plugin, InstalledPlugin
 
 # BPM域
-from api.app.models.bpm import (
+from app.models.bpm import (
     ProcessDefinition,
     ProcessInstance,
     ProcessStatus,
@@ -81,13 +81,13 @@ from api.app.models.bpm import (
 )
 
 # 计费域
-from api.app.models.billing import Subscription, UsageRecord
+from app.models.billing import Subscription, UsageRecord
 
 # 文件域
-from api.app.models.file import FileReference
+from app.models.file import FileReference
 
 # 审计域
-from api.app.models.audit import AuditLog
+from app.models.audit import AuditLog
 
 __all__ = [
     # 基础模型
@@ -153,5 +153,5 @@ __all__ = [
 
 def get_file_service():
     """Lazy import file service to avoid config dependency."""
-    from api.app.models.file import get_file_service as _get_file_service
+    from app.models.file import get_file_service as _get_file_service
     return _get_file_service()

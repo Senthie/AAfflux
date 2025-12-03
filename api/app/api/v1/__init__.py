@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from api.app.api.v1 import bpm_processes, bpm_tasks, bpm_approvals
+from app.api.v1 import bpm_processes, bpm_tasks, bpm_approvals
 
 router = APIRouter(prefix="/api/v1", tags=["API v1"])
 
