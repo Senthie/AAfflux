@@ -1,22 +1,21 @@
 """
-Author: kk123047 3254834740@qq.com
-Date: 2025-12-02 10:59:02
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-04 09:18:39
-FilePath: \AAfflux\api\app\models\application\application.py
-Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
-"""
+Author: Senthie seemoon2077@gmail.com
+Date: 2025-12-04 06:14:57
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2025-12-04 07:31:05
+FilePath: /api/app/models/application/application.py
+Description: 应用模型 - 1张表。本模块定义了应用管理的数据模型。
+        应用是对外发布的工作流实例，提供API端点供外部调用。
 
-"""应用模型 - 1张表。
-
-本模块定义了应用管理的数据模型。
-应用是对外发布的工作流实例，提供API端点供外部调用。
+Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from uuid import UUID
-from sqlmodel import Field, Column
+
 from sqlalchemy.dialects.postgresql import JSONB
-from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, AuditMixin
+from sqlmodel import Column, Field
+
+from app.models.base import AuditMixin, BaseModel, TimestampMixin, WorkspaceMixin
 
 
 class Application(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table=True):
@@ -43,7 +42,7 @@ class Application(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table=T
 
     """
 
-    __tablename__ = "applications"
+    __tablename__ = 'applications'
 
     name: str = Field(max_length=255)
     workflow_id: UUID = Field(index=True)  # Logical FK to workflows

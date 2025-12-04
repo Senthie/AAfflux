@@ -110,7 +110,7 @@ def demo_custom_validator():
             if v is None:
                 redis_url = info.data.get("redis_url")
                 if redis_url:
-                    print(f"   ℹ️  celery_broker_url 未设置，自动使用 redis_url")
+                    print("   ℹ️  celery_broker_url 未设置，自动使用 redis_url")
                     return redis_url
             return v or ""
 
@@ -130,7 +130,7 @@ def demo_env_file_check():
     env_path = Path(".env")
 
     if env_path.exists():
-        print(f"✅ .env 文件存在")
+        print("✅ .env 文件存在")
         print(f"   路径: {env_path.absolute()}")
         print(f"   大小: {env_path.stat().st_size} 字节")
 
@@ -149,7 +149,7 @@ def demo_env_file_check():
                     else:
                         print(f"   {i}. {line}")
     else:
-        print(f"❌ .env 文件不存在")
+        print("❌ .env 文件不存在")
         print(f"   期望路径: {env_path.absolute()}")
     print()
 

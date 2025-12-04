@@ -1,6 +1,7 @@
 """MongoDB connection and GridFS support."""
 
 from typing import Optional
+
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorGridFSBucket
 from pymongo.errors import ConnectionFailure
 
@@ -24,9 +25,9 @@ class MongoDBClient:
             self.gridfs_bucket = AsyncIOMotorGridFSBucket(self.database)
 
             # Verify connection
-            await self.client.admin.command("ping")
+            await self.client.admin.command('ping')
         except ConnectionFailure as e:
-            raise ConnectionError(f"Failed to connect to MongoDB: {e}")
+            raise ConnectionError(f'Failed to connect to MongoDB: {e}') from e
 
     async def close(self) -> None:
         """Close MongoDB connection."""
@@ -47,7 +48,7 @@ class MongoDBClient:
             Collection instance
         """
         if not self.database:
-            raise RuntimeError("MongoDB not connected")
+            raise RuntimeError('MongoDB not connected')
         return self.database[name]
 
     def get_gridfs(self) -> AsyncIOMotorGridFSBucket:
@@ -58,7 +59,7 @@ class MongoDBClient:
             GridFS bucket instance
         """
         if not self.gridfs_bucket:
-            raise RuntimeError("MongoDB not connected")
+            raise RuntimeError('MongoDB not connected')
         return self.gridfs_bucket
 
 

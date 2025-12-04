@@ -1,11 +1,11 @@
 """任务分发器"""
 
+from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
-from sqlmodel import Session, select
-
 from api.app.models.bpm import Task, TaskStatus
+from sqlmodel import Session, select
 
 
 class TaskDispatcher:
@@ -18,7 +18,7 @@ class TaskDispatcher:
         """分配任务给指定用户"""
         task = self.session.get(Task, task_id)
         if not task:
-            raise ValueError("Task not found")
+            raise ValueError('Task not found')
 
         task.assignee = assignee_id
         task.status = TaskStatus.ASSIGNED
@@ -33,10 +33,10 @@ class TaskDispatcher:
         """用户认领任务"""
         task = self.session.get(Task, task_id)
         if not task:
-            raise ValueError("Task not found")
+            raise ValueError('Task not found')
 
         if task.assignee and task.assignee != user_id:
-            raise ValueError("Task already assigned to another user")
+            raise ValueError('Task already assigned to another user')
 
         task.assignee = user_id
         task.status = TaskStatus.IN_PROGRESS
@@ -64,6 +64,3 @@ class TaskDispatcher:
         """通知任务处理人"""
         # TODO: 实现通知逻辑（邮件、站内信、Webhook等）
         pass
-
-
-from datetime import datetime

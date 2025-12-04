@@ -1,25 +1,26 @@
 """
-Author: kk123047 3254834740@qq.com
-Date: 2025-12-02 11:11:29
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-04 08:57:45
-FilePath: \Aafflux1\AAfflux\api\app\models\auth\token.py
-Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
-"""
+Author: Senthie seemoon2077@gmail.com
+Date: 2025-12-04 06:14:57
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2025-12-04 07:35:46
+FilePath: /api/app/models/auth/token.py
+Description:
+    认证相关模型 - 2张表。
 
-"""认证相关模型 - 2张表。
+    本模块定义了认证相关的数据模型：
+    1. RefreshToken - 刷新令牌表
+    2. PasswordReset - 密码重置表
 
-本模块定义了认证相关的数据模型：
-1. RefreshToken - 刷新令牌表
-2. PasswordReset - 密码重置表
-
-这些表支持用户认证、令牌管理和密码重置功能。
+    这些表支持用户认证、令牌管理和密码重置功能。
+Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from datetime import datetime
 from uuid import UUID
+
 from sqlmodel import Field
-from app.models.base import BaseModel, TimestampMixin, AuditMixin
+
+from app.models.base import AuditMixin, BaseModel, TimestampMixin
 
 
 class RefreshToken(BaseModel, TimestampMixin, AuditMixin, table=True):
@@ -45,7 +46,7 @@ class RefreshToken(BaseModel, TimestampMixin, AuditMixin, table=True):
         - 登出时撤销对应的刷新令牌
     """
 
-    __tablename__ = "refresh_tokens"
+    __tablename__ = 'refresh_tokens'
 
     user_id: UUID = Field(index=True)  # Logical FK to users
     token_hash: str = Field(max_length=255, unique=True, index=True)
@@ -77,7 +78,7 @@ class PasswordReset(BaseModel, TimestampMixin, table=True):
         - 过期的令牌不能使用
     """
 
-    __tablename__ = "password_resets"
+    __tablename__ = 'password_resets'
     user_id: UUID = Field(index=True)  # Logical FK to users
     token: str = Field(max_length=255, unique=True, index=True)
     expires_at: datetime

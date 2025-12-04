@@ -1,16 +1,15 @@
 """
-Author: kk123047 3254834740@qq.com
-Date: 2025-12-02 11:12:08
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-04 10:03:22
-FilePath: \AAfflux\api\app\models\audit\audit_log.py
-Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
-"""
+Author: Senthie seemoon2077@gmail.com
+Date: 2025-12-04 06:14:57
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2025-12-04 07:35:10
+FilePath: /api/app/models/audit/audit_log.py
+Description:
+    审计日志模型 - 1张表。
+    本模块定义了审计日志的数据模型。
+    记录系统中的所有重要操作，用于安全审计和问题追踪。
 
-"""审计日志模型 - 1张表。
-
-本模块定义了审计日志的数据模型。
-记录系统中的所有重要操作，用于安全审计和问题追踪。
+Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from typing import Optional
@@ -55,7 +54,7 @@ class AuditLog(BaseModel, TimestampMixin, WorkspaceMixin, table=True):
         - 支持按时间范围、用户、资源类型等维度查询
     """
 
-    __tablename__ = "audit_logs"
+    __tablename__ = 'audit_logs'
 
     user_id: Optional[UUID] = Field(default=None, index=True)  # Logical FK to users
     action: str = Field(
@@ -66,5 +65,5 @@ class AuditLog(BaseModel, TimestampMixin, WorkspaceMixin, table=True):
     details: dict = Field(default_factory=dict, sa_column=Column(JSONB))
     ip_address: Optional[str] = Field(default=None, max_length=50)
     user_agent: Optional[str] = Field(default=None, max_length=500)
-    status: str = Field(max_length=20, index=True, default="SUCCESS")  # SUCCESS, FAILED
+    status: str = Field(max_length=20, index=True, default='SUCCESS')  # SUCCESS, FAILED
     error_message: Optional[str] = None

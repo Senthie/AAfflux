@@ -2,8 +2,7 @@ from logging.config import fileConfig
 import os
 import sys
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 
@@ -20,24 +19,25 @@ except ImportError:
     pass
 
 # Import all models to ensure they are registered with SQLModel
-from app.models import (
-    User,
-    Organization,
-    Team,
-    TeamMember,
-    Workspace,
-    Workflow,
-    Node,
+from sqlmodel import SQLModel
+
+from app.models import (  # noqa: F401
+    Application,
     Connection,
     ExecutionRecord,
+    FileReference,
+    LLMProvider,
+    Node,
     NodeExecutionResult,
+    Organization,
     PromptTemplate,
     PromptTemplateVersion,
-    LLMProvider,
-    Application,
-    FileReference,
+    Team,
+    TeamMember,
+    User,
+    Workflow,
+    Workspace,
 )
-from sqlmodel import SQLModel
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -61,20 +61,20 @@ target_metadata = SQLModel.metadata
 def get_database_url() -> str:
     """Get database URL from environment variables or config."""
     # Try to get from environment first
-    database_url = os.getenv("DATABASE_URL")
+    database_url = os.getenv('DATABASE_URL')
     if database_url:
         # Convert async URL to sync for Alembic
-        if "postgresql+asyncpg://" in database_url:
-            database_url = database_url.replace("postgresql+asyncpg://", "postgresql://")
+        if 'postgresql+asyncpg://' in database_url:
+            database_url = database_url.replace('postgresql+asyncpg://', 'postgresql://')
         return database_url
 
     # Fallback to config file
-    config_url = config.get_main_option("sqlalchemy.url")
+    config_url = config.get_main_option('sqlalchemy.url')
     if config_url:
         return config_url
 
     # Default fallback for development (sync driver for Alembic)
-    return "postgresql://postgres:postgres@localhost:5432/lowcode_platform"
+    return 'postgresql://postgres:postgres@localhost:5432/lowcode_platform'
 
 
 def run_migrations_offline() -> None:
@@ -94,7 +94,7 @@ def run_migrations_offline() -> None:
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
-        dialect_opts={"paramstyle": "named"},
+        dialect_opts={'paramstyle': 'named'},
     )
 
     with context.begin_transaction():
@@ -111,11 +111,11 @@ def run_migrations_online() -> None:
     # Override the sqlalchemy.url with environment variable if available
     configuration = config.get_section(config.config_ini_section, {})
     database_url = get_database_url()
-    configuration["sqlalchemy.url"] = database_url
+    configuration['sqlalchemy.url'] = database_url
 
     connectable = engine_from_config(
         configuration,
-        prefix="sqlalchemy.",
+        prefix='sqlalchemy.',
         poolclass=pool.NullPool,
     )
 

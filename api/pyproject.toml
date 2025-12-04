@@ -5,48 +5,110 @@ description = "Low-code platform backend with workflow orchestration and AI inte
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "fastapi>=0.115.0",
-    "uvicorn[standard]>=0.32.0",
-    "sqlmodel>=0.0.22",
-    "sqlalchemy>=2.0.35",
-    "alembic>=1.13.3",
-    "asyncpg>=0.29.0",
-    "aiosqlite>=0.20.0",
-    "pymongo>=4.10.1",
-    "motor>=3.6.0",
-    "redis>=5.2.0",
-    "celery>=5.4.0",
-    "pydantic>=2.9.2",
-    "pydantic-settings>=2.6.0",
-    "pyjwt>=2.9.0",
-    "passlib[bcrypt]>=1.7.4",
-    "python-multipart>=0.0.12",
-    "httpx>=0.28.1",
-    "structlog>=24.4.0",
-    "sentry-sdk[fastapi]>=2.17.0",
-    "psycopg2-binary>=2.9.11",
-    "python-dotenv>=1.2.1",
-    "pylance>=0.39.0",
+  "aiosqlite>=0.20.0",
+  "alembic>=1.13.3",
+  "asyncpg>=0.29.0",
+  "celery>=5.4.0",
+  "fastapi>=0.115.0",
+  "httpx>=0.28.1",
+  "motor>=3.6.0",
+  "passlib[bcrypt]>=1.7.4",
+  "psycopg2-binary>=2.9.11",
+  "pydantic>=2.9.2",
+  "pydantic-settings>=2.6.0",
+  "pyjwt>=2.9.0",
+  "pylance>=0.39.0",
+  "pymongo>=4.10.1",
+  "python-dotenv>=1.2.1",
+  "python-multipart>=0.0.12",
+  "redis>=5.2.0",
+  "sentry-sdk[fastapi]>=2.17.0",
+  "sqlalchemy>=2.0.35",
+  "sqlmodel>=0.0.22",
+  "structlog>=24.4.0",
+  "uvicorn[standard]>=0.32.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8.3.3",
-    "pytest-asyncio>=0.24.0",
-    "hypothesis>=6.115.6",
-    "factory-boy>=3.3.1",
-    "black>=24.10.0",
-    "ruff>=0.7.4",
-    "mypy>=1.13.0",
+  "pytest>=8.3.3",
+  "pytest-asyncio>=0.24.0",
+  "hypothesis>=6.115.6",
+  "factory-boy>=3.3.1",
+  "black>=24.10.0",
+  "ruff>=0.7.4",
+  "mypy>=1.13.0",
 ]
 
 [tool.black]
 line-length = 100
-target-version = ['py312']
+target-version = ["py312"]
 
 [tool.ruff]
+exclude = [
+  ".bzr",
+  ".direnv",
+  ".eggs",
+  ".git",
+  ".git-rewrite",
+  ".hg",
+  ".ipynb_checkpoints",
+  ".mypy_cache",
+  ".nox",
+  ".pants.d",
+  ".pyenv",
+  ".pytest_cache",
+  ".pytype",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  ".vscode",
+  "__pypackages__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "node_modules",
+  "site-packages",
+  "venv",
+]
+indent-width = 4  # tab每次缩进所用的空格数
 line-length = 100
 target-version = "py312"
+
+# 格式化配置
+[tool.ruff.format]
+# 缩进配置
+indent-style = "space"  # 可选: "space" | "tab" - 使用空格还是制表符
+# 引号配置
+quote-style = "single"  # 可选: "single" | "double" - 单引号还是双引号
+# 换行配置
+line-ending = "auto"  # 可选: "auto" | "lf" | "crlf" - 换行符风格
+
+[tool.ruff.lint]
+# 1. Enable flake8-bugbear (`B`) rules, in addition to the defaults.
+select = [
+  "E",  # 所有PEP 8错误
+  "W",  # 所有PEP 8警告
+  "F",  # Pyflakes
+  "B",  # Bugbear
+  # "C90", # McCabe复杂度（可选）
+  # "I",   # isort导入排序（可选）
+]
+# 2. Avoid enforcing line-length violations (`E501`) and B008 (FastAPI Depends pattern)
+ignore = ["E501", "B008"]
+# 3. Avoid trying to fix flake8-bugbear (`B`) violations.
+unfixable = ["B"]
+
+# 导入排序配置
+[tool.ruff.lint.isort]
+known-first-party = []  # 将本地包视为第一方导入
+known-third-party = []  # 已知的第三方包
+combine-as-imports = true  # 合并同一模块的多个导入
+force-sort-within-sections = true  # 强制在导入组内排序
+order-by-type = true  # 按导入类型排序（标准库、第三方、第一方、本地）
+split-on-trailing-comma = true  # 在尾随逗号处换行
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
