@@ -28,7 +28,7 @@
   - 配置 Alembic 并创建初始迁移
   - _需求: 所有需求的数据持久化基础_
 
-- [ ] 3. 实现认证和授权模块
+- [x] 3. 实现认证和授权模块
   - 实现 app/services/auth_service.py（注册、登录、令牌管理）
   - 实现 app/utils/token.py（JWT 令牌生成和验证）
   - 实现 app/utils/password.py（密码哈希和验证）
