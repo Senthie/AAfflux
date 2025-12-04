@@ -99,7 +99,7 @@ class WorkspaceFilter:
         return session.exec(statement).all()
 ```
 
-2. **权限隔离 (Permission Isolation)**
+1. **权限隔离 (Permission Isolation)**
    - 用户通过 TeamMember 关联到团队
    - 每个用户在不同团队中可以有不同角色
    - 访问资源时验证用户在对应团队的权限
@@ -113,7 +113,7 @@ def check_access(user: User, resource: Resource) -> bool:
     return member.role.has_permission(action)
 ```
 
-3. **配置继承 (Configuration Inheritance)**
+1. **配置继承 (Configuration Inheritance)**
    - 企业级配置 → 团队级配置 → 工作空间级配置
    - 子级可以覆盖父级配置
    - 使用配置合并策略

@@ -31,13 +31,16 @@ B端（租户用户）                          C端（终端用户）
 ### 1. 用户认证层（3张表）
 
 #### 1.1 `users` - 租户用户（B端）
+
 - 租户侧的用户（开发者、管理员）
 - 创建和管理工作流、应用、知识库
 
 #### 1.2 `refresh_tokens` - 刷新令牌
+
 - JWT刷新令牌管理
 
 #### 1.3 `password_resets` - 密码重置
+
 - 密码重置流程
 
 ---
@@ -45,9 +48,13 @@ B端（租户用户）                          C端（终端用户）
 ### 2. 租户管理层（5张表）
 
 #### 2.1 `organizations` - 企业
+
 #### 2.2 `teams` - 团队
+
 #### 2.3 `workspaces` - 工作空间（租户隔离单位）
+
 #### 2.4 `team_members` - 团队成员
+
 #### 2.5 `team_invitations` - 团队邀请
 
 ---
@@ -55,6 +62,7 @@ B端（租户用户）                          C端（终端用户）
 ### 3. 终端用户层（1张表）⭐ 新增
 
 #### 3.1 `end_users` - 终端用户（C端）
+
 **文件**: `app/models/end_user.py`
 
 | 字段 | 类型 | 说明 |
@@ -72,7 +80,8 @@ B端（租户用户）                          C端（终端用户）
 | last_active_at | TIMESTAMP | 最后活跃时间 |
 | created_at | TIMESTAMP | 创建时间 |
 
-**业务用途**: 
+**业务用途**:
+
 - 使用已发布应用的最终用户
 - 支持匿名用户和注册用户
 - 与外部系统集成
@@ -82,9 +91,13 @@ B端（租户用户）                          C端（终端用户）
 ### 4. 工作流层（5张表）
 
 #### 4.1 `workflows` - 工作流定义
+
 #### 4.2 `nodes` - 节点
+
 #### 4.3 `connections` - 连接
+
 #### 4.4 `execution_records` - 执行记录
+
 #### 4.5 `node_execution_results` - 节点执行结果
 
 ---
@@ -92,6 +105,7 @@ B端（租户用户）                          C端（终端用户）
 ### 5. 对话层（2张表）⭐ 新增
 
 #### 5.1 `conversations` - 对话会话
+
 **文件**: `app/models/conversation.py`
 
 | 字段 | 类型 | 说明 |
@@ -108,7 +122,8 @@ B端（租户用户）                          C端（终端用户）
 | created_at | TIMESTAMP | 创建时间 |
 | updated_at | TIMESTAMP | 更新时间 |
 
-**业务用途**: 
+**业务用途**:
+
 - 管理终端用户的对话会话
 - 支持多轮对话
 - 对话历史管理
@@ -116,6 +131,7 @@ B端（租户用户）                          C端（终端用户）
 ---
 
 #### 5.2 `messages` - 消息
+
 **文件**: `app/models/conversation.py`
 
 | 字段 | 类型 | 说明 |
@@ -141,7 +157,8 @@ B端（租户用户）                          C端（终端用户）
 | metadata | JSONB | 自定义元数据 |
 | created_at | TIMESTAMP | 创建时间 |
 
-**业务用途**: 
+**业务用途**:
+
 - 存储对话中的每条消息
 - 记录Token使用和成本
 - 关联工作流执行
@@ -151,6 +168,7 @@ B端（租户用户）                          C端（终端用户）
 ### 6. 标注层（2张表）⭐ 新增
 
 #### 6.1 `message_annotations` - 消息标注
+
 **文件**: `app/models/annotation.py`
 
 | 字段 | 类型 | 说明 |
@@ -165,7 +183,8 @@ B端（租户用户）                          C端（终端用户）
 | created_at | TIMESTAMP | 创建时间 |
 | updated_at | TIMESTAMP | 更新时间 |
 
-**业务用途**: 
+**业务用途**:
+
 - 租户用户标注AI回复
 - 修正错误回复
 - 构建训练数据
@@ -173,6 +192,7 @@ B端（租户用户）                          C端（终端用户）
 ---
 
 #### 6.2 `message_feedbacks` - 消息反馈
+
 **文件**: `app/models/annotation.py`
 
 | 字段 | 类型 | 说明 |
@@ -186,7 +206,8 @@ B端（租户用户）                          C端（终端用户）
 | content | TEXT | 反馈内容 |
 | created_at | TIMESTAMP | 创建时间 |
 
-**业务用途**: 
+**业务用途**:
+
 - 终端用户评价AI回复
 - 收集用户反馈
 - 效果评估
@@ -196,6 +217,7 @@ B端（租户用户）                          C端（终端用户）
 ### 7. 知识库层（4张表）⭐ 新增
 
 #### 7.1 `datasets` - 知识库
+
 **文件**: `app/models/dataset.py`
 
 | 字段 | 类型 | 说明 |
@@ -215,7 +237,8 @@ B端（租户用户）                          C端（终端用户）
 | created_at | TIMESTAMP | 创建时间 |
 | updated_at | TIMESTAMP | 更新时间 |
 
-**业务用途**: 
+**业务用途**:
+
 - RAG检索增强生成
 - 文档知识管理
 - 向量化和检索
@@ -223,6 +246,7 @@ B端（租户用户）                          C端（终端用户）
 ---
 
 #### 7.2 `documents` - 文档
+
 **文件**: `app/models/dataset.py`
 
 | 字段 | 类型 | 说明 |
@@ -246,7 +270,8 @@ B端（租户用户）                          C端（终端用户）
 | created_at | TIMESTAMP | 创建时间 |
 | updated_at | TIMESTAMP | 更新时间 |
 
-**业务用途**: 
+**业务用途**:
+
 - 上传到知识库的文档
 - 支持多种数据源
 - 文档索引管理
@@ -254,6 +279,7 @@ B端（租户用户）                          C端（终端用户）
 ---
 
 #### 7.3 `document_segments` - 文档段落
+
 **文件**: `app/models/dataset.py`
 
 | 字段 | 类型 | 说明 |
@@ -278,7 +304,8 @@ B端（租户用户）                          C端（终端用户）
 | created_at | TIMESTAMP | 创建时间 |
 | updated_at | TIMESTAMP | 更新时间 |
 
-**业务用途**: 
+**业务用途**:
+
 - 文档分段处理
 - 向量化存储
 - 检索命中统计
@@ -286,6 +313,7 @@ B端（租户用户）                          C端（终端用户）
 ---
 
 #### 7.4 `dataset_application_joins` - 知识库应用关联
+
 **文件**: `app/models/dataset.py`
 
 | 字段 | 类型 | 说明 |
@@ -295,7 +323,8 @@ B端（租户用户）                          C端（终端用户）
 | application_id | UUID | 应用ID |
 | created_at | TIMESTAMP | 创建时间 |
 
-**业务用途**: 
+**业务用途**:
+
 - 应用关联知识库
 - 多对多关系
 - RAG检索
@@ -305,6 +334,7 @@ B端（租户用户）                          C端（终端用户）
 ### 8. 插件层（2张表）⭐ 新增
 
 #### 8.1 `plugins` - 插件
+
 **文件**: `app/models/plugin.py`
 
 | 字段 | 类型 | 说明 |
@@ -328,7 +358,8 @@ B端（租户用户）                          C端（终端用户）
 | created_at | TIMESTAMP | 创建时间 |
 | updated_at | TIMESTAMP | 更新时间 |
 
-**业务用途**: 
+**业务用途**:
+
 - 插件市场
 - 扩展系统功能
 - 自定义节点和工具
@@ -336,6 +367,7 @@ B端（租户用户）                          C端（终端用户）
 ---
 
 #### 8.2 `installed_plugins` - 已安装插件
+
 **文件**: `app/models/plugin.py`
 
 | 字段 | 类型 | 说明 |
@@ -349,7 +381,8 @@ B端（租户用户）                          C端（终端用户）
 | installed_at | TIMESTAMP | 安装时间 |
 | updated_at | TIMESTAMP | 更新时间 |
 
-**业务用途**: 
+**业务用途**:
+
 - 工作空间插件管理
 - 插件配置
 - 启用/禁用控制
@@ -359,20 +392,25 @@ B端（租户用户）                          C端（终端用户）
 ### 9. 其他核心表
 
 #### 9.1 提示词层（2张表）
+
 - `prompt_templates` - 提示词模板
 - `prompt_template_versions` - 模板版本
 
 #### 9.2 LLM层（1张表）
+
 - `llm_providers` - LLM提供商配置
 
 #### 9.3 应用层（2张表）
+
 - `applications` - 应用
 - `api_keys` - API密钥
 
 #### 9.4 审计层（1张表）
+
 - `audit_logs` - 审计日志
 
 #### 9.5 文件层（1张表）
+
 - `file_references` - 文件引用
 
 ---

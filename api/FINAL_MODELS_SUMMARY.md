@@ -53,6 +53,7 @@
 ### 1. `subscriptions` - 订阅表
 
 **核心字段：**
+
 - workspace_id（租户隔离）
 - plan_type（free/starter/pro/enterprise）
 - status（active/cancelled/expired/suspended）
@@ -71,6 +72,7 @@
 - trial_end
 
 **业务用途：**
+
 - 订阅计划管理
 - 配额限制控制
 - 计费周期管理
@@ -81,6 +83,7 @@
 ### 2. `usage_records` - 用量记录表
 
 **核心字段：**
+
 - workspace_id（租户隔离）
 - subscription_id
 - resource_type（api_call/token/storage/message/workflow_execution）
@@ -91,6 +94,7 @@
 - period_start/end
 
 **业务用途：**
+
 - 实时用量追踪
 - 配额检查
 - 成本统计
@@ -213,6 +217,7 @@
 ## 💰 订阅计划示例
 
 ### 免费版（Free）
+
 ```json
 {
   "plan_type": "free",
@@ -231,6 +236,7 @@
 ```
 
 ### 专业版（Pro）
+
 ```json
 {
   "plan_type": "pro",
@@ -250,6 +256,7 @@
 ```
 
 ### 企业版（Enterprise）
+
 ```json
 {
   "plan_type": "enterprise",
