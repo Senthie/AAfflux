@@ -14,7 +14,7 @@ from uuid import UUID
 from datetime import datetime
 from sqlmodel import Session, select
 
-from app.models.user import User
+from app.models.auth import User
 from app.schemas.auth_schema import (
     RegisterRequest,
     LoginRequest,

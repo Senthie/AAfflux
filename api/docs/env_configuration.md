@@ -30,7 +30,7 @@ class Settings(BaseSettings):
 
 ### 2. 自动读取过程
 
-```
+```sh
 启动应用
    ↓
 导入 config.py
@@ -120,7 +120,7 @@ JWT_SECRET_KEY=dev-secret-key-change-in-production-min-32-chars
 
 Pydantic Settings 按以下顺序读取配置（后者覆盖前者）：
 
-```
+```sh
 1. 类中的默认值
    ↓
 2. .env 文件中的值
@@ -191,10 +191,11 @@ class Settings(BaseSettings):
 
 如果 `.env` 中缺少必填字段，启动时会报错：
 
-```
+```sh
 ValidationError: 1 validation error for Settings
 database_url
   Field required [type=missing]
+
 ```
 
 ## 🔧 高级功能
@@ -240,7 +241,7 @@ settings = Settings(_env_file=".env.production")
 
 ## 📊 配置读取流程图
 
-```
+```sh
 ┌─────────────────────────────────────┐
 │   应用启动 (python app/main.py)     │
 └──────────────┬──────────────────────┘
@@ -362,7 +363,7 @@ unset DATABASE_URL
 
 **错误信息**：
 
-```
+```sh
 ValidationError: 1 validation error for Settings
 jwt_secret_key
   String should have at least 32 characters
