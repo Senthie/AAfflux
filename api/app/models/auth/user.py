@@ -1,18 +1,20 @@
-# 
-# Author: kk123047 3254834740@qq.com
-# Date: 2025-12-02 10:57:42
-# LastEditors: kk123047 3254834740@qq.com
-# LastEditTime: 2025-12-04 10:49:22
-# FilePath: : AAfflux: api: app: models: auth: user.py
-# Description: 
-# 
-"""用户模型 - 1张表。
+"""
+Author: Senthie seemoon2077@gmail.com
+Date: 2025-12-04 06:26:55
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2025-12-04 07:36:10
+FilePath: /api/app/models/auth/user.py
+Description:
+    用户模型 - 1张表。
+    本模块定义了系统的用户认证模型。
 
-本模块定义了系统的用户认证模型。
+Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from typing import Optional
+
 from sqlmodel import Field
+
 from app.models.base import BaseModel, TimestampMixin
 
 
@@ -34,7 +36,7 @@ class User(BaseModel, TimestampMixin, table=True):
         avatar_url: 头像URL
     """
 
-    __tablename__ = "users"
+    __tablename__ = 'users'
     name: str = Field(max_length=255)
     email: str = Field(unique=True, index=True, max_length=255)
     password_hash: str = Field(max_length=255)

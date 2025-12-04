@@ -1,20 +1,18 @@
-# 
-# Author: kk123047 3254834740@qq.com
-# Date: 2025-12-02 10:58:51
-# LastEditors: kk123047 3254834740@qq.com
-# LastEditTime: 2025-12-04 10:56:28
-# FilePath: : AAfflux: api: app: models: application: llm_provider.py
-# Description: 
-# 
-"""LLM提供商模型 - 1张表。
+"""
+Author: Senthie seemoon2077@gmail.com
+Date: 2025-12-04 06:14:57
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2025-12-04 07:33:52
+FilePath: /api/app/models/application/llm_provider.py
+Description: 本模块定义了LLM提供商配置的数据模型。支持多种LLM服务提供商（OpenAI、Anthropic等）的配置管理。
 
-本模块定义了LLM提供商配置的数据模型。
-支持多种LLM服务提供商（OpenAI、Anthropic等）的配置管理。
+Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
-from sqlmodel import SQLModel, Field, Column
 from sqlalchemy.dialects.postgresql import JSONB
-from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, AuditMixin
+from sqlmodel import Column, Field, SQLModel
+
+from app.models.base import AuditMixin, BaseModel, TimestampMixin, WorkspaceMixin
 
 
 class LLMProvider(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table=True):
@@ -38,7 +36,7 @@ class LLMProvider(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table=T
 
     """
 
-    __tablename__ = "llm_providers"
+    __tablename__ = 'llm_providers'
     name: str = Field(max_length=255)
     provider_type: str = Field(max_length=50)  # OPENAI, ANTHROPIC, AZURE, etc.
     api_key_encrypted: str = Field(max_length=500)

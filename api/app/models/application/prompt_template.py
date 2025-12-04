@@ -1,24 +1,24 @@
-# 
-# Author: kk123047 3254834740@qq.com
-# Date: 2025-12-02 10:58:38
-# LastEditors: kk123047 3254834740@qq.com
-# LastEditTime: 2025-12-04 10:51:50
-# FilePath: : AAfflux: api: app: models: application: prompt_template.py
-# Description: 
-# 
-"""提示词模板模型 - 2张表。
-
-本模块定义了提示词模板相关的数据模型：
-1. PromptTemplate - 提示词模板表
-2. PromptTemplateVersion - 提示词模板版本表
+"""
+Author: Senthie seemoon2077@gmail.com
+Date: 2025-12-04 06:14:57
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2025-12-04 07:34:26
+FilePath: /api/app/models/application/prompt_template.py
+Description:提示词模板模型 - 2张表。
+            本模块定义了提示词模板相关的数据模型：
+            1. PromptTemplate - 提示词模板表
+            2. PromptTemplateVersion - 提示词模板版本表
 
 支持模板的版本管理和变量替换功能。
+Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from uuid import UUID
-from sqlmodel import Field, Column
+
 from sqlalchemy.dialects.postgresql import JSONB
-from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, AuditMixin
+from sqlmodel import Column, Field
+
+from app.models.base import AuditMixin, BaseModel, TimestampMixin, WorkspaceMixin
 
 
 class PromptTemplate(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table=True):
@@ -42,7 +42,7 @@ class PromptTemplate(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, tabl
 
     """
 
-    __tablename__ = "prompt_templates"
+    __tablename__ = 'prompt_templates'
     name: str = Field(max_length=255)
     content: str
     variables: dict = Field(default_factory=dict, sa_column=Column(JSONB))
@@ -66,7 +66,7 @@ class PromptTemplateVersion(BaseModel, TimestampMixin, table=True):
 
     """
 
-    __tablename__ = "prompt_template_versions"
+    __tablename__ = 'prompt_template_versions'
     template_id: UUID = Field(index=True)  # Logical FK to prompt_templates
     version: int
     content: str

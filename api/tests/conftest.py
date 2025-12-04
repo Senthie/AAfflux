@@ -5,7 +5,6 @@ from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlmodel import SQLModel
 
-from app.core.config import settings
 
 
 # Test database URL (use SQLite for testing)

@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 from uuid import UUID, uuid4
 
-from sqlmodel import SQLModel, Field
+from sqlmodel import Field, SQLModel
 
 
 class BaseModel(SQLModel):
@@ -43,8 +43,8 @@ class BaseModel(SQLModel):
                 setattr(self, field_name, value)
 
         # Update timestamp if available
-        if hasattr(self, "updated_at"):
-            setattr(self, "updated_at", datetime.now(timezone.utc))
+        if hasattr(self, 'updated_at'):
+            self.updated_at = datetime.now(timezone.utc)
 
     def __eq__(self, other: object) -> bool:
         """Check equality based on all field values.

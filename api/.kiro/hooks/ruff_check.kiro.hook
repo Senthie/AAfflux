@@ -1,0 +1,15 @@
+{
+  "enabled": true,
+  "name": "ruff检测",
+  "description": "手动触发的钩子，用于将当前修改提交到Git，使用中文提交信息",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "运行\"ruff check --fix .\"并修复出现的问题。"
+  },
+  "workspaceFolderName": "api",
+  "shortName": "ruff_check"
+}

@@ -1,11 +1,19 @@
-"""审批服务"""
+"""
+Author: Senthie seemoon2077@gmail.com
+Date: 2025-12-04 06:14:57
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2025-12-04 06:45:52
+FilePath: /api/app/services/bpm_approval_service.py
+Description: 审批服务
+
+Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
+"""
 
 from typing import Optional
 from uuid import UUID
 
-from sqlmodel import Session
-
 from api.app.models.bpm import Approval, ApprovalAction, Task
+from sqlmodel import Session
 
 
 class ApprovalService:

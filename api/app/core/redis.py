@@ -1,8 +1,9 @@
 """Redis connection and cache management."""
 
-from typing import Optional, Any
 import json
-from redis.asyncio import Redis, ConnectionPool
+from typing import Any, Optional
+
+from redis.asyncio import ConnectionPool, Redis
 from redis.exceptions import RedisError
 
 from app.core.config import settings
@@ -30,7 +31,7 @@ class RedisClient:
             # Verify connection
             await self.redis.ping()
         except RedisError as e:
-            raise ConnectionError(f"Failed to connect to Redis: {e}")
+            raise ConnectionError(f'Failed to connect to Redis: {e}') from e
 
     async def close(self) -> None:
         """Close Redis connection."""
@@ -52,7 +53,7 @@ class RedisClient:
             Cached value or None
         """
         if not self.redis:
-            raise RuntimeError("Redis not connected")
+            raise RuntimeError('Redis not connected')
         return await self.redis.get(key)
 
     async def set(self, key: str, value: str, expire: Optional[int] = None) -> bool:
@@ -68,7 +69,7 @@ class RedisClient:
             True if successful
         """
         if not self.redis:
-            raise RuntimeError("Redis not connected")
+            raise RuntimeError('Redis not connected')
         return await self.redis.set(key, value, ex=expire)
 
     async def delete(self, key: str) -> int:
@@ -82,7 +83,7 @@ class RedisClient:
             Number of keys deleted
         """
         if not self.redis:
-            raise RuntimeError("Redis not connected")
+            raise RuntimeError('Redis not connected')
         return await self.redis.delete(key)
 
     async def exists(self, key: str) -> bool:
@@ -96,7 +97,7 @@ class RedisClient:
             True if key exists
         """
         if not self.redis:
-            raise RuntimeError("Redis not connected")
+            raise RuntimeError('Redis not connected')
         return await self.redis.exists(key) > 0
 
     async def get_json(self, key: str) -> Optional[Any]:
