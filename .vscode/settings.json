@@ -1,0 +1,78 @@
+{
+    "kiroAgent.configureMCP": "Disabled",
+    "fileheader.configObj": {
+        "autoAdd": true,
+        "autoAlready": true,
+        "annotationStr": {
+            "head": "# ",
+            "middle": "# ",
+            "end": "# ",
+            "use": false
+        },
+        "headInsertLine": {
+            "php": 2,
+            "sh": 2
+        },
+        "beforeAnnotation": {},
+        "afterAnnotation": {},
+        "specialOptions": {},
+        "switch": {
+            "newlineAddAnnotation": true
+        },
+        "supportAutoLanguage": [],
+        "prohibitAutoAdd": [
+            "json",
+            "md"
+        ],
+        "folderBlacklist": [
+            "node_modules",
+            ".vscode",
+            ".git"
+        ],
+        "prohibitItemAutoAdd": [
+            "*.json",
+            "*.md"
+        ],
+        "moveCursor": true,
+        "dateFormat": "YYYY-MM-DD HH:mm:ss",
+        "atSymbol": "@",
+        "atSymbolObj": {},
+        "colon": ": ",
+        "colonObj": {},
+        "filePathColon": ": ",
+        "showErrorMessage": false,
+        "writeLog": false,
+        "wideSame": false,
+        "wideNum": 13,
+        "functionWideNum": 0,
+        "CheckFileChange": true,
+        "createHeader": true,
+        "useWorker": false,
+        "designAddHead": false,
+        "headDesignName": "random",
+        "headDesign": false,
+        "cursorModeInternal": false,
+        "changeFont": true,
+        "fontTemplate": "Microsoft YaHei",
+        "language": {
+            "py": {
+                "head": "# ",
+                "middle": "# ",
+                "end": "# "
+            }
+        }
+    },
+    "fileheader.customMade": {
+        "Author": "kk123047 3254834740@qq.com",
+        "Date": "Do not edit",
+        "LastEditors": "kk123047 3254834740@qq.com",
+        "LastEditTime": "Do not edit",
+        "FilePath": "Do not edit",
+        "Description": ""
+    },
+    "fileheader.cursorMode": {
+        "description": "",
+        "param": "",
+        "return": ""
+    }
+}
