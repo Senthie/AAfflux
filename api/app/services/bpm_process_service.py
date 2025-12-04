@@ -33,7 +33,7 @@ class ProcessService:
             variables=variables,
             business_key=business_key,
         )
-        
+
         if business_type:
             instance.business_type = business_type
             self.session.add(instance)
@@ -48,9 +48,10 @@ class ProcessService:
             raise ValueError("Process instance not found")
 
         from api.app.bpm.models import ProcessStatus
+
         instance.status = ProcessStatus.CANCELLED
         instance.error_message = reason
-        
+
         self.session.add(instance)
         self.session.commit()
 

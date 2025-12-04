@@ -27,11 +27,11 @@ class ProcessExecutor:
         # 获取流程定义
         statement = select(ProcessDefinition).where(
             ProcessDefinition.key == process_key,
-            ProcessDefinition.is_latest == True,
-            ProcessDefinition.is_active == True,
+            ProcessDefinition.is_latest,
+            ProcessDefinition.is_active,
         )
         process_def = self.session.exec(statement).first()
-        
+
         if not process_def:
             raise ValueError(f"Process definition not found: {process_key}")
 
@@ -47,7 +47,7 @@ class ProcessExecutor:
             status=ProcessStatus.RUNNING,
             started_at=datetime.utcnow(),
         )
-        
+
         self.session.add(instance)
         self.session.commit()
         self.session.refresh(instance)
@@ -57,12 +57,10 @@ class ProcessExecutor:
 
         return instance
 
-    async def _execute_next_node(
-        self, instance: ProcessInstance, process_def: ProcessDefinition
-    ):
+    async def _execute_next_node(self, instance: ProcessInstance, process_def: ProcessDefinition):
         """执行下一个节点"""
         nodes = process_def.nodes
-        
+
         # 找到开始节点
         start_node = next((n for n in nodes if n.get("type") == "start"), None)
         if not start_node:
@@ -70,7 +68,7 @@ class ProcessExecutor:
 
         # 找到第一个用户任务
         first_task_node = next((n for n in nodes if n.get("type") == "user_task"), None)
-        
+
         if first_task_node:
             # 创建任务
             await self._create_task(instance, first_task_node)
@@ -94,7 +92,7 @@ class ProcessExecutor:
             status=TaskStatus.PENDING,
             variables=instance.variables,
         )
-        
+
         self.session.add(task)
         self.session.commit()
         return task
@@ -112,7 +110,7 @@ class ProcessExecutor:
         task.completed_at = datetime.utcnow()
         task.result = result
         task.comment = comment
-        
+
         self.session.add(task)
         self.session.commit()
 
@@ -137,6 +135,6 @@ class ProcessExecutor:
             instance.status = ProcessStatus.COMPLETED
             instance.completed_at = datetime.utcnow()
             instance.result = task_result
-            
+
             self.session.add(instance)
             self.session.commit()

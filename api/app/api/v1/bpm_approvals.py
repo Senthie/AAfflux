@@ -27,11 +27,11 @@ async def approve_task(
     task_id: UUID,
     request: ApprovalRequest,
     session: Session = Depends(get_session),
-    current_user = Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     """审批通过"""
     approval_service = ApprovalService(session)
-    
+
     # 创建审批记录
     approval = await approval_service.approve_task(
         task_id=task_id,
@@ -40,7 +40,7 @@ async def approve_task(
         comment=request.comment,
         workspace_id=current_user.workspace_id,
     )
-    
+
     # 完成任务
     task_service = TaskService(session)
     await task_service.complete_task(
@@ -49,7 +49,7 @@ async def approve_task(
         result={"approved": True},
         comment=request.comment,
     )
-    
+
     return approval
 
 
@@ -58,11 +58,11 @@ async def reject_task(
     task_id: UUID,
     request: ApprovalRequest,
     session: Session = Depends(get_session),
-    current_user = Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     """审批拒绝"""
     approval_service = ApprovalService(session)
-    
+
     approval = await approval_service.reject_task(
         task_id=task_id,
         user_id=current_user.id,
@@ -70,7 +70,7 @@ async def reject_task(
         comment=request.comment or "拒绝",
         workspace_id=current_user.workspace_id,
     )
-    
+
     # 完成任务
     task_service = TaskService(session)
     await task_service.complete_task(
@@ -79,5 +79,5 @@ async def reject_task(
         result={"approved": False},
         comment=request.comment,
     )
-    
+
     return approval

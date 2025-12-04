@@ -10,7 +10,7 @@
 所有文件内容存储在 MongoDB GridFS 中，元数据存储在 upload_files 集合中。
 """
 
-from typing import Optional, BinaryIO
+from typing import Optional
 from uuid import UUID, uuid4
 from datetime import datetime
 import hashlib
@@ -22,14 +22,14 @@ from app.core.mongodb import mongodb_client
 class FileService:
     """
     Unified file service using MongoDB GridFS.
-    
+
     Handles file upload, download, and metadata management.
     Files are stored in GridFS, metadata in upload_files collection.
     """
-    
+
     def __init__(self):
         self.mongo = mongodb_client
-    
+
     async def upload_file(
         self,
         file_data: bytes,
@@ -41,7 +41,7 @@ class FileService:
     ) -> dict:
         """
         Upload file to GridFS.
-        
+
         Args:
             file_data: File binary data
             filename: Original filename
@@ -49,7 +49,7 @@ class FileService:
             created_by: User ID who uploaded the file
             content_type: MIME type
             extension: File extension
-        
+
         Returns:
             dict: File metadata including file_id
         """
@@ -57,7 +57,7 @@ class FileService:
         file_hash = hashlib.sha256(file_data).hexdigest()
         file_size = len(file_data)
         file_id = str(uuid4())
-        
+
         # Upload to GridFS
         gridfs_bucket = self.mongo.get_gridfs()
         gridfs_id = await gridfs_bucket.upload_from_stream(
@@ -70,9 +70,9 @@ class FileService:
                 "content_type": content_type,
                 "extension": extension,
                 "hash": file_hash,
-            }
+            },
         )
-        
+
         # Store metadata in upload_files collection
         files_collection = self.mongo.get_collection("upload_files")
         file_doc = {
@@ -92,9 +92,9 @@ class FileService:
             "used_by": None,
             "used_at": None,
         }
-        
+
         await files_collection.insert_one(file_doc)
-        
+
         return {
             "id": file_id,
             "name": filename,
@@ -104,35 +104,36 @@ class FileService:
             "hash": file_hash,
             "created_at": file_doc["created_at"],
         }
-    
+
     async def download_file(self, file_id: str) -> tuple[bytes, dict]:
         """
         Download file from GridFS.
-        
+
         Args:
             file_id: File ID
-        
+
         Returns:
             tuple: (file_data, metadata)
-        
+
         Raises:
             FileNotFoundError: If file not found
         """
         # Get metadata from upload_files collection
         files_collection = self.mongo.get_collection("upload_files")
         file_doc = await files_collection.find_one({"_id": file_id})
-        
+
         if not file_doc:
             raise FileNotFoundError(f"File {file_id} not found")
-        
+
         # Download from GridFS
         from bson import ObjectId
+
         gridfs_bucket = self.mongo.get_gridfs()
         gridfs_id = ObjectId(file_doc["gridfs_id"])
-        
+
         grid_out = await gridfs_bucket.open_download_stream(gridfs_id)
         file_data = await grid_out.read()
-        
+
         metadata = {
             "id": file_doc["_id"],
             "name": file_doc["name"],
@@ -142,53 +143,54 @@ class FileService:
             "hash": file_doc.get("hash", ""),
             "created_at": file_doc.get("created_at"),
         }
-        
+
         return file_data, metadata
-    
+
     async def delete_file(self, file_id: str) -> bool:
         """
         Delete file from GridFS and metadata.
-        
+
         Args:
             file_id: File ID
-        
+
         Returns:
             bool: True if deleted successfully
         """
         # Get metadata
         files_collection = self.mongo.get_collection("upload_files")
         file_doc = await files_collection.find_one({"_id": file_id})
-        
+
         if not file_doc:
             return False
-        
+
         # Delete from GridFS
         from bson import ObjectId
+
         gridfs_bucket = self.mongo.get_gridfs()
         gridfs_id = ObjectId(file_doc["gridfs_id"])
         await gridfs_bucket.delete(gridfs_id)
-        
+
         # Delete metadata
         await files_collection.delete_one({"_id": file_id})
-        
+
         return True
-    
+
     async def get_file_metadata(self, file_id: str) -> Optional[dict]:
         """
         Get file metadata without downloading the file.
-        
+
         Args:
             file_id: File ID
-        
+
         Returns:
             dict: File metadata or None if not found
         """
         files_collection = self.mongo.get_collection("upload_files")
         file_doc = await files_collection.find_one({"_id": file_id})
-        
+
         if not file_doc:
             return None
-        
+
         return {
             "id": file_doc["_id"],
             "name": file_doc["name"],
@@ -200,15 +202,15 @@ class FileService:
             "created_at": file_doc.get("created_at"),
             "used": file_doc.get("used", False),
         }
-    
+
     async def mark_file_used(self, file_id: str, used_by: str) -> bool:
         """
         Mark file as used.
-        
+
         Args:
             file_id: File ID
             used_by: Resource ID that uses this file
-        
+
         Returns:
             bool: True if updated successfully
         """
@@ -221,11 +223,11 @@ class FileService:
                     "used_by": used_by,
                     "used_at": datetime.utcnow(),
                 }
-            }
+            },
         )
-        
+
         return result.modified_count > 0
-    
+
     async def list_files(
         self,
         tenant_id: UUID,
@@ -234,32 +236,37 @@ class FileService:
     ) -> list[dict]:
         """
         List files for a tenant.
-        
+
         Args:
             tenant_id: Tenant ID
             skip: Number of records to skip
             limit: Maximum number of records to return
-        
+
         Returns:
             list: List of file metadata
         """
         files_collection = self.mongo.get_collection("upload_files")
-        cursor = files_collection.find(
-            {"tenant_id": str(tenant_id)}
-        ).skip(skip).limit(limit).sort("created_at", -1)
-        
+        cursor = (
+            files_collection.find({"tenant_id": str(tenant_id)})
+            .skip(skip)
+            .limit(limit)
+            .sort("created_at", -1)
+        )
+
         files = []
         async for file_doc in cursor:
-            files.append({
-                "id": file_doc["_id"],
-                "name": file_doc["name"],
-                "size": file_doc["size"],
-                "extension": file_doc.get("extension", ""),
-                "mime_type": file_doc.get("mime_type", "application/octet-stream"),
-                "created_at": file_doc.get("created_at"),
-                "used": file_doc.get("used", False),
-            })
-        
+            files.append(
+                {
+                    "id": file_doc["_id"],
+                    "name": file_doc["name"],
+                    "size": file_doc["size"],
+                    "extension": file_doc.get("extension", ""),
+                    "mime_type": file_doc.get("mime_type", "application/octet-stream"),
+                    "created_at": file_doc.get("created_at"),
+                    "used": file_doc.get("used", False),
+                }
+            )
+
         return files
 
 

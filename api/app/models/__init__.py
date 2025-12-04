@@ -21,7 +21,7 @@
 """
 
 # 基础模型
-from app.models.base import BaseModel, TimestampMixin, UUIDMixin
+from app.models.base import BaseModel, TimestampMixin, SoftDeleteMixin, AuditMixin, WorkspaceMixin
 
 # 认证域
 from app.models.auth import User, RefreshToken, PasswordReset, APIKey
@@ -93,7 +93,9 @@ __all__ = [
     # 基础模型
     "BaseModel",
     "TimestampMixin",
-    "UUIDMixin",
+    "SoftDeleteMixin",
+    "AuditMixin",
+    "WorkspaceMixin",
     # 认证域
     "User",
     "RefreshToken",
@@ -154,4 +156,5 @@ __all__ = [
 def get_file_service():
     """Lazy import file service to avoid config dependency."""
     from app.models.file import get_file_service as _get_file_service
+
     return _get_file_service()

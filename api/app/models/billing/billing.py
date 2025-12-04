@@ -5,22 +5,27 @@
 """
 
 from datetime import datetime
-from uuid import UUID, uuid4
+from uuid import UUID
 from typing import Optional
-from sqlmodel import SQLModel, Field, Column
+from sqlmodel import Field, Column
 from sqlalchemy.dialects.postgresql import JSONB
 from decimal import Decimal
+from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin
 
 
-class Subscription(SQLModel, table=True):
+class Subscription(BaseModel, TimestampMixin, WorkspaceMixin, table=True):
     """订阅表 - 租户订阅管理。
-    
+
     管理工作空间的订阅计划和配额限制。
     支持不同的订阅级别和计费周期。
-    
+
     Attributes:
+    已经继承
         id: 订阅记录唯一标识符（UUID）
         workspace_id: 所属工作空间ID（逻辑外键，租户隔离）
+        created_at: 创建时间
+        updated_at: 更新时间
+
         plan_type: 订阅计划类型（free-免费/starter-入门/pro-专业/enterprise-企业）
         plan_name: 计划名称
         status: 订阅状态（active-活跃/cancelled-已取消/expired-已过期/suspended-已暂停）
@@ -41,19 +46,17 @@ class Subscription(SQLModel, table=True):
         trial_end: 试用期结束时间
         cancel_at_period_end: 是否在周期结束时取消
         cancelled_at: 取消时间
-        created_at: 创建时间
-        updated_at: 更新时间
-    
+
+
     业务规则：
         - 每个工作空间有一个活跃订阅
         - 订阅到期后自动续费或降级到免费版
         - 配额限制根据订阅计划动态调整
         - 支持试用期管理
     """
+
     __tablename__ = "subscriptions"
-    
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
-    workspace_id: UUID = Field(unique=True, index=True)  # Logical FK to workspaces (租户隔离)
+
     plan_type: str = Field(max_length=50, index=True)  # free, starter, pro, enterprise
     plan_name: str = Field(max_length=100)
     status: str = Field(max_length=20, index=True)  # active, cancelled, expired, suspended
@@ -66,19 +69,20 @@ class Subscription(SQLModel, table=True):
     trial_end: Optional[datetime] = None
     cancel_at_period_end: bool = Field(default=False)
     cancelled_at: Optional[datetime] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
 
 
-class UsageRecord(SQLModel, table=True):
+class UsageRecord(BaseModel, WorkspaceMixin, table=True):
     """用量记录表 - 资源使用追踪。
-    
+
     记录工作空间的资源使用情况，用于计费和配额控制。
     支持多种资源类型的用量统计。
-    
+
     Attributes:
+    已经继承
         id: 用量记录唯一标识符（UUID）
         workspace_id: 所属工作空间ID（逻辑外键，租户隔离）
+
+
         subscription_id: 订阅ID（逻辑外键）
         resource_type: 资源类型（api_call-API调用/token-Token/storage-存储/message-消息/workflow_execution-工作流执行）
         resource_name: 资源名称（具体的资源标识）
@@ -93,24 +97,25 @@ class UsageRecord(SQLModel, table=True):
         recorded_at: 记录时间
         period_start: 统计周期开始时间
         period_end: 统计周期结束时间
-    
+
     业务规则：
         - 实时记录资源使用
         - 按周期汇总统计
         - 用于配额检查和超限告警
         - 支持详细的成本分析
     """
+
     __tablename__ = "usage_records"
-    
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
-    workspace_id: UUID = Field(index=True)  # Logical FK to workspaces (租户隔离)
+
     subscription_id: UUID = Field(index=True)  # Logical FK to subscriptions
-    resource_type: str = Field(max_length=50, index=True)  # api_call, token, storage, message, workflow_execution
+    resource_type: str = Field(
+        max_length=50, index=True
+    )  # api_call, token, storage, message, workflow_execution
     resource_name: Optional[str] = Field(default=None, max_length=255)
     quantity: Decimal = Field(max_digits=20, decimal_places=4)
     unit: str = Field(max_length=20)  # count, token, gb, mb
     cost: Decimal = Field(default=Decimal("0.00"), max_digits=10, decimal_places=4)
-    metadata: Optional[dict] = Field(default=None, sa_column=Column(JSONB))
+    custom_metadata: Optional[dict] = Field(default=None, sa_column=Column(JSONB))
     recorded_at: datetime = Field(default_factory=datetime.utcnow, index=True)
     period_start: datetime = Field(index=True)
     period_end: datetime = Field(index=True)

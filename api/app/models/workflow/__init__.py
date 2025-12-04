@@ -1,6 +1,6 @@
 """工作流域模型"""
 
-from api.app.models.workflow.workflow import (
+from app.models.workflow.workflow import (
     Workflow,
     Node,
     Connection,

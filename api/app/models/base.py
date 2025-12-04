@@ -96,11 +96,11 @@ class SoftDeleteMixin:
 class AuditMixin:
     """Mixin class providing audit fields for tracking who created/updated records."""
 
-    created_by: UUID = Field(foreign_key="user.id")
-    updated_by: Optional[UUID] = Field(default=None, foreign_key="user.id")
+    created_by: UUID = Field()  # Logical FK to users
+    updated_by: Optional[UUID] = Field(default=None)  # Logical FK to users
 
 
 class WorkspaceMixin:
     """Mixin class providing workspace isolation functionality."""
 
-    workspace_id: UUID = Field(foreign_key="workspace.id", index=True)
+    workspace_id: UUID = Field(index=True)  # Logical FK to workspaces

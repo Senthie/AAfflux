@@ -22,7 +22,7 @@ class TaskDispatcher:
 
         task.assignee = assignee_id
         task.status = TaskStatus.ASSIGNED
-        
+
         self.session.add(task)
         self.session.commit()
 
@@ -41,7 +41,7 @@ class TaskDispatcher:
         task.assignee = user_id
         task.status = TaskStatus.IN_PROGRESS
         task.claimed_at = datetime.utcnow()
-        
+
         self.session.add(task)
         self.session.commit()
 
@@ -53,7 +53,7 @@ class TaskDispatcher:
             Task.assignee == user_id,
             Task.workspace_id == workspace_id,
         )
-        
+
         if status:
             statement = statement.where(Task.status == status)
 

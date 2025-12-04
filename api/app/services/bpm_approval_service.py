@@ -3,7 +3,7 @@
 from typing import Optional
 from uuid import UUID
 
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from api.app.models.bpm import Approval, ApprovalAction, Task
 
@@ -73,7 +73,7 @@ class ApprovalService:
             comment=comment,
             workspace_id=workspace_id,
         )
-        
+
         self.session.add(approval)
         self.session.commit()
         self.session.refresh(approval)

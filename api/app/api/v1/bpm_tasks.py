@@ -25,7 +25,7 @@ def get_current_user():
 @router.get("/my-tasks", response_model=List[TaskResponse])
 async def get_my_tasks(
     session: Session = Depends(get_session),
-    current_user = Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     """获取我的待办任务"""
     service = TaskService(session)
@@ -40,7 +40,7 @@ async def get_my_tasks(
 async def claim_task(
     task_id: UUID,
     session: Session = Depends(get_session),
-    current_user = Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     """认领任务"""
     service = TaskService(session)
@@ -53,7 +53,7 @@ async def complete_task(
     task_id: UUID,
     request: TaskCompleteRequest,
     session: Session = Depends(get_session),
-    current_user = Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     """完成任务"""
     service = TaskService(session)
@@ -74,8 +74,8 @@ async def get_task(
     """获取任务详情"""
     service = TaskService(session)
     task = await service.get_task(task_id)
-    
+
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-    
+
     return task

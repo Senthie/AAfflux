@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 
 class ProcessDefinitionCreate(BaseModel):
     """创建流程定义"""
+
     key: str = Field(..., description="流程唯一标识")
     name: str = Field(..., description="流程名称")
     description: Optional[str] = None
@@ -19,6 +20,7 @@ class ProcessDefinitionCreate(BaseModel):
 
 class ProcessDefinitionResponse(BaseModel):
     """流程定义响应"""
+
     id: UUID
     key: str
     name: str
@@ -30,6 +32,7 @@ class ProcessDefinitionResponse(BaseModel):
 
 class ProcessInstanceCreate(BaseModel):
     """启动流程实例"""
+
     process_key: str = Field(..., description="流程标识")
     business_key: Optional[str] = Field(None, description="业务键")
     business_type: Optional[str] = None
@@ -38,6 +41,7 @@ class ProcessInstanceCreate(BaseModel):
 
 class ProcessInstanceResponse(BaseModel):
     """流程实例响应"""
+
     id: UUID
     process_key: str
     business_key: Optional[str]
