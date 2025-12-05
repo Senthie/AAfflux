@@ -15,10 +15,10 @@ from uuid import UUID
 from typing import Optional
 from sqlmodel import Field, Column
 from sqlalchemy.dialects.postgresql import JSONB
-from app.models.base import BaseModel, TimestampMixin, AuditMixin
+from app.models.base import BaseModel, TimestampMixin, AuditMixin, SoftDeleteMixin
 
 
-class Organization(BaseModel, TimestampMixin, AuditMixin, table=True):
+class Organization(BaseModel, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):
     """企业表 - 顶层组织实体。
 
     企业是系统中的最高层级组织单位，可以包含多个团队。
@@ -30,22 +30,23 @@ class Organization(BaseModel, TimestampMixin, AuditMixin, table=True):
         created_at: 创建时间
         updated_at: 最后更新时间
         created_by: 创建者用户ID（物理外键）
+        deleted_at: Optional[datetime] = Field(default=None)
+        is_deleted: bool = Field(default=False)
+
+        settings: 企业级配置（JSONB格式）
         name: 企业名称
         description: 企业描述
 
-        settings: 企业级配置（JSONB格式）
-
-
     """
 
-    __tablename__ = "organizations"
+    __tablename__ = 'organizations'
 
     name: str = Field(max_length=255, index=True)
     description: Optional[str] = None
     settings: dict = Field(default_factory=dict, sa_column=Column(JSONB))
 
 
-class Team(BaseModel, TimestampMixin, AuditMixin, table=True):
+class Team(BaseModel, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):
     """团队表 - 中层组织实体。
 
     团队是协作的基本单位，可以属于企业或独立存在。
@@ -57,6 +58,8 @@ class Team(BaseModel, TimestampMixin, AuditMixin, table=True):
         created_by: 创建者用户ID（逻辑外键）
         created_at: 创建时间
         updated_at: 最后更新时间
+        deleted_at: Optional[datetime] = Field(default=None)
+        is_deleted: bool = Field(default=False)
 
         name: 团队名称
         organization_id: 所属企业ID（物理外键，可选）
@@ -65,7 +68,7 @@ class Team(BaseModel, TimestampMixin, AuditMixin, table=True):
 
     """
 
-    __tablename__ = "teams"
+    __tablename__ = 'teams'
 
     name: str = Field(max_length=255, index=True)
     organization_id: Optional[UUID] = Field(default=None, index=True)  # Logical FK to organizations
@@ -73,7 +76,7 @@ class Team(BaseModel, TimestampMixin, AuditMixin, table=True):
     settings: dict = Field(default_factory=dict, sa_column=Column(JSONB))
 
 
-class Workspace(BaseModel, TimestampMixin, AuditMixin, table=True):
+class Workspace(BaseModel, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):
     """工作空间表 - 资源隔离单元。
 
     工作空间是资源隔离的基本单位，所有业务资源（工作流、应用等）都关联到工作空间。
@@ -85,6 +88,8 @@ class Workspace(BaseModel, TimestampMixin, AuditMixin, table=True):
         created_by: 创建者用户ID（逻辑外键）
         created_at: 创建时间
         updated_at: 最后更新时间
+        deleted_at: Optional[datetime] = Field(default=None)
+        is_deleted: bool = Field(default=False)
 
         name: 工作空间名称
         team_id: 所属团队ID（逻辑外键）
@@ -94,7 +99,7 @@ class Workspace(BaseModel, TimestampMixin, AuditMixin, table=True):
 
     """
 
-    __tablename__ = "workspaces"
+    __tablename__ = 'workspaces'
 
     name: str = Field(max_length=255, index=True)
     team_id: UUID = Field(index=True)  # Logical FK to teams
@@ -118,9 +123,9 @@ class TeamMember(BaseModel, table=True):
         joined_at: 加入时间
     """
 
-    __tablename__ = "team_members"
+    __tablename__ = 'team_members'
 
     team_id: UUID = Field(index=True)  # Logical FK to teams
     user_id: UUID = Field(index=True)  # Logical FK to users
-    role: str = Field(default="MEMBER", max_length=16)  # ADMIN, MEMBER, GUEST
+    role: str = Field(default='MEMBER', max_length=16)  # ADMIN, MEMBER, GUEST
     joined_at: datetime = Field(default_factory=datetime.utcnow)

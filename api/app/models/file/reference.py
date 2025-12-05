@@ -36,7 +36,7 @@ class FileReference(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
         - 支持按工作空间隔离文件访问
     """
 
-    __tablename__ = "file_references"
+    __tablename__ = 'file_references'
     d: UUID = Field(default_factory=uuid4, primary_key=True)
     file_id: UUID = Field(unique=True, index=True)  # 关联到MongoDB
 

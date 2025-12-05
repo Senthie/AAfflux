@@ -1,13 +1,14 @@
 """
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-04 06:14:57
-LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-04 07:34:26
-FilePath: /api/app/models/application/prompt_template.py
+LastEditors: kk123047 3254834740@qq.com
+LastEditTime: 2025-12-05 14:33:06
+FilePath: : AAfflux: api: app: models: application: prompt_template.py
 Description:提示词模板模型 - 2张表。
             本模块定义了提示词模板相关的数据模型：
             1. PromptTemplate - 提示词模板表
             2. PromptTemplateVersion - 提示词模板版本表
+            3.补充添加了softdelete的软删除
 
 支持模板的版本管理和变量替换功能。
 Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
@@ -18,10 +19,12 @@ from uuid import UUID
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Column, Field
 
-from app.models.base import AuditMixin, BaseModel, TimestampMixin, WorkspaceMixin
+from app.models.base import AuditMixin, BaseModel, TimestampMixin, WorkspaceMixin, SoftDeleteMixin
 
 
-class PromptTemplate(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table=True):
+class PromptTemplate(
+    BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin, table=True
+):
     """提示词模板表 - 可复用的提示词配置。
 
     存储提示词模板的当前版本和元信息。
@@ -34,6 +37,8 @@ class PromptTemplate(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, tabl
         created_at: 创建时间
         updated_at: 最后更新时间
         workspace_id: 所属工作空间ID（逻辑外键，租户隔离）
+        deleted_at: Optional[datetime] = Field(default=None)
+        is_deleted: bool = Field(default=False)
 
         content: 模板内容
         variables: 变量列表（JSONB格式）

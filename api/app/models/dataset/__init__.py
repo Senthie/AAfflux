@@ -8,8 +8,8 @@ from app.models.dataset.dataset import (
 )
 
 __all__ = [
-    "Dataset",
-    "Document",
-    "DocumentSegment",
-    "DatasetApplicationJoin",
+    'Dataset',
+    'Document',
+    'DocumentSegment',
+    'DatasetApplicationJoin',
 ]

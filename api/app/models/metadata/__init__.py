@@ -12,12 +12,12 @@ from .model import (
 )
 
 __all__ = [
-    "MetadataModel",
-    "MetadataField",
-    "MetadataRelation",
-    "MetadataIndex",
-    "MetadataVersion",
-    "MetadataPage",
-    "ModelStatus",
-    "FieldType",
+    'MetadataModel',
+    'MetadataField',
+    'MetadataRelation',
+    'MetadataIndex',
+    'MetadataVersion',
+    'MetadataPage',
+    'ModelStatus',
+    'FieldType',
 ]

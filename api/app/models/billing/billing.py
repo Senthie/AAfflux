@@ -10,10 +10,10 @@ from typing import Optional
 from sqlmodel import Field, Column
 from sqlalchemy.dialects.postgresql import JSONB
 from decimal import Decimal
-from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin
+from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, SoftDeleteMixin
 
 
-class Subscription(BaseModel, TimestampMixin, WorkspaceMixin, table=True):
+class Subscription(BaseModel, TimestampMixin, WorkspaceMixin, SoftDeleteMixin, table=True):
     """订阅表 - 租户订阅管理。
 
     管理工作空间的订阅计划和配额限制。
@@ -25,6 +25,8 @@ class Subscription(BaseModel, TimestampMixin, WorkspaceMixin, table=True):
         workspace_id: 所属工作空间ID（逻辑外键，租户隔离）
         created_at: 创建时间
         updated_at: 更新时间
+        deleted_at: Optional[datetime] = Field(default=None)
+        is_deleted: bool = Field(default=False)
 
         plan_type: 订阅计划类型（free-免费/starter-入门/pro-专业/enterprise-企业）
         plan_name: 计划名称
@@ -55,14 +57,14 @@ class Subscription(BaseModel, TimestampMixin, WorkspaceMixin, table=True):
         - 支持试用期管理
     """
 
-    __tablename__ = "subscriptions"
+    __tablename__ = 'subscriptions'
 
     plan_type: str = Field(max_length=50, index=True)  # free, starter, pro, enterprise
     plan_name: str = Field(max_length=100)
     status: str = Field(max_length=20, index=True)  # active, cancelled, expired, suspended
     billing_cycle: str = Field(max_length=20)  # monthly, yearly, lifetime
-    price: Decimal = Field(default=Decimal("0.00"), max_digits=10, decimal_places=2)
-    currency: str = Field(max_length=10, default="USD")
+    price: Decimal = Field(default=Decimal('0.00'), max_digits=10, decimal_places=2)
+    currency: str = Field(max_length=10, default='USD')
     quota_limits: dict = Field(sa_column=Column(JSONB))  # 配额限制
     current_period_start: datetime
     current_period_end: datetime
@@ -105,7 +107,7 @@ class UsageRecord(BaseModel, WorkspaceMixin, table=True):
         - 支持详细的成本分析
     """
 
-    __tablename__ = "usage_records"
+    __tablename__ = 'usage_records'
 
     subscription_id: UUID = Field(index=True)  # Logical FK to subscriptions
     resource_type: str = Field(
@@ -114,7 +116,7 @@ class UsageRecord(BaseModel, WorkspaceMixin, table=True):
     resource_name: Optional[str] = Field(default=None, max_length=255)
     quantity: Decimal = Field(max_digits=20, decimal_places=4)
     unit: str = Field(max_length=20)  # count, token, gb, mb
-    cost: Decimal = Field(default=Decimal("0.00"), max_digits=10, decimal_places=4)
+    cost: Decimal = Field(default=Decimal('0.00'), max_digits=10, decimal_places=4)
     custom_metadata: Optional[dict] = Field(default=None, sa_column=Column(JSONB))
     recorded_at: datetime = Field(default_factory=datetime.utcnow, index=True)
     period_start: datetime = Field(index=True)

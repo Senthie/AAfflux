@@ -6,14 +6,14 @@ from app.models.bpm.approval import Approval, ApprovalAction
 from app.models.bpm.form import FormDefinition, FormData
 
 __all__ = [
-    "ProcessDefinition",
-    "ProcessInstance",
-    "ProcessStatus",
-    "Task",
-    "TaskStatus",
-    "TaskType",
-    "Approval",
-    "ApprovalAction",
-    "FormDefinition",
-    "FormData",
+    'ProcessDefinition',
+    'ProcessInstance',
+    'ProcessStatus',
+    'Task',
+    'TaskStatus',
+    'TaskType',
+    'Approval',
+    'ApprovalAction',
+    'FormDefinition',
+    'FormData',
 ]

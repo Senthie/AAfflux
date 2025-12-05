@@ -9,10 +9,10 @@ from uuid import UUID
 from typing import Optional
 from sqlmodel import Field, Column
 from sqlalchemy.dialects.postgresql import JSONB
-from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin
+from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, SoftDeleteMixin
 
 
-class Plugin(BaseModel, TimestampMixin, table=True):
+class Plugin(BaseModel, TimestampMixin, SoftDeleteMixin, table=True):
     """插件表 - 插件定义。
 
     存储可用插件的信息和配置。
@@ -23,6 +23,8 @@ class Plugin(BaseModel, TimestampMixin, table=True):
         id: 插件唯一标识符（UUID）
         created_at: 创建时间
         updated_at: 更新时间
+        deleted_at: Optional[datetime] = Field(default=None)
+        is_deleted: bool = Field(default=False)
 
         name: 插件名称
         display_name: 显示名称
@@ -48,7 +50,7 @@ class Plugin(BaseModel, TimestampMixin, table=True):
         - 插件清单定义配置schema和能力
     """
 
-    __tablename__ = "plugins"
+    __tablename__ = 'plugins'
 
     name: str = Field(max_length=255, unique=True, index=True)
     display_name: str = Field(max_length=255)
@@ -92,7 +94,7 @@ class InstalledPlugin(BaseModel, TimestampMixin, WorkspaceMixin, table=True):
         - 记录安装者和安装时间
     """
 
-    __tablename__ = "installed_plugins"
+    __tablename__ = 'installed_plugins'
 
     plugin_id: UUID = Field(index=True)  # Logical FK to plugins
     config: dict = Field(default_factory=dict, sa_column=Column(JSONB))

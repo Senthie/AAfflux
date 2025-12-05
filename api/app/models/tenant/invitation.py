@@ -37,7 +37,7 @@ class TeamInvitation(BaseModel, TimestampMixin, table=True):
         - 同一邮箱在同一团队只能有一个待处理的邀请
     """
 
-    __tablename__ = "team_invitations"
+    __tablename__ = 'team_invitations'
 
     team_id: UUID = Field(index=True)  # Logical FK to teams
     email: str = Field(max_length=255, index=True)
@@ -45,7 +45,7 @@ class TeamInvitation(BaseModel, TimestampMixin, table=True):
     token: str = Field(max_length=255, unique=True, index=True)
     invited_by: UUID = Field(index=True)  # Logical FK to users
     status: str = Field(
-        max_length=20, index=True, default="PENDING"
+        max_length=20, index=True, default='PENDING'
     )  # PENDING, ACCEPTED, EXPIRED, CANCELLED
     expires_at: datetime
     accepted_at: Optional[datetime] = None

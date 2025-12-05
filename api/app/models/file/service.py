@@ -64,45 +64,45 @@ class FileService:
             filename,
             BytesIO(file_data),
             metadata={
-                "file_id": file_id,
-                "tenant_id": str(tenant_id),
-                "created_by": str(created_by),
-                "content_type": content_type,
-                "extension": extension,
-                "hash": file_hash,
+                'file_id': file_id,
+                'tenant_id': str(tenant_id),
+                'created_by': str(created_by),
+                'content_type': content_type,
+                'extension': extension,
+                'hash': file_hash,
             },
         )
 
         # Store metadata in upload_files collection
-        files_collection = self.mongo.get_collection("upload_files")
+        files_collection = self.mongo.get_collection('upload_files')
         file_doc = {
-            "_id": file_id,
-            "gridfs_id": str(gridfs_id),
-            "tenant_id": str(tenant_id),
-            "storage_type": "gridfs",
-            "key": file_id,
-            "name": filename,
-            "size": file_size,
-            "extension": extension or "",
-            "mime_type": content_type or "application/octet-stream",
-            "hash": file_hash,
-            "created_by": str(created_by),
-            "created_at": datetime.utcnow(),
-            "used": False,
-            "used_by": None,
-            "used_at": None,
+            '_id': file_id,
+            'gridfs_id': str(gridfs_id),
+            'tenant_id': str(tenant_id),
+            'storage_type': 'gridfs',
+            'key': file_id,
+            'name': filename,
+            'size': file_size,
+            'extension': extension or '',
+            'mime_type': content_type or 'application/octet-stream',
+            'hash': file_hash,
+            'created_by': str(created_by),
+            'created_at': datetime.utcnow(),
+            'used': False,
+            'used_by': None,
+            'used_at': None,
         }
 
         await files_collection.insert_one(file_doc)
 
         return {
-            "id": file_id,
-            "name": filename,
-            "size": file_size,
-            "extension": extension,
-            "mime_type": content_type,
-            "hash": file_hash,
-            "created_at": file_doc["created_at"],
+            'id': file_id,
+            'name': filename,
+            'size': file_size,
+            'extension': extension,
+            'mime_type': content_type,
+            'hash': file_hash,
+            'created_at': file_doc['created_at'],
         }
 
     async def download_file(self, file_id: str) -> tuple[bytes, dict]:
@@ -119,29 +119,29 @@ class FileService:
             FileNotFoundError: If file not found
         """
         # Get metadata from upload_files collection
-        files_collection = self.mongo.get_collection("upload_files")
-        file_doc = await files_collection.find_one({"_id": file_id})
+        files_collection = self.mongo.get_collection('upload_files')
+        file_doc = await files_collection.find_one({'_id': file_id})
 
         if not file_doc:
-            raise FileNotFoundError(f"File {file_id} not found")
+            raise FileNotFoundError(f'File {file_id} not found')
 
         # Download from GridFS
         from bson import ObjectId
 
         gridfs_bucket = self.mongo.get_gridfs()
-        gridfs_id = ObjectId(file_doc["gridfs_id"])
+        gridfs_id = ObjectId(file_doc['gridfs_id'])
 
         grid_out = await gridfs_bucket.open_download_stream(gridfs_id)
         file_data = await grid_out.read()
 
         metadata = {
-            "id": file_doc["_id"],
-            "name": file_doc["name"],
-            "size": file_doc["size"],
-            "extension": file_doc.get("extension", ""),
-            "mime_type": file_doc.get("mime_type", "application/octet-stream"),
-            "hash": file_doc.get("hash", ""),
-            "created_at": file_doc.get("created_at"),
+            'id': file_doc['_id'],
+            'name': file_doc['name'],
+            'size': file_doc['size'],
+            'extension': file_doc.get('extension', ''),
+            'mime_type': file_doc.get('mime_type', 'application/octet-stream'),
+            'hash': file_doc.get('hash', ''),
+            'created_at': file_doc.get('created_at'),
         }
 
         return file_data, metadata
@@ -157,8 +157,8 @@ class FileService:
             bool: True if deleted successfully
         """
         # Get metadata
-        files_collection = self.mongo.get_collection("upload_files")
-        file_doc = await files_collection.find_one({"_id": file_id})
+        files_collection = self.mongo.get_collection('upload_files')
+        file_doc = await files_collection.find_one({'_id': file_id})
 
         if not file_doc:
             return False
@@ -167,11 +167,11 @@ class FileService:
         from bson import ObjectId
 
         gridfs_bucket = self.mongo.get_gridfs()
-        gridfs_id = ObjectId(file_doc["gridfs_id"])
+        gridfs_id = ObjectId(file_doc['gridfs_id'])
         await gridfs_bucket.delete(gridfs_id)
 
         # Delete metadata
-        await files_collection.delete_one({"_id": file_id})
+        await files_collection.delete_one({'_id': file_id})
 
         return True
 
@@ -185,22 +185,22 @@ class FileService:
         Returns:
             dict: File metadata or None if not found
         """
-        files_collection = self.mongo.get_collection("upload_files")
-        file_doc = await files_collection.find_one({"_id": file_id})
+        files_collection = self.mongo.get_collection('upload_files')
+        file_doc = await files_collection.find_one({'_id': file_id})
 
         if not file_doc:
             return None
 
         return {
-            "id": file_doc["_id"],
-            "name": file_doc["name"],
-            "size": file_doc["size"],
-            "extension": file_doc.get("extension", ""),
-            "mime_type": file_doc.get("mime_type", "application/octet-stream"),
-            "hash": file_doc.get("hash", ""),
-            "created_by": file_doc.get("created_by"),
-            "created_at": file_doc.get("created_at"),
-            "used": file_doc.get("used", False),
+            'id': file_doc['_id'],
+            'name': file_doc['name'],
+            'size': file_doc['size'],
+            'extension': file_doc.get('extension', ''),
+            'mime_type': file_doc.get('mime_type', 'application/octet-stream'),
+            'hash': file_doc.get('hash', ''),
+            'created_by': file_doc.get('created_by'),
+            'created_at': file_doc.get('created_at'),
+            'used': file_doc.get('used', False),
         }
 
     async def mark_file_used(self, file_id: str, used_by: str) -> bool:
@@ -214,14 +214,14 @@ class FileService:
         Returns:
             bool: True if updated successfully
         """
-        files_collection = self.mongo.get_collection("upload_files")
+        files_collection = self.mongo.get_collection('upload_files')
         result = await files_collection.update_one(
-            {"_id": file_id},
+            {'_id': file_id},
             {
-                "$set": {
-                    "used": True,
-                    "used_by": used_by,
-                    "used_at": datetime.utcnow(),
+                '$set': {
+                    'used': True,
+                    'used_by': used_by,
+                    'used_at': datetime.utcnow(),
                 }
             },
         )
@@ -245,25 +245,25 @@ class FileService:
         Returns:
             list: List of file metadata
         """
-        files_collection = self.mongo.get_collection("upload_files")
+        files_collection = self.mongo.get_collection('upload_files')
         cursor = (
-            files_collection.find({"tenant_id": str(tenant_id)})
+            files_collection.find({'tenant_id': str(tenant_id)})
             .skip(skip)
             .limit(limit)
-            .sort("created_at", -1)
+            .sort('created_at', -1)
         )
 
         files = []
         async for file_doc in cursor:
             files.append(
                 {
-                    "id": file_doc["_id"],
-                    "name": file_doc["name"],
-                    "size": file_doc["size"],
-                    "extension": file_doc.get("extension", ""),
-                    "mime_type": file_doc.get("mime_type", "application/octet-stream"),
-                    "created_at": file_doc.get("created_at"),
-                    "used": file_doc.get("used", False),
+                    'id': file_doc['_id'],
+                    'name': file_doc['name'],
+                    'size': file_doc['size'],
+                    'extension': file_doc.get('extension', ''),
+                    'mime_type': file_doc.get('mime_type', 'application/octet-stream'),
+                    'created_at': file_doc.get('created_at'),
+                    'used': file_doc.get('used', False),
                 }
             )
 

@@ -15,10 +15,10 @@ from uuid import UUID
 from typing import Optional, List
 from sqlmodel import Field, Column, Relationship
 from sqlalchemy.dialects.postgresql import JSONB
-from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, AuditMixin
+from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, AuditMixin, SoftDeleteMixin
 
 
-class Workflow(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table=True):
+class Workflow(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin, table=True):
     """工作流表 - DAG工作流定义。
 
     存储工作流的基本信息和输入输出schema。
@@ -30,6 +30,8 @@ class Workflow(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table=True
         workspace_id: 所属工作空间ID（逻辑外键，租户隔离字段）
         created_at: 创建时间
         updated_at: 最后更新时间
+        deleted_at: Optional[datetime] = Field(default=None)
+        is_deleted: bool = Field(default=False)
 
         name: 工作流名称
         description: 工作流描述
@@ -37,7 +39,7 @@ class Workflow(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table=True
         output_schema: 输出结果schema（JSONB格式）
     """
 
-    __tablename__ = "workflows"
+    __tablename__ = 'workflows'
 
     name: str = Field(max_length=255, index=True)
     description: Optional[str] = None
@@ -62,7 +64,7 @@ class Node(BaseModel, table=True):
         position: 节点位置坐标（JSONB格式，包含x和y）
     """
 
-    __tablename__ = "nodes"
+    __tablename__ = 'nodes'
 
     workflow_id: UUID = Field(index=True)  # Logical FK to workflows
     type: str = Field(max_length=50)  # LLM, CONDITION, CODE, HTTP, TRANSFORM
@@ -88,7 +90,7 @@ class Connection(BaseModel, table=True):
         target_input: 目标节点的输入端口名称
     """
 
-    __tablename__ = "connections"
+    __tablename__ = 'connections'
 
     workflow_id: UUID = Field(index=True)  # Logical FK to workflows
     source_node_id: UUID = Field(index=True)  # Logical FK to nodes
@@ -117,7 +119,7 @@ class ExecutionRecord(BaseModel, table=True):
         duration_ms: 执行耗时（毫秒）
     """
 
-    __tablename__ = "execution_records"
+    __tablename__ = 'execution_records'
 
     workflow_id: UUID = Field(index=True)  # Logical FK to workflows
     inputs: dict = Field(default_factory=dict, sa_column=Column(JSONB))
@@ -129,10 +131,10 @@ class ExecutionRecord(BaseModel, table=True):
     duration_ms: Optional[int] = None
 
     # Relationships
-    node_results: List["NodeExecutionResult"] = Relationship(
-        back_populates="execution_record",
+    node_results: List['NodeExecutionResult'] = Relationship(
+        back_populates='execution_record',
         sa_relationship_kwargs={
-            "primaryjoin": "ExecutionRecord.id == foreign(NodeExecutionResult.execution_record_id)"
+            'primaryjoin': 'ExecutionRecord.id == foreign(NodeExecutionResult.execution_record_id)'
         },
     )
 
@@ -156,7 +158,7 @@ class NodeExecutionResult(BaseModel, table=True):
         duration_ms: 执行耗时（毫秒）
     """
 
-    __tablename__ = "node_execution_results"
+    __tablename__ = 'node_execution_results'
 
     execution_record_id: UUID = Field(index=True)  # Logical FK to execution_records
     node_id: UUID = Field(index=True)  # Logical FK to nodes
@@ -168,8 +170,8 @@ class NodeExecutionResult(BaseModel, table=True):
 
     # Relationships
     execution_record: Optional[ExecutionRecord] = Relationship(
-        back_populates="node_results",
+        back_populates='node_results',
         sa_relationship_kwargs={
-            "primaryjoin": "foreign(NodeExecutionResult.execution_record_id) == ExecutionRecord.id"
+            'primaryjoin': 'foreign(NodeExecutionResult.execution_record_id) == ExecutionRecord.id'
         },
     )

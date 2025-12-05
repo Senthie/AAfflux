@@ -1,9 +1,9 @@
 """
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-04 06:14:57
-LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-04 07:33:52
-FilePath: /api/app/models/application/llm_provider.py
+LastEditors: kk123047 3254834740@qq.com
+LastEditTime: 2025-12-05 12:20:10
+FilePath: : AAfflux: api: app: models: application: llm_provider.py
 Description: 本模块定义了LLM提供商配置的数据模型。支持多种LLM服务提供商（OpenAI、Anthropic等）的配置管理。
 
 Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
@@ -12,10 +12,12 @@ Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Column, Field, SQLModel
 
-from app.models.base import AuditMixin, BaseModel, TimestampMixin, WorkspaceMixin
+from app.models.base import AuditMixin, BaseModel, TimestampMixin, WorkspaceMixin, SoftDeleteMixin
 
 
-class LLMProvider(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table=True):
+class LLMProvider(
+    BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin, table=True
+):
     """LLM提供商表 - AI模型服务配置。
 
     存储LLM服务提供商的配置信息，包括API密钥和自定义配置。
@@ -28,6 +30,8 @@ class LLMProvider(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table=T
         created_by: 创建者用户ID（逻辑外键）
         created_at: 创建时间
         updated_at: 最后更新时间
+        deleted_at: Optional[datetime] = Field(default=None)
+        is_deleted: bool = Field(default=False)
 
         name: 配置名称（用户自定义）
         provider_type: 提供商类型（OPENAI/ANTHROPIC/AZURE等）

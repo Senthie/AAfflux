@@ -37,7 +37,7 @@ class MessageAnnotation(BaseModel, TimestampMixin, table=True):
         - 一条消息可以有多个标注
     """
 
-    __tablename__ = "message_annotations"
+    __tablename__ = 'message_annotations'
 
     message_id: UUID = Field(index=True)  # Logical FK to messages
     conversation_id: UUID = Field(index=True)  # Logical FK to conversations
@@ -74,7 +74,7 @@ class MessageFeedback(BaseModel, TimestampMixin, table=True):
         - 反馈数据用于效果评估
     """
 
-    __tablename__ = "message_feedbacks"
+    __tablename__ = 'message_feedbacks'
 
     message_id: UUID = Field(index=True)  # Logical FK to messages
     conversation_id: UUID = Field(index=True)  # Logical FK to conversations
