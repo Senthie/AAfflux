@@ -1,4 +1,13 @@
-"""流程执行器"""
+"""
+Author: Senthie seemoon2077@gmail.com
+Date: 2025-12-04 09:50:20
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2025-12-08 02:34:51
+FilePath: /api/app/engine/bpm/executor.py
+Description: 流程执行器
+
+Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
+"""
 
 from datetime import datetime
 from typing import Optional
@@ -6,7 +15,7 @@ from uuid import UUID
 
 from sqlmodel import Session, select
 
-from api.app.models.bpm import ProcessInstance, ProcessStatus, Task, TaskStatus, ProcessDefinition
+from app.models.bpm import ProcessDefinition, ProcessInstance, ProcessStatus, Task, TaskStatus
 
 
 class ProcessExecutor:
@@ -23,7 +32,11 @@ class ProcessExecutor:
         variables: dict,
         business_key: Optional[str] = None,
     ) -> ProcessInstance:
-        """启动流程实例"""
+        """
+        description: 启动流程实例
+        :param {UUID} task_id
+        :param {UUID} assignee_id
+        """
         # 获取流程定义
         statement = select(ProcessDefinition).where(
             ProcessDefinition.key == process_key,
@@ -33,7 +46,7 @@ class ProcessExecutor:
         process_def = self.session.exec(statement).first()
 
         if not process_def:
-            raise ValueError(f"Process definition not found: {process_key}")
+            raise ValueError(f'Process definition not found: {process_key}')
 
         # 创建流程实例
         instance = ProcessInstance(
@@ -62,18 +75,18 @@ class ProcessExecutor:
         nodes = process_def.nodes
 
         # 找到开始节点
-        start_node = next((n for n in nodes if n.get("type") == "start"), None)
+        start_node = next((n for n in nodes if n.get('type') == 'start'), None)
         if not start_node:
-            raise ValueError("Start node not found")
+            raise ValueError('Start node not found')
 
         # 找到第一个用户任务
-        first_task_node = next((n for n in nodes if n.get("type") == "user_task"), None)
+        first_task_node = next((n for n in nodes if n.get('type') == 'user_task'), None)
 
         if first_task_node:
             # 创建任务
             await self._create_task(instance, first_task_node)
             instance.status = ProcessStatus.WAITING
-            instance.current_node_id = first_task_node["id"]
+            instance.current_node_id = first_task_node['id']
         else:
             # 没有任务，直接完成
             instance.status = ProcessStatus.COMPLETED
@@ -86,8 +99,8 @@ class ProcessExecutor:
         """创建任务"""
         task = Task(
             process_instance_id=instance.id,
-            task_def_key=node["id"],
-            task_name=node["name"],
+            task_def_key=node['id'],
+            task_name=node['name'],
             workspace_id=instance.workspace_id,
             status=TaskStatus.PENDING,
             variables=instance.variables,
@@ -103,7 +116,7 @@ class ProcessExecutor:
         """完成任务"""
         task = self.session.get(Task, task_id)
         if not task:
-            raise ValueError("Task not found")
+            raise ValueError('Task not found')
 
         # 更新任务状态
         task.status = TaskStatus.COMPLETED

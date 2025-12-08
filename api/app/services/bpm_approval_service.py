@@ -12,8 +12,9 @@ Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 from typing import Optional
 from uuid import UUID
 
-from api.app.models.bpm import Approval, ApprovalAction, Task
 from sqlmodel import Session
+
+from app.models.bpm import Approval, ApprovalAction, Task
 
 
 class ApprovalService:
@@ -70,7 +71,7 @@ class ApprovalService:
         """创建审批记录"""
         task = self.session.get(Task, task_id)
         if not task:
-            raise ValueError("Task not found")
+            raise ValueError('Task not found')
 
         approval = Approval(
             task_id=task_id,

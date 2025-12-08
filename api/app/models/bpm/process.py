@@ -26,11 +26,16 @@ class ProcessDefinition(
     """
 
     __tablename__ = 'bpm_process_definitions'
+    __tablename__ = 'bpm_process_definitions'
 
     # 流程标识
     key: str = Field(
         index=True, max_length=100, description='流程唯一标识（如：workspace_approval）'
+
     )
+    name: str = Field(max_length=255, description='流程名称')
+    description: Optional[str] = Field(default=None, description='流程描述')
+    category: Optional[str] = Field(default=None, max_length=50, description='流程分类')
     name: str = Field(max_length=255, description='流程名称')
     description: Optional[str] = Field(default=None, description='流程描述')
     category: Optional[str] = Field(default=None, max_length=50, description='流程分类')
@@ -38,25 +43,32 @@ class ProcessDefinition(
     # 版本控制
     version: int = Field(default=1, description='流程版本号')
     is_latest: bool = Field(default=True, description='是否最新版本')
+    version: int = Field(default=1, description='流程版本号')
+    is_latest: bool = Field(default=True, description='是否最新版本')
 
     # 流程定义
     bpmn_xml: Optional[str] = Field(default=None, description='BPMN 2.0 XML 定义')
+    bpmn_xml: Optional[str] = Field(default=None, description='BPMN 2.0 XML 定义')
     process_config: dict = Field(
         default_factory=dict, sa_column=Column(JSON), description='流程配置（JSON）'
+
     )
 
     # 节点定义
+    nodes: dict = Field(default_factory=dict, sa_column=Column(JSON), description='流程节点列表')
     nodes: dict = Field(default_factory=dict, sa_column=Column(JSON), description='流程节点列表')
 
     # 表单配置
     form_schema: Optional[dict] = Field(
         default=None, sa_column=Column(JSON), description='表单 Schema'
+
     )
 
     # 状态
     is_active: bool = Field(default=True, description='是否激活')
 
     # 统计
+    instance_count: int = Field(default=0, description='实例数量')
     instance_count: int = Field(default=0, description='实例数量')
 
     class Config:
@@ -75,21 +87,25 @@ class ProcessDefinition(
                         'name': '部门主管审批',
                         'assignee': 'manager',
                     },
-                    {
-                        'id': 'admin_approval',
-                        'type': 'user_task',
-                        'name': 'IT管理员审批',
-                        'assignee': 'admin',
-                    },
+
                     {'id': 'end', 'type': 'end', 'name': '结束'},
                 ],
             }
         }
 
 
+
 class ProcessStatus(str, Enum):
     """流程状态"""
 
+    PENDING = 'pending'  # 待启动
+    RUNNING = 'running'  # 运行中
+    WAITING = 'waiting'  # 等待中（等待审批）
+    SUSPENDED = 'suspended'  # 已暂停
+    COMPLETED = 'completed'  # 已完成
+    REJECTED = 'rejected'  # 已拒绝
+    CANCELLED = 'cancelled'  # 已取消
+    FAILED = 'failed'  # 失败
     PENDING = 'pending'  # 待启动
     RUNNING = 'running'  # 运行中
     WAITING = 'waiting'  # 等待中（等待审批）
@@ -113,6 +129,7 @@ class ProcessInstance(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
     """
 
     __tablename__ = 'bpm_process_instances'
+    __tablename__ = 'bpm_process_instances'
 
     # 关联流程定义（逻辑外键）
     process_definition_id: UUID = Field(index=True, description='流程定义ID')
@@ -122,13 +139,17 @@ class ProcessInstance(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
     # 业务关联
     business_key: Optional[str] = Field(
         default=None, max_length=255, index=True, description='业务键（如：application_id）'
+
     )
+    business_type: Optional[str] = Field(default=None, max_length=50, description='业务类型')
     business_type: Optional[str] = Field(default=None, max_length=50, description='业务类型')
 
     # 关联 Workflow（如果从 Workflow 触发）
     workflow_run_id: Optional[UUID] = Field(
         default=None, index=True, description='关联的工作流执行ID'
+
     )
+    workflow_node_id: Optional[str] = Field(default=None, description='触发的工作流节点ID')
     workflow_node_id: Optional[str] = Field(default=None, description='触发的工作流节点ID')
 
     # 流程状态
@@ -136,12 +157,18 @@ class ProcessInstance(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
 
     # 流程变量
     variables: dict = Field(default_factory=dict, sa_column=Column(JSON), description='流程变量')
+    variables: dict = Field(default_factory=dict, sa_column=Column(JSON), description='流程变量')
 
     # 当前节点
     current_node_id: Optional[str] = Field(default=None, description='当前执行节点ID')
     current_task_id: Optional[UUID] = Field(default=None, description='当前任务ID')
+    current_node_id: Optional[str] = Field(default=None, description='当前执行节点ID')
+    current_task_id: Optional[UUID] = Field(default=None, description='当前任务ID')
 
     # 执行信息
+    started_at: Optional[datetime] = Field(default=None, description='启动时间')
+    completed_at: Optional[datetime] = Field(default=None, description='完成时间')
+    duration_seconds: Optional[int] = Field(default=None, description='执行时长（秒）')
     started_at: Optional[datetime] = Field(default=None, description='启动时间')
     completed_at: Optional[datetime] = Field(default=None, description='完成时间')
     duration_seconds: Optional[int] = Field(default=None, description='执行时长（秒）')
@@ -154,6 +181,7 @@ class ProcessInstance(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
 
     class Config:
         json_schema_extra = {
+
             'example': {
                 'process_key': 'workspace_approval',
                 'business_key': 'workspace_123',
@@ -165,5 +193,6 @@ class ProcessInstance(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
                     'reason': '项目需要',
                 },
                 'current_node_id': 'manager_approval',
+
             }
         }

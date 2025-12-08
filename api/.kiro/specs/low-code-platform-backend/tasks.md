@@ -178,7 +178,7 @@
 - [ ] 8. 检查点 - 确保所有测试通过
   - 确保所有测试通过，如有问题请询问用户
 
-- [ ] 9. 实现工作流验证和序列化
+- [x] 9. 实现工作流验证和序列化
   - 实现 app/services/workflow_validator.py（完整性检查、循环依赖检测）
   - 实现 app/services/workflow_serializer.py（JSON 序列化/反序列化）
   - 实现 app/utils/dag.py（DAG 相关工具函数）
