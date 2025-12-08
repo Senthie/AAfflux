@@ -11,18 +11,18 @@ from app.models.user import User, Team, TeamMember, Workspace
 class Role(str, Enum):
     """User roles in a team."""
 
-    ADMIN = "ADMIN"
-    MEMBER = "MEMBER"
-    GUEST = "GUEST"
+    ADMIN = 'ADMIN'
+    MEMBER = 'MEMBER'
+    GUEST = 'GUEST'
 
 
 class Action(str, Enum):
     """Actions that can be performed on resources."""
 
-    CREATE = "CREATE"
-    READ = "READ"
-    UPDATE = "UPDATE"
-    DELETE = "DELETE"
+    CREATE = 'CREATE'
+    READ = 'READ'
+    UPDATE = 'UPDATE'
+    DELETE = 'DELETE'
 
 
 class PermissionChecker:
@@ -147,7 +147,7 @@ class PermissionChecker:
         """
         if not self.check_permission(user, workspace, action):
             raise PermissionError(
-                f"User does not have permission to {action.value} in this workspace"
+                f'User does not have permission to {action.value} in this workspace'
             )
 
     def _has_permission(self, role: Role, action: Action) -> bool:

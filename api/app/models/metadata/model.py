@@ -12,36 +12,36 @@ from app.models.base import BaseModel, TimestampMixin, AuditMixin, WorkspaceMixi
 class ModelStatus(str, Enum):
     """模型状态"""
 
-    DRAFT = "draft"  # 草稿
-    PUBLISHED = "published"  # 已发布
-    ARCHIVED = "archived"  # 已归档
+    DRAFT = 'draft'  # 草稿
+    PUBLISHED = 'published'  # 已发布
+    ARCHIVED = 'archived'  # 已归档
 
 
 class FieldType(str, Enum):
     """字段类型"""
 
     # 基本类型
-    STRING = "string"
-    TEXT = "text"
-    INTEGER = "integer"
-    FLOAT = "float"
-    DECIMAL = "decimal"
-    BOOLEAN = "boolean"
-    DATE = "date"
-    DATETIME = "datetime"
-    TIME = "time"
+    STRING = 'string'
+    TEXT = 'text'
+    INTEGER = 'integer'
+    FLOAT = 'float'
+    DECIMAL = 'decimal'
+    BOOLEAN = 'boolean'
+    DATE = 'date'
+    DATETIME = 'datetime'
+    TIME = 'time'
 
     # 特殊类型
-    EMAIL = "email"
-    URL = "url"
-    PHONE = "phone"
-    JSON = "json"
-    UUID = "uuid"
+    EMAIL = 'email'
+    URL = 'url'
+    PHONE = 'phone'
+    JSON = 'json'
+    UUID = 'uuid'
 
     # 关系类型
-    FOREIGN_KEY = "foreign_key"
-    ONE_TO_MANY = "one_to_many"
-    MANY_TO_MANY = "many_to_many"
+    FOREIGN_KEY = 'foreign_key'
+    ONE_TO_MANY = 'one_to_many'
+    MANY_TO_MANY = 'many_to_many'
 
 
 class MetadataModel(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table=True):
@@ -78,49 +78,49 @@ class MetadataModel(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table
         - 删除模型时会同时删除相关的字段、关系等
     """
 
-    __tablename__ = "metadata_models"
+    __tablename__ = 'metadata_models'
 
     # 模型信息
-    name: str = Field(max_length=255, index=True, description="模型名称（英文）")
-    display_name: str = Field(max_length=255, description="显示名称（中文）")
-    description: Optional[str] = Field(default=None, description="模型描述")
+    name: str = Field(max_length=255, index=True, description='模型名称（英文）')
+    display_name: str = Field(max_length=255, description='显示名称（中文）')
+    description: Optional[str] = Field(default=None, description='模型描述')
 
     # 数据库信息
-    table_name: str = Field(max_length=255, description="数据库表名")
-    schema_name: Optional[str] = Field(default=None, max_length=255, description="数据库模式")
+    table_name: str = Field(max_length=255, description='数据库表名')
+    schema_name: Optional[str] = Field(default=None, max_length=255, description='数据库模式')
 
     # 模型配置
-    icon: Optional[str] = Field(default=None, max_length=255, description="图标")
-    category: Optional[str] = Field(default=None, max_length=100, description="分类")
+    icon: Optional[str] = Field(default=None, max_length=255, description='图标')
+    category: Optional[str] = Field(default=None, max_length=100, description='分类')
 
     # JSON Schema 定义
     schema_definition: dict = Field(
-        default_factory=dict, sa_column=Column(JSON), description="JSON Schema 定义"
+        default_factory=dict, sa_column=Column(JSON), description='JSON Schema 定义'
     )
 
     # 版本控制
-    version: int = Field(default=1, description="版本号")
-    is_latest: bool = Field(default=True, description="是否最新版本")
+    version: int = Field(default=1, description='版本号')
+    is_latest: bool = Field(default=True, description='是否最新版本')
 
     # 状态
-    status: ModelStatus = Field(default=ModelStatus.DRAFT, description="模型状态")
+    status: ModelStatus = Field(default=ModelStatus.DRAFT, description='模型状态')
 
     # 配置选项
-    enable_audit: bool = Field(default=True, description="启用审计字段")
-    enable_soft_delete: bool = Field(default=True, description="启用软删除")
-    enable_versioning: bool = Field(default=False, description="启用版本控制")
+    enable_audit: bool = Field(default=True, description='启用审计字段')
+    enable_soft_delete: bool = Field(default=True, description='启用软删除')
+    enable_versioning: bool = Field(default=False, description='启用版本控制')
 
     # 权限配置
-    permissions: dict = Field(default_factory=dict, sa_column=Column(JSON), description="权限配置")
+    permissions: dict = Field(default_factory=dict, sa_column=Column(JSON), description='权限配置')
 
     # 发布时间
-    published_at: Optional[datetime] = Field(default=None, description="发布时间")
+    published_at: Optional[datetime] = Field(default=None, description='发布时间')
 
     # 统计
-    record_count: int = Field(default=0, description="记录数量")
+    record_count: int = Field(default=0, description='记录数量')
 
     # 关系
-    fields: List["MetadataField"] = Relationship(back_populates="model")
+    fields: List['MetadataField'] = Relationship(back_populates='model')
 
 
 class MetadataField(BaseModel, TimestampMixin, table=True):
@@ -158,32 +158,32 @@ class MetadataField(BaseModel, TimestampMixin, table=True):
         - 删除字段时需要检查是否被其他模型引用
     """
 
-    __tablename__ = "metadata_fields"
+    __tablename__ = 'metadata_fields'
 
     # 所属模型
-    model_id: UUID = Field(index=True, description="所属模型ID")  # Logical FK to metadata_models
+    model_id: UUID = Field(index=True, description='所属模型ID')  # Logical FK to metadata_models
 
     # 字段信息
-    name: str = Field(max_length=255, description="字段名称（英文）")
-    display_name: str = Field(max_length=255, description="显示名称（中文）")
-    description: Optional[str] = Field(default=None, description="字段描述")
+    name: str = Field(max_length=255, description='字段名称（英文）')
+    display_name: str = Field(max_length=255, description='显示名称（中文）')
+    description: Optional[str] = Field(default=None, description='字段描述')
 
     # 字段类型
-    field_type: FieldType = Field(description="逻辑字段类型")
-    db_type: Optional[str] = Field(default=None, max_length=50, description="数据库字段类型")
+    field_type: FieldType = Field(description='逻辑字段类型')
+    db_type: Optional[str] = Field(default=None, max_length=50, description='数据库字段类型')
 
     # 字段属性
-    is_required: bool = Field(default=False, description="是否必填")
-    is_unique: bool = Field(default=False, description="是否唯一")
-    is_indexed: bool = Field(default=False, description="是否建立索引")
-    is_primary_key: bool = Field(default=False, description="是否主键")
+    is_required: bool = Field(default=False, description='是否必填')
+    is_unique: bool = Field(default=False, description='是否唯一')
+    is_indexed: bool = Field(default=False, description='是否建立索引')
+    is_primary_key: bool = Field(default=False, description='是否主键')
 
     # 默认值
-    default_value: Optional[str] = Field(default=None, description="默认值")
+    default_value: Optional[str] = Field(default=None, description='默认值')
 
     # 验证规则
     validation_rules: dict = Field(
-        default_factory=dict, sa_column=Column(JSON), description="验证规则"
+        default_factory=dict, sa_column=Column(JSON), description='验证规则'
     )
     # 示例：
     # {
@@ -196,7 +196,7 @@ class MetadataField(BaseModel, TimestampMixin, table=True):
     # }
 
     # UI 配置
-    ui_config: dict = Field(default_factory=dict, sa_column=Column(JSON), description="UI配置")
+    ui_config: dict = Field(default_factory=dict, sa_column=Column(JSON), description='UI配置')
     # 示例：
     # {
     #   "widget": "input",  # input, textarea, select, date-picker, etc.
@@ -208,7 +208,7 @@ class MetadataField(BaseModel, TimestampMixin, table=True):
 
     # 关系配置（用于外键字段）
     relation_config: Optional[dict] = Field(
-        default=None, sa_column=Column(JSON), description="关系配置"
+        default=None, sa_column=Column(JSON), description='关系配置'
     )
     # 示例：
     # {
@@ -219,10 +219,10 @@ class MetadataField(BaseModel, TimestampMixin, table=True):
     # }
 
     # 显示顺序
-    position: int = Field(default=0, description="显示顺序")
+    position: int = Field(default=0, description='显示顺序')
 
     # 关系
-    model: MetadataModel = Relationship(back_populates="fields")
+    model: MetadataModel = Relationship(back_populates='fields')
 
 
 class MetadataRelation(BaseModel, TimestampMixin, table=True):
@@ -252,27 +252,27 @@ class MetadataRelation(BaseModel, TimestampMixin, table=True):
         - 级联操作影响数据完整性
     """
 
-    __tablename__ = "metadata_relations"
+    __tablename__ = 'metadata_relations'
 
     # 源模型和目标模型
-    source_model_id: UUID = Field(description="源模型ID")  # Logical FK to metadata_models
-    target_model_id: UUID = Field(description="目标模型ID")  # Logical FK to metadata_models
+    source_model_id: UUID = Field(description='源模型ID')  # Logical FK to metadata_models
+    target_model_id: UUID = Field(description='目标模型ID')  # Logical FK to metadata_models
 
     # 关系信息
-    name: str = Field(max_length=255, description="关系名称")
+    name: str = Field(max_length=255, description='关系名称')
     relation_type: str = Field(
-        max_length=50, description="关系类型"
+        max_length=50, description='关系类型'
     )  # one_to_one, one_to_many, many_to_many
 
     # 外键字段
-    foreign_key_field: str = Field(max_length=255, description="外键字段名")
+    foreign_key_field: str = Field(max_length=255, description='外键字段名')
 
     # 级联操作
-    on_delete: str = Field(default="CASCADE", max_length=50, description="删除时级联操作")
-    on_update: str = Field(default="CASCADE", max_length=50, description="更新时级联操作")
+    on_delete: str = Field(default='CASCADE', max_length=50, description='删除时级联操作')
+    on_update: str = Field(default='CASCADE', max_length=50, description='更新时级联操作')
 
     # 中间表（用于多对多）
-    junction_table: Optional[str] = Field(default=None, max_length=255, description="中间表名")
+    junction_table: Optional[str] = Field(default=None, max_length=255, description='中间表名')
 
 
 class MetadataIndex(BaseModel, TimestampMixin, table=True):
@@ -298,15 +298,15 @@ class MetadataIndex(BaseModel, TimestampMixin, table=True):
         - 复合索引的字段顺序很重要
     """
 
-    __tablename__ = "metadata_indexes"
+    __tablename__ = 'metadata_indexes'
 
     # 所属模型
-    model_id: UUID = Field(description="所属模型ID")  # Logical FK to metadata_models
+    model_id: UUID = Field(description='所属模型ID')  # Logical FK to metadata_models
 
     # 索引信息
-    name: str = Field(max_length=255, description="索引名称")
-    fields: List[str] = Field(sa_column=Column(JSON), description="索引字段列表")
-    is_unique: bool = Field(default=False, description="是否唯一索引")
+    name: str = Field(max_length=255, description='索引名称')
+    fields: List[str] = Field(sa_column=Column(JSON), description='索引字段列表')
+    is_unique: bool = Field(default=False, description='是否唯一索引')
 
 
 class MetadataVersion(BaseModel, TimestampMixin, AuditMixin, table=True):
@@ -335,16 +335,16 @@ class MetadataVersion(BaseModel, TimestampMixin, AuditMixin, table=True):
         - 支持回滚到任意版本
     """
 
-    __tablename__ = "metadata_versions"
+    __tablename__ = 'metadata_versions'
 
     # 实体信息
-    entity_type: str = Field(max_length=50, description="实体类型")  # model, field, relation
-    entity_id: UUID = Field(description="实体ID")
+    entity_type: str = Field(max_length=50, description='实体类型')  # model, field, relation
+    entity_id: UUID = Field(description='实体ID')
 
     # 版本信息
-    version: int = Field(description="版本号")
-    content: dict = Field(sa_column=Column(JSON), description="版本内容快照")
-    change_log: Optional[str] = Field(default=None, description="变更日志")
+    version: int = Field(description='版本号')
+    content: dict = Field(sa_column=Column(JSON), description='版本内容快照')
+    change_log: Optional[str] = Field(default=None, description='变更日志')
 
 
 class MetadataPage(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table=True):
@@ -378,32 +378,32 @@ class MetadataPage(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table=
         - 支持组件拖拽和配置
     """
 
-    __tablename__ = "metadata_pages"
+    __tablename__ = 'metadata_pages'
 
     # 页面信息
-    name: str = Field(max_length=255, index=True, description="页面名称")
-    display_name: str = Field(max_length=255, description="显示名称")
-    description: Optional[str] = Field(default=None, description="页面描述")
+    name: str = Field(max_length=255, index=True, description='页面名称')
+    display_name: str = Field(max_length=255, description='显示名称')
+    description: Optional[str] = Field(default=None, description='页面描述')
 
     # 路由信息
-    route_path: str = Field(max_length=500, description="路由路径")
+    route_path: str = Field(max_length=500, description='路由路径')
 
     # 布局配置
     layout_config: dict = Field(
-        default_factory=dict, sa_column=Column(JSON), description="布局配置"
+        default_factory=dict, sa_column=Column(JSON), description='布局配置'
     )
 
     # 组件配置
     components: List[dict] = Field(
-        default_factory=list, sa_column=Column(JSON), description="组件配置"
+        default_factory=list, sa_column=Column(JSON), description='组件配置'
     )
 
     # 数据绑定
-    data_binding: dict = Field(default_factory=dict, sa_column=Column(JSON), description="数据绑定")
+    data_binding: dict = Field(default_factory=dict, sa_column=Column(JSON), description='数据绑定')
 
     # 权限配置
-    permissions: dict = Field(default_factory=dict, sa_column=Column(JSON), description="权限配置")
+    permissions: dict = Field(default_factory=dict, sa_column=Column(JSON), description='权限配置')
 
     # 版本控制
-    version: int = Field(default=1, description="版本号")
-    status: str = Field(max_length=50, default="draft", description="页面状态")
+    version: int = Field(default=1, description='版本号')
+    status: str = Field(max_length=50, default='draft', description='页面状态')

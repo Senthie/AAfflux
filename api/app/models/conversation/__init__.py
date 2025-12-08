@@ -5,9 +5,9 @@ from app.models.conversation.annotation import MessageAnnotation, MessageFeedbac
 from app.models.conversation.end_user import EndUser
 
 __all__ = [
-    "Conversation",
-    "Message",
-    "MessageAnnotation",
-    "MessageFeedback",
-    "EndUser",
+    'Conversation',
+    'Message',
+    'MessageAnnotation',
+    'MessageFeedback',
+    'EndUser',
 ]

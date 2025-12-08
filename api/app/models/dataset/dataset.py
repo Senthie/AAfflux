@@ -44,7 +44,7 @@ class Dataset(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table=True)
         - 可以被多个应用引用
     """
 
-    __tablename__ = "datasets"
+    __tablename__ = 'datasets'
 
     name: str = Field(max_length=255, index=True)
     description: Optional[str] = None
@@ -52,7 +52,7 @@ class Dataset(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table=True)
     embedding_model: str = Field(max_length=100)
     embedding_model_provider: str = Field(max_length=100)
     retrieval_model_config: dict = Field(default_factory=dict, sa_column=Column(JSONB))
-    indexing_technique: str = Field(max_length=50, default="high_quality")  # high_quality, economy
+    indexing_technique: str = Field(max_length=50, default='high_quality')  # high_quality, economy
     document_count: int = Field(default=0)
     word_count: int = Field(default=0)
 
@@ -92,7 +92,7 @@ class Document(BaseModel, TimestampMixin, AuditMixin, table=True):
         - 可以禁用或归档文档
     """
 
-    __tablename__ = "documents"
+    __tablename__ = 'documents'
 
     dataset_id: UUID = Field(index=True)  # Logical FK to datasets
     name: str = Field(max_length=255)
@@ -103,7 +103,7 @@ class Document(BaseModel, TimestampMixin, AuditMixin, table=True):
     word_count: int = Field(default=0)
     tokens: int = Field(default=0)
     indexing_status: str = Field(
-        max_length=50, index=True, default="waiting"
+        max_length=50, index=True, default='waiting'
     )  # waiting, parsing, splitting, indexing, completed, error
     error: Optional[str] = None
     enabled: bool = Field(default=True, index=True)
@@ -149,7 +149,7 @@ class DocumentSegment(BaseModel, TimestampMixin, AuditMixin, table=True):
         - 可以禁用特定段落
     """
 
-    __tablename__ = "document_segments"
+    __tablename__ = 'document_segments'
 
     document_id: UUID = Field(index=True)  # Logical FK to documents
     dataset_id: UUID = Field(index=True)  # Logical FK to datasets
@@ -165,7 +165,7 @@ class DocumentSegment(BaseModel, TimestampMixin, AuditMixin, table=True):
     disabled_at: Optional[datetime] = None
     disabled_by: Optional[UUID] = None  # Logical FK to users
     status: str = Field(
-        max_length=50, index=True, default="waiting"
+        max_length=50, index=True, default='waiting'
     )  # waiting, indexing, completed, error
     error: Optional[str] = None
 
@@ -191,7 +191,7 @@ class DatasetApplicationJoin(BaseModel, TimestampMixin, table=True):
         - 用于RAG检索增强生成
     """
 
-    __tablename__ = "dataset_application_joins"
+    __tablename__ = 'dataset_application_joins'
 
     dataset_id: UUID = Field(index=True)  # Logical FK to datasets
     application_id: UUID = Field(index=True)  # Logical FK to applications

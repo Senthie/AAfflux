@@ -38,7 +38,7 @@ class APIKey(BaseModel, TimestampMixin, table=True):
         - 记录最后使用时间用于安全审计
     """
 
-    __tablename__ = "api_keys"
+    __tablename__ = 'api_keys'
 
     application_id: UUID = Field(index=True)  # Logical FK to applications
     key_hash: str = Field(max_length=255, unique=True, index=True)

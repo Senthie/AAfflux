@@ -40,11 +40,11 @@ class Conversation(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
         - 记录消息数量用于统计和限制
     """
 
-    __tablename__ = "conversations"
+    __tablename__ = 'conversations'
     application_id: UUID = Field(index=True)  # Logical FK to applications
     end_user_id: UUID = Field(index=True)  # Logical FK to end_users
     title: str = Field(max_length=500)
-    status: str = Field(max_length=20, index=True, default="active")  # active, archived, deleted
+    status: str = Field(max_length=20, index=True, default='active')  # active, archived, deleted
     summary: Optional[str] = None
     message_count: int = Field(default=0)
     custom_metadata: Optional[dict] = Field(default=None, sa_column=Column(JSONB))
@@ -89,7 +89,7 @@ class Message(BaseModel, TimestampMixin, table=True):
         - 记录模型信息用于追踪和分析
     """
 
-    __tablename__ = "messages"
+    __tablename__ = 'messages'
 
     conversation_id: UUID = Field(index=True)  # Logical FK to conversations
     application_id: UUID = Field(index=True)  # Logical FK to applications
@@ -108,6 +108,6 @@ class Message(BaseModel, TimestampMixin, table=True):
     completion_tokens: int = Field(default=0)
     total_tokens: int = Field(default=0)
     latency: float = Field(default=0.0)
-    status: str = Field(max_length=20, index=True, default="success")  # success, failed, processing
+    status: str = Field(max_length=20, index=True, default='success')  # success, failed, processing
     error: Optional[str] = None
     custom_metadata: Optional[dict] = Field(default=None, sa_column=Column(JSONB))

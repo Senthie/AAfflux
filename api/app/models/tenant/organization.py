@@ -38,7 +38,7 @@ class Organization(BaseModel, TimestampMixin, AuditMixin, table=True):
 
     """
 
-    __tablename__ = "organizations"
+    __tablename__ = 'organizations'
 
     name: str = Field(max_length=255, index=True)
     description: Optional[str] = None
@@ -65,7 +65,7 @@ class Team(BaseModel, TimestampMixin, AuditMixin, table=True):
 
     """
 
-    __tablename__ = "teams"
+    __tablename__ = 'teams'
 
     name: str = Field(max_length=255, index=True)
     organization_id: Optional[UUID] = Field(default=None, index=True)  # Logical FK to organizations
@@ -94,7 +94,7 @@ class Workspace(BaseModel, TimestampMixin, AuditMixin, table=True):
 
     """
 
-    __tablename__ = "workspaces"
+    __tablename__ = 'workspaces'
 
     name: str = Field(max_length=255, index=True)
     team_id: UUID = Field(index=True)  # Logical FK to teams
@@ -118,9 +118,9 @@ class TeamMember(BaseModel, table=True):
         joined_at: 加入时间
     """
 
-    __tablename__ = "team_members"
+    __tablename__ = 'team_members'
 
     team_id: UUID = Field(index=True)  # Logical FK to teams
     user_id: UUID = Field(index=True)  # Logical FK to users
-    role: str = Field(default="MEMBER", max_length=16)  # ADMIN, MEMBER, GUEST
+    role: str = Field(default='MEMBER', max_length=16)  # ADMIN, MEMBER, GUEST
     joined_at: datetime = Field(default_factory=datetime.utcnow)

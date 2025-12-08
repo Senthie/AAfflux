@@ -48,7 +48,7 @@ class Plugin(BaseModel, TimestampMixin, table=True):
         - 插件清单定义配置schema和能力
     """
 
-    __tablename__ = "plugins"
+    __tablename__ = 'plugins'
 
     name: str = Field(max_length=255, unique=True, index=True)
     display_name: str = Field(max_length=255)
@@ -92,7 +92,7 @@ class InstalledPlugin(BaseModel, TimestampMixin, WorkspaceMixin, table=True):
         - 记录安装者和安装时间
     """
 
-    __tablename__ = "installed_plugins"
+    __tablename__ = 'installed_plugins'
 
     plugin_id: UUID = Field(index=True)  # Logical FK to plugins
     config: dict = Field(default_factory=dict, sa_column=Column(JSONB))

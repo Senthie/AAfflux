@@ -4,9 +4,9 @@ from app.models.tenant.organization import Organization, Team, Workspace, TeamMe
 from app.models.tenant.invitation import TeamInvitation
 
 __all__ = [
-    "Organization",
-    "Team",
-    "Workspace",
-    "TeamMember",
-    "TeamInvitation",
+    'Organization',
+    'Team',
+    'Workspace',
+    'TeamMember',
+    'TeamInvitation',
 ]

@@ -5,8 +5,8 @@ from .token import RefreshToken, PasswordReset
 from .api_key import APIKey
 
 __all__ = [
-    "User",
-    "RefreshToken",
-    "PasswordReset",
-    "APIKey",
+    'User',
+    'RefreshToken',
+    'PasswordReset',
+    'APIKey',
 ]

@@ -66,7 +66,7 @@ class AuthService:
         existing_user = self.db.exec(statement).first()
 
         if existing_user:
-            raise ValueError("Email already registered")
+            raise ValueError('Email already registered')
 
         # Create new user
         password_hash = get_password_hash(request.password)
@@ -106,11 +106,11 @@ class AuthService:
         user = self.db.exec(statement).first()
 
         if not user:
-            raise ValueError("Invalid email or password")
+            raise ValueError('Invalid email or password')
 
         # Verify password
         if not verify_password(request.password, user.password_hash):
-            raise ValueError("Invalid email or password")
+            raise ValueError('Invalid email or password')
 
         # Generate tokens
         tokens = await self._generate_token_pair(user.id)
@@ -137,19 +137,19 @@ class AuthService:
         payload = verify_token(refresh_token, token_type=TokenType.REFRESH)
 
         if not payload:
-            raise ValueError("Invalid or expired refresh token")
+            raise ValueError('Invalid or expired refresh token')
 
-        user_id = UUID(payload["user_id"])
+        user_id = UUID(payload['user_id'])
 
         # Check if token is revoked
-        revoked_key = f"revoked_token:{refresh_token}"
+        revoked_key = f'revoked_token:{refresh_token}'
         if await self.redis.exists(revoked_key):
-            raise ValueError("Token has been revoked")
+            raise ValueError('Token has been revoked')
 
         # Verify user still exists
         user = self.db.get(User, user_id)
         if not user:
-            raise ValueError("User not found")
+            raise ValueError('User not found')
 
         # Generate new token pair
         tokens = await self._generate_token_pair(user_id)
@@ -170,22 +170,22 @@ class AuthService:
 
         # Calculate remaining TTL for tokens
         if access_payload:
-            access_exp = access_payload.get("exp")
+            access_exp = access_payload.get('exp')
             if access_exp:
                 access_ttl = max(0, access_exp - int(datetime.utcnow().timestamp()))
                 await self.redis.set(
-                    f"revoked_token:{access_token}",
-                    "1",
+                    f'revoked_token:{access_token}',
+                    '1',
                     expire=access_ttl,
                 )
 
         if refresh_payload:
-            refresh_exp = refresh_payload.get("exp")
+            refresh_exp = refresh_payload.get('exp')
             if refresh_exp:
                 refresh_ttl = max(0, refresh_exp - int(datetime.utcnow().timestamp()))
                 await self.redis.set(
-                    f"revoked_token:{refresh_token}",
-                    "1",
+                    f'revoked_token:{refresh_token}',
+                    '1',
                     expire=refresh_ttl,
                 )
 
@@ -204,16 +204,16 @@ class AuthService:
         user = self.db.exec(statement).first()
 
         if not user:
-            raise ValueError("User not found")
+            raise ValueError('User not found')
 
         # Generate password reset token (valid for 1 hour)
         reset_token = generate_access_token(
-            user.id, additional_claims={"purpose": "password_reset"}
+            user.id, additional_claims={'purpose': 'password_reset'}
         )
 
         # Store reset token in Redis with 1 hour expiration
         await self.redis.set(
-            f"password_reset:{user.id}",
+            f'password_reset:{user.id}',
             reset_token,
             expire=3600,  # 1 hour
         )
@@ -237,20 +237,20 @@ class AuthService:
         # Verify reset token
         payload = verify_token(token)
 
-        if not payload or payload.get("purpose") != "password_reset":
-            raise ValueError("Invalid or expired reset token")
+        if not payload or payload.get('purpose') != 'password_reset':
+            raise ValueError('Invalid or expired reset token')
 
-        user_id = UUID(payload["user_id"])
+        user_id = UUID(payload['user_id'])
 
         # Verify token is still in Redis
-        stored_token = await self.redis.get(f"password_reset:{user_id}")
+        stored_token = await self.redis.get(f'password_reset:{user_id}')
         if not stored_token or stored_token != token:
-            raise ValueError("Invalid or expired reset token")
+            raise ValueError('Invalid or expired reset token')
 
         # Get user
         user = self.db.get(User, user_id)
         if not user:
-            raise ValueError("User not found")
+            raise ValueError('User not found')
 
         # Update password
         user.password_hash = get_password_hash(new_password)
@@ -260,7 +260,7 @@ class AuthService:
         self.db.commit()
 
         # Delete reset token
-        await self.redis.delete(f"password_reset:{user_id}")
+        await self.redis.delete(f'password_reset:{user_id}')
 
     async def verify_access_token(self, token: str) -> Optional[User]:
         """
@@ -273,7 +273,7 @@ class AuthService:
             User if token is valid, None otherwise
         """
         # Check if token is revoked
-        revoked_key = f"revoked_token:{token}"
+        revoked_key = f'revoked_token:{token}'
         if await self.redis.exists(revoked_key):
             return None
 
@@ -283,7 +283,7 @@ class AuthService:
         if not payload:
             return None
 
-        user_id = UUID(payload["user_id"])
+        user_id = UUID(payload['user_id'])
 
         # Get user from database
         user = self.db.get(User, user_id)
@@ -306,6 +306,6 @@ class AuthService:
         return TokenPair(
             access_token=access_token,
             refresh_token=refresh_token,
-            token_type="bearer",
+            token_type='bearer',
             expires_in=settings.access_token_expire_minutes * 60,
         )

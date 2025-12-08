@@ -9,9 +9,9 @@ from app.models.workflow.workflow import (
 )
 
 __all__ = [
-    "Workflow",
-    "Node",
-    "Connection",
-    "ExecutionRecord",
-    "NodeExecutionResult",
+    'Workflow',
+    'Node',
+    'Connection',
+    'ExecutionRecord',
+    'NodeExecutionResult',
 ]

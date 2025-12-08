@@ -31,28 +31,28 @@ class AuthMiddleware(BaseHTTPMiddleware):
         """
         # Skip authentication for public endpoints
         public_paths = [
-            "/docs",
-            "/redoc",
-            "/openapi.json",
-            "/api/v1/auth/register",
-            "/api/v1/auth/login",
-            "/api/v1/auth/refresh",
-            "/api/v1/auth/reset-password",
-            "/api/v1/auth/confirm-reset-password",
+            '/docs',
+            '/redoc',
+            '/openapi.json',
+            '/api/v1/auth/register',
+            '/api/v1/auth/login',
+            '/api/v1/auth/refresh',
+            '/api/v1/auth/reset-password',
+            '/api/v1/auth/confirm-reset-password',
         ]
 
         if request.url.path in public_paths:
             return await call_next(request)
 
         # Get authorization header
-        auth_header = request.headers.get("Authorization")
+        auth_header = request.headers.get('Authorization')
 
-        if not auth_header or not auth_header.startswith("Bearer "):
+        if not auth_header or not auth_header.startswith('Bearer '):
             # Allow request to proceed - individual endpoints can enforce auth
             return await call_next(request)
 
         # Extract token
-        token = auth_header.replace("Bearer ", "")
+        token = auth_header.replace('Bearer ', '')
 
         # Verify token and attach user to request state
         try:
@@ -87,13 +87,13 @@ async def get_current_user(request: Request) -> User:
     Raises:
         HTTPException: If user is not authenticated
     """
-    user = getattr(request.state, "user", None)
+    user = getattr(request.state, 'user', None)
 
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
-            headers={"WWW-Authenticate": "Bearer"},
+            detail='Not authenticated',
+            headers={'WWW-Authenticate': 'Bearer'},
         )
 
     return user
@@ -109,7 +109,7 @@ async def get_current_user_optional(request: Request) -> Optional[User]:
     Returns:
         Current user or None
     """
-    return getattr(request.state, "user", None)
+    return getattr(request.state, 'user', None)
 
 
 async def verify_token_dependency(
@@ -141,8 +141,8 @@ async def verify_token_dependency(
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"},
+            detail='Invalid or expired token',
+            headers={'WWW-Authenticate': 'Bearer'},
         )
 
     return user

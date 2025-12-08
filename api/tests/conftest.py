@@ -6,23 +6,22 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sess
 from sqlmodel import SQLModel
 
 
-
 # Test database URL (use SQLite for testing)
-TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+TEST_DATABASE_URL = 'sqlite+aiosqlite:///:memory:'
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def test_engine():
     """Create test database engine."""
     engine = create_async_engine(
         TEST_DATABASE_URL,
         echo=False,
-        connect_args={"check_same_thread": False},
+        connect_args={'check_same_thread': False},
     )
     return engine
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope='function')
 async def test_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
     """Create test database session."""
     # Create tables

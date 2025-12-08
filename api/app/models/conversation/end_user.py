@@ -42,7 +42,7 @@ class EndUser(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
         - 可以存储自定义元数据用于个性化
     """
 
-    __tablename__ = "end_users"
+    __tablename__ = 'end_users'
 
     session_id: str = Field(max_length=255, index=True)
     external_user_id: Optional[str] = Field(default=None, max_length=255, index=True)

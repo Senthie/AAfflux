@@ -9,8 +9,8 @@ class TestConfiguration:
 
     def test_settings_loaded(self):
         """Test that settings are loaded correctly."""
-        assert settings.app_name == "Low-Code Platform Backend"
-        assert settings.jwt_algorithm == "HS256"
+        assert settings.app_name == 'Low-Code Platform Backend'
+        assert settings.jwt_algorithm == 'HS256'
         assert settings.database_url is not None
         assert settings.mongodb_url is not None
         assert settings.redis_url is not None
@@ -36,7 +36,7 @@ class TestDatabaseConnection:
         assert test_session is not None
 
         # Test a simple query
-        result = await test_session.execute(text("SELECT 1"))
+        result = await test_session.execute(text('SELECT 1'))
         assert result is not None
 
 
@@ -46,5 +46,5 @@ async def test_application_startup():
     from app.main import app
 
     assert app is not None
-    assert app.title == "Low-Code Platform Backend"
-    assert app.version == "0.1.0"
+    assert app.title == 'Low-Code Platform Backend'
+    assert app.version == '0.1.0'

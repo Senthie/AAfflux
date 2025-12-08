@@ -3,7 +3,7 @@
 from app.models.file.reference import FileReference
 
 __all__ = [
-    "FileReference",
+    'FileReference',
 ]
 
 

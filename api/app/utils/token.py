@@ -11,8 +11,8 @@ from app.core.config import settings
 class TokenType:
     """Token type constants."""
 
-    ACCESS = "access"
-    REFRESH = "refresh"
+    ACCESS = 'access'
+    REFRESH = 'refresh'
 
 
 def generate_access_token(user_id: UUID, additional_claims: Optional[Dict[str, Any]] = None) -> str:
@@ -27,10 +27,10 @@ def generate_access_token(user_id: UUID, additional_claims: Optional[Dict[str, A
         Encoded JWT access token
     """
     payload = {
-        "user_id": str(user_id),
-        "type": TokenType.ACCESS,
-        "exp": datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes),
-        "iat": datetime.utcnow(),
+        'user_id': str(user_id),
+        'type': TokenType.ACCESS,
+        'exp': datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes),
+        'iat': datetime.utcnow(),
     }
 
     if additional_claims:
@@ -51,10 +51,10 @@ def generate_refresh_token(user_id: UUID) -> str:
         Encoded JWT refresh token
     """
     payload = {
-        "user_id": str(user_id),
-        "type": TokenType.REFRESH,
-        "exp": datetime.utcnow() + timedelta(days=settings.refresh_token_expire_days),
-        "iat": datetime.utcnow(),
+        'user_id': str(user_id),
+        'type': TokenType.REFRESH,
+        'exp': datetime.utcnow() + timedelta(days=settings.refresh_token_expire_days),
+        'iat': datetime.utcnow(),
     }
 
     token = jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
@@ -76,7 +76,7 @@ def verify_token(token: str, token_type: Optional[str] = None) -> Optional[Dict[
         payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
 
         # Verify token type if specified
-        if token_type and payload.get("type") != token_type:
+        if token_type and payload.get('type') != token_type:
             return None
 
         return payload
@@ -97,7 +97,7 @@ def decode_token(token: str) -> Optional[Dict[str, Any]]:
         Token payload if decodable, None otherwise
     """
     try:
-        payload = jwt.decode(token, options={"verify_signature": False})
+        payload = jwt.decode(token, options={'verify_signature': False})
         return payload
     except jwt.InvalidTokenError:
         return None

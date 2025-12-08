@@ -10,11 +10,11 @@ from pydantic import BaseModel, Field
 class ProcessDefinitionCreate(BaseModel):
     """创建流程定义"""
 
-    key: str = Field(..., description="流程唯一标识")
-    name: str = Field(..., description="流程名称")
+    key: str = Field(..., description='流程唯一标识')
+    name: str = Field(..., description='流程名称')
     description: Optional[str] = None
     category: Optional[str] = None
-    nodes: list = Field(default_factory=list, description="流程节点")
+    nodes: list = Field(default_factory=list, description='流程节点')
     form_schema: Optional[dict] = None
 
 
@@ -33,10 +33,10 @@ class ProcessDefinitionResponse(BaseModel):
 class ProcessInstanceCreate(BaseModel):
     """启动流程实例"""
 
-    process_key: str = Field(..., description="流程标识")
-    business_key: Optional[str] = Field(None, description="业务键")
+    process_key: str = Field(..., description='流程标识')
+    business_key: Optional[str] = Field(None, description='业务键')
     business_type: Optional[str] = None
-    variables: dict = Field(default_factory=dict, description="流程变量")
+    variables: dict = Field(default_factory=dict, description='流程变量')
 
 
 class ProcessInstanceResponse(BaseModel):
