@@ -2,7 +2,7 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-02 11:12:23
 LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-08 14:32:21
+LastEditTime: 2025-12-08 16:59:06
 FilePath: : AAfflux: api: app: models: file: reference.py
 Description:实现了softdelete软删除的基础类继承
 """
@@ -13,7 +13,7 @@ Description:实现了softdelete软删除的基础类继承
 在PostgreSQL中存储文件元数据，实际文件存储在MongoDB中。
 """
 
-from uuid import UUID, uuid4
+from uuid import UUID
 from sqlmodel import Field
 from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, SoftDeleteMixin
 
@@ -48,7 +48,6 @@ class FileReference(BaseModel, WorkspaceMixin, TimestampMixin, SoftDeleteMixin, 
     """
 
     __tablename__ = 'file_references'
-    d: UUID = Field(default_factory=uuid4, primary_key=True)
     file_id: UUID = Field(unique=True, index=True)  # 关联到MongoDB
 
     filename: str = Field(max_length=255)

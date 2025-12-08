@@ -1,3 +1,11 @@
+"""
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-02 12:28:05
+LastEditors: kk123047 3254834740@qq.com
+LastEditTime: 2025-12-08 17:15:28
+FilePath: : AAfflux: api: app: schemas: bpm_process_schemas.py
+Description:错误修改回调
+"""
 """流程相关 Schemas"""
 
 from datetime import datetime
@@ -20,8 +28,7 @@ class ProcessDefinitionCreate(BaseModel):
 
 class ProcessDefinitionResponse(BaseModel):
     """流程定义响应"""
-
-    id: UUID
+    id:UUID
     key: str
     name: str
     description: Optional[str]
@@ -41,7 +48,6 @@ class ProcessInstanceCreate(BaseModel):
 
 class ProcessInstanceResponse(BaseModel):
     """流程实例响应"""
-
     id: UUID
     process_key: str
     business_key: Optional[str]

@@ -2,16 +2,7 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-02 12:27:34
 LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-08 16:13:21
-FilePath: : AAfflux: api: app: models: bpm: form.py
-Description:
-"""
-
-"""
-Author: kk123047 3254834740@qq.com
-Date: 2025-12-02 12:27:34
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-08 16:12:07
+LastEditTime: 2025-12-08 17:11:52
 FilePath: : AAfflux: api: app: models: bpm: form.py
 Description: 添加了softdelete软删除字段
 """
