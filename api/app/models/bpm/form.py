@@ -1,3 +1,11 @@
+"""
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-02 12:27:34
+LastEditors: kk123047 3254834740@qq.com
+LastEditTime: 2025-12-08 14:44:59
+FilePath: : AAfflux: api: app: models: bpm: form.py
+Description: 添加了softdelete软删除字段
+"""
 """表单模型"""
 
 from datetime import datetime
@@ -5,16 +13,19 @@ from typing import Optional
 from uuid import UUID, uuid4
 
 from sqlmodel import Field, SQLModel, Column, JSON
-from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, AuditMixin
+from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, AuditMixin,SoftDeleteMixin
 
 
-class FormDefinition(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table=True):
+class FormDefinition(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin,table=True):
     """表单定义表
 
     已经继承
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     # 租户隔离
     workspace_id: Optional[UUID] = Field(default=None, foreign_key="workspaces.id", index=True)
+    deleted_at: Optional[datetime] = Field(default=None)
+    is_deleted: bool = Field(default=False)
+
 
     # 创建信息
     created_by: UUID = Field(foreign_key="users.id")

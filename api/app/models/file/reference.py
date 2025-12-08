@@ -1,3 +1,11 @@
+"""
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-02 11:12:23
+LastEditors: kk123047 3254834740@qq.com
+LastEditTime: 2025-12-08 14:32:21
+FilePath: : AAfflux: api: app: models: file: reference.py
+Description:实现了softdelete软删除的基础类继承
+"""
 """文件引用模型 - 1张表。
 
 本模块定义了文件引用的数据模型。
@@ -6,10 +14,10 @@
 
 from uuid import UUID, uuid4
 from sqlmodel import Field
-from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin
+from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin,SoftDeleteMixin
 
 
-class FileReference(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
+class FileReference(BaseModel, WorkspaceMixin, TimestampMixin, SoftDeleteMixin,table=True):
     """文件引用表 - PostgreSQL中的文件引用。
 
     在PostgreSQL中存储文件的元数据和引用信息。
@@ -20,6 +28,8 @@ class FileReference(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
         id: 文件引用记录唯一标识符（UUID）
         workspace_id: 所属工作空间ID（逻辑外键，租户隔离）
         created_at: 创建时间
+        deleted_at: Optional[datetime] = Field(default=None)
+        is_deleted: bool = Field(default=False)
 
         file_id: 文件业务ID（UUID，关联到MongoDB）
         filename: 文件名

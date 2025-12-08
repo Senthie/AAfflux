@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-04 06:14:57
 LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-05 14:33:06
+LastEditTime: 2025-12-08 14:56:47
 FilePath: : AAfflux: api: app: models: application: prompt_template.py
 Description:提示词模板模型 - 2张表。
             本模块定义了提示词模板相关的数据模型：
@@ -54,7 +54,7 @@ class PromptTemplate(
     version: int = Field(default=1)
 
 
-class PromptTemplateVersion(BaseModel, TimestampMixin, table=True):
+class PromptTemplateVersion(BaseModel, TimestampMixin, SoftDeleteMixin,table=True):
     """提示词模板版本表 - 模板的历史版本。
 
     保存提示词模板的所有历史版本，支持版本回滚。
@@ -64,6 +64,8 @@ class PromptTemplateVersion(BaseModel, TimestampMixin, table=True):
     已经继承
         id: 版本记录唯一标识符（UUID）
         created_at: 创建时间
+        deleted_at: Optional[datetime] = Field(default=None)
+        is_deleted: bool = Field(default=False)
 
         template_id: 所属模板ID（逻辑外键）
         version: 版本号

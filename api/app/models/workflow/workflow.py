@@ -47,7 +47,7 @@ class Workflow(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDelete
     output_schema: dict = Field(default_factory=dict, sa_column=Column(JSONB))
 
 
-class Node(BaseModel, table=True):
+class Node(BaseModel, SoftDeleteMixin,table=True):
     """节点表 - 工作流中的处理节点。
 
     定义工作流中的各个处理单元，包括类型、配置和位置信息。
@@ -56,6 +56,8 @@ class Node(BaseModel, table=True):
     Attributes:
     已经继承
         id: 节点唯一标识符（UUID）
+        deleted_at: Optional[datetime] = Field(default=None)
+        is_deleted: bool = Field(default=False)
 
         workflow_id: 所属工作流ID（逻辑外键）
         type: 节点类型（LLM/CONDITION/CODE/HTTP/TRANSFORM）

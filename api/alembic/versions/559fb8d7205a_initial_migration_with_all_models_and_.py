@@ -1,7 +1,7 @@
 """Initial migration with all models and soft delete
 
 Revision ID: 559fb8d7205a
-Revises: 
+Revises:
 Create Date: 2025-12-05 14:30:13.714704
 
 """

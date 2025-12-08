@@ -69,7 +69,7 @@ class Plugin(BaseModel, TimestampMixin, SoftDeleteMixin, table=True):
     is_verified: bool = Field(default=False, index=True)
 
 
-class InstalledPlugin(BaseModel, TimestampMixin, WorkspaceMixin, table=True):
+class InstalledPlugin(BaseModel, TimestampMixin, WorkspaceMixin, SoftDeleteMixin,table=True):
     """已安装插件表 - 工作空间插件。
 
     记录工作空间安装的插件及其配置。
@@ -79,6 +79,8 @@ class InstalledPlugin(BaseModel, TimestampMixin, WorkspaceMixin, table=True):
         id: 安装记录唯一标识符（UUID）
         workspace_id: 所属工作空间ID（逻辑外键，租户隔离）
         updated_at: 更新时间
+        deleted_at: Optional[datetime] = Field(default=None)
+        is_deleted: bool = Field(default=False)
 
         plugin_id: 插件ID（逻辑外键）
         config: 插件配置（JSONB格式）

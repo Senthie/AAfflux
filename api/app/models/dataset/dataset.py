@@ -58,7 +58,7 @@ class Dataset(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteM
     word_count: int = Field(default=0)
 
 
-class Document(BaseModel, TimestampMixin, AuditMixin, table=True):
+class Document(BaseModel, TimestampMixin, AuditMixin, SoftDeleteMixin,table=True):
     """文档表 - 知识库文档。
 
     存储上传到知识库的文档信息。
@@ -70,6 +70,8 @@ class Document(BaseModel, TimestampMixin, AuditMixin, table=True):
         created_by: UUID = Field(index=True)  # Logical FK to users
         created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
         updated_at: datetime = Field(default_factory=datetime.utcnow)
+        deleted_at: Optional[datetime] = Field(default=None)
+        is_deleted: bool = Field(default=False)
 
         dataset_id: 所属知识库ID（逻辑外键）
         name: 文档名称
@@ -113,7 +115,7 @@ class Document(BaseModel, TimestampMixin, AuditMixin, table=True):
     archived: bool = Field(default=False, index=True)
 
 
-class DocumentSegment(BaseModel, TimestampMixin, AuditMixin, table=True):
+class DocumentSegment(BaseModel, TimestampMixin, AuditMixin, SoftDeleteMixin,table=True):
     """文档段落表 - 文档分段。
 
     存储文档分段后的段落信息。
@@ -125,6 +127,8 @@ class DocumentSegment(BaseModel, TimestampMixin, AuditMixin, table=True):
         created_by: 创建者用户ID（逻辑外键）
         created_at: 创建时间
         updated_at: 更新时间
+        deleted_at: Optional[datetime] = Field(default=None)
+        is_deleted: bool = Field(default=False)
 
         document_id: 所属文档ID（逻辑外键）
         dataset_id: 所属知识库ID（逻辑外键）
