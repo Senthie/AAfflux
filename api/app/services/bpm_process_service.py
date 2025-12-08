@@ -1,12 +1,21 @@
-"""流程服务"""
+"""
+Author: Senthie seemoon2077@gmail.com
+Date: 2025-12-04 09:50:20
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2025-12-08 03:16:16
+FilePath: /api/app/services/bpm_process_service.py
+Description: 流程服务
+
+Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
+"""
 
 from typing import Optional
 from uuid import UUID
 
 from sqlmodel import Session
 
-from api.app.engine.bpm import ProcessExecutor
-from api.app.models.bpm import ProcessInstance
+from app.engine.bpm import ProcessExecutor
+from app.models.bpm import ProcessInstance
 
 
 class ProcessService:
@@ -25,7 +34,15 @@ class ProcessService:
         business_key: Optional[str] = None,
         business_type: Optional[str] = None,
     ) -> ProcessInstance:
-        """启动流程"""
+        """
+        description: 启动流程
+        param {str} process_key
+        param {UUID} workspace_id
+        param {UUID} user_id
+        param {dict} variables
+        param {Optional} business_key
+        param {Optional} business_type
+        """
         instance = await self.executor.start_process(
             process_key=process_key,
             workspace_id=workspace_id,
@@ -42,12 +59,19 @@ class ProcessService:
         return instance
 
     async def cancel_process(self, instance_id: UUID, user_id: UUID, reason: str):
-        """取消流程"""
+        """
+        description: 取消流程
+        param {*} self
+        param {UUID} instance_id
+        param {UUID} user_id
+        param {str} reason
+        return {*}
+        """
         instance = self.session.get(ProcessInstance, instance_id)
         if not instance:
-            raise ValueError("Process instance not found")
+            raise ValueError('Process instance not found')
 
-        from api.app.bpm.models import ProcessStatus
+        from app.bpm.models import ProcessStatus
 
         instance.status = ProcessStatus.CANCELLED
         instance.error_message = reason
@@ -56,5 +80,11 @@ class ProcessService:
         self.session.commit()
 
     async def get_process_instance(self, instance_id: UUID) -> Optional[ProcessInstance]:
-        """获取流程实例"""
+        """
+        description: 获取流程实例
+        param {*} self
+        param {UUID} instance_id
+        return {*}
+        """
+
         return self.session.get(ProcessInstance, instance_id)

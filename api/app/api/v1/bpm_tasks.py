@@ -1,4 +1,13 @@
-"""任务 API"""
+"""
+Author: Senthie seemoon2077@gmail.com
+Date: 2025-12-04 09:50:20
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2025-12-08 03:29:16
+FilePath: /api/app/api/v1/bpm_tasks.py
+Description: 任务 API
+
+Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
+"""
 
 from typing import List
 from uuid import UUID
@@ -6,8 +15,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 
-from api.app.schemas.bpm_task_schemas import TaskResponse, TaskCompleteRequest
-from api.app.services.bpm_task_service import TaskService
+from app.schemas.bpm_task_schemas import TaskCompleteRequest, TaskResponse
+from app.services.bpm_task_service import TaskService
 
 router = APIRouter()
 
@@ -22,7 +31,7 @@ def get_current_user():
     pass
 
 
-@router.get("/my-tasks", response_model=List[TaskResponse])
+@router.get('/my-tasks', response_model=List[TaskResponse])
 async def get_my_tasks(
     session: Session = Depends(get_session),
     current_user=Depends(get_current_user),
@@ -36,7 +45,7 @@ async def get_my_tasks(
     return tasks
 
 
-@router.post("/{task_id}/claim")
+@router.post('/{task_id}/claim')
 async def claim_task(
     task_id: UUID,
     session: Session = Depends(get_session),
@@ -45,10 +54,10 @@ async def claim_task(
     """认领任务"""
     service = TaskService(session)
     await service.claim_task(task_id, current_user.id)
-    return {"message": "Task claimed successfully"}
+    return {'message': 'Task claimed successfully'}
 
 
-@router.post("/{task_id}/complete")
+@router.post('/{task_id}/complete')
 async def complete_task(
     task_id: UUID,
     request: TaskCompleteRequest,
@@ -63,10 +72,10 @@ async def complete_task(
         result=request.result,
         comment=request.comment,
     )
-    return {"message": "Task completed successfully"}
+    return {'message': 'Task completed successfully'}
 
 
-@router.get("/{task_id}", response_model=TaskResponse)
+@router.get('/{task_id}', response_model=TaskResponse)
 async def get_task(
     task_id: UUID,
     session: Session = Depends(get_session),
@@ -76,6 +85,6 @@ async def get_task(
     task = await service.get_task(task_id)
 
     if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
+        raise HTTPException(status_code=404, detail='Task not found')
 
     return task
