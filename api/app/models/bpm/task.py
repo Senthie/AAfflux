@@ -20,22 +20,11 @@ class TaskStatus(StrEnum):
     REJECTED = 'rejected'  # 已拒绝
     CANCELLED = 'cancelled'  # 已取消
     TIMEOUT = 'timeout'  # 已超时
-    PENDING = 'pending'  # 待处理
-    ASSIGNED = 'assigned'  # 已分配
-    IN_PROGRESS = 'in_progress'  # 处理中
-    COMPLETED = 'completed'  # 已完成
-    REJECTED = 'rejected'  # 已拒绝
-    CANCELLED = 'cancelled'  # 已取消
-    TIMEOUT = 'timeout'  # 已超时
 
 
 class TaskType(StrEnum):
     """任务类型"""
 
-    USER_TASK = 'user_task'  # 人工任务
-    SERVICE_TASK = 'service_task'  # 服务任务
-    SCRIPT_TASK = 'script_task'  # 脚本任务
-    APPROVAL_TASK = 'approval_task'  # 审批任务
     USER_TASK = 'user_task'  # 人工任务
     SERVICE_TASK = 'service_task'  # 服务任务
     SCRIPT_TASK = 'script_task'  # 脚本任务
