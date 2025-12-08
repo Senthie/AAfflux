@@ -10,10 +10,10 @@ from typing import Optional
 from sqlmodel import Field, Column
 from sqlalchemy.dialects.postgresql import JSONB
 from decimal import Decimal
-from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin
+from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, SoftDeleteMixin
 
 
-class Subscription(BaseModel, TimestampMixin, WorkspaceMixin, table=True):
+class Subscription(BaseModel, TimestampMixin, WorkspaceMixin, SoftDeleteMixin, table=True):
     """订阅表 - 租户订阅管理。
 
     管理工作空间的订阅计划和配额限制。
@@ -25,6 +25,8 @@ class Subscription(BaseModel, TimestampMixin, WorkspaceMixin, table=True):
         workspace_id: 所属工作空间ID（逻辑外键，租户隔离）
         created_at: 创建时间
         updated_at: 更新时间
+        deleted_at: Optional[datetime] = Field(default=None)
+        is_deleted: bool = Field(default=False)
 
         plan_type: 订阅计划类型（free-免费/starter-入门/pro-专业/enterprise-企业）
         plan_name: 计划名称

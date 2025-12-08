@@ -32,12 +32,12 @@ class Approval(BaseModel, WorkspaceMixin, table=True):
 
     __tablename__ = 'bpm_approvals'
 
-    # 关联任务
-    task_id: UUID = Field(foreign_key='bpm_tasks.id', index=True)
-    process_instance_id: UUID = Field(foreign_key='bpm_process_instances.id', index=True)
+    # 关联任务（逻辑外键）
+    task_id: UUID = Field(index=True, description='任务ID')
+    process_instance_id: UUID = Field(index=True, description='流程实例ID')
 
-    # 审批人
-    approver_id: UUID = Field(foreign_key='users.id', index=True, description='审批人')
+    # 审批人（逻辑外键）
+    approver_id: UUID = Field(index=True, description='审批人用户ID')
     approver_name: str = Field(max_length=255, description='审批人姓名（冗余）')
 
     # 审批动作
@@ -49,8 +49,8 @@ class Approval(BaseModel, WorkspaceMixin, table=True):
     # 附件
     attachments: dict = Field(default_factory=dict, sa_column=Column(JSON), description='附件列表')
 
-    # 转交/委托信息
-    transfer_to: Optional[UUID] = Field(default=None, foreign_key='users.id', description='转交给')
+    # 转交/委托信息（逻辑外键）
+    transfer_to: Optional[UUID] = Field(default=None, description='转交给用户ID')
     transfer_reason: Optional[str] = Field(default=None, description='转交原因')
 
     # 签名

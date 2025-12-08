@@ -1,3 +1,12 @@
+"""
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-02 11:31:11
+LastEditors: kk123047 3254834740@qq.com
+LastEditTime: 2025-12-08 14:46:26
+FilePath: : AAfflux: api: app: models: conversation: end_user.py
+Description:添加了softdelete软删除字段
+"""
+
 """终端用户模型 - 1张表。
 
 本模块定义了终端用户（C端用户）的数据模型。
@@ -7,12 +16,12 @@
 from datetime import datetime
 from typing import Optional
 from sqlmodel import Field
-from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin
+from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, SoftDeleteMixin
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Column
 
 
-class EndUser(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
+class EndUser(BaseModel, WorkspaceMixin, TimestampMixin, SoftDeleteMixin, table=True):
     """终端用户表 - C端用户。
 
     存储使用已发布应用的终端用户信息。
@@ -23,6 +32,9 @@ class EndUser(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
         id: 终端用户唯一标识符（UUID）
         workspace_id: 所属工作空间ID（逻辑外键，租户隔离）
         created_at: 创建时间
+        deleted_at: Optional[datetime] = Field(default=None)
+        is_deleted: bool = Field(default=False)
+
 
         session_id: 会话标识符（用于匿名用户追踪）
         external_user_id: 外部系统用户ID（可选，用于集成）

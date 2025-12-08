@@ -8,10 +8,10 @@ from uuid import UUID
 from typing import Optional
 from sqlmodel import Field, Column
 from sqlalchemy.dialects.postgresql import JSONB
-from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin
+from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, SoftDeleteMixin
 
 
-class Conversation(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
+class Conversation(BaseModel, WorkspaceMixin, TimestampMixin, SoftDeleteMixin, table=True):
     """对话表 - 会话管理。
 
     存储终端用户与AI应用的对话会话。
@@ -23,6 +23,8 @@ class Conversation(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
         workspace_id: 所属工作空间ID（逻辑外键，租户隔离）
         created_at: 创建时间
         updated_at: 最后更新时间
+        deleted_at: Optional[datetime] = Field(default=None)
+        is_deleted: bool = Field(default=False)
 
         application_id: 关联的应用ID（逻辑外键）
         end_user_id: 终端用户ID（逻辑外键）
@@ -50,7 +52,7 @@ class Conversation(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
     custom_metadata: Optional[dict] = Field(default=None, sa_column=Column(JSONB))
 
 
-class Message(BaseModel, TimestampMixin, table=True):
+class Message(BaseModel, TimestampMixin, SoftDeleteMixin, table=True):
     """消息表 - 对话消息。
 
     存储对话中的每条消息，包括用户输入和AI回复。
@@ -60,7 +62,8 @@ class Message(BaseModel, TimestampMixin, table=True):
        已经继承
         id: 对话唯一标识符（UUID）
         created_at: 创建时间
-
+        deleted_at: Optional[datetime] = Field(default=None)
+        is_deleted: bool = Field(default=False)
 
         conversation_id: 所属对话ID（逻辑外键）
         application_id: 关联的应用ID（逻辑外键）

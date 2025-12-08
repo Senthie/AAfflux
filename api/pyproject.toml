@@ -97,7 +97,10 @@ select = [
   # "I",   # isort导入排序（可选）
 ]
 # 2. Avoid enforcing line-length violations (`E501`) and B008 (FastAPI Depends pattern)
-ignore = ["E501", "B008"]
+ignore = ["E501", 
+          "B008",
+          "E402", # Module level import not at top of file (解决头部注释导致的报错)
+          ]
 # 3. Avoid trying to fix flake8-bugbear (`B`) violations.
 unfixable = ["B"]
 

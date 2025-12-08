@@ -1,12 +1,13 @@
 """元数据模型定义"""
 
 from datetime import datetime
+from enum import Enum
 from typing import Optional, List
 from uuid import UUID
-from sqlmodel import Field, Column, JSON, Relationship
-from enum import Enum
 
-from app.models.base import BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin
+from sqlmodel import Field, Column, JSON, Relationship
+
+from app.models.base import BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin
 
 
 class ModelStatus(str, Enum):
@@ -44,7 +45,9 @@ class FieldType(str, Enum):
     MANY_TO_MANY = 'many_to_many'
 
 
-class MetadataModel(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table=True):
+class MetadataModel(
+    BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin, table=True
+):
     """数据模型元数据表
 
     存储用户定义的数据模型信息，支持动态创建数据库表和 API。
@@ -56,6 +59,8 @@ class MetadataModel(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table
             created_by: 创建者用户ID
             created_at: 创建时间
             updated_at: 更新时间
+            deleted_at: Optional[datetime] = Field(default=None)
+            is_deleted: bool = Field(default=False)
 
         业务字段:
             name: 模型名称（英文，如 customer）
@@ -123,7 +128,7 @@ class MetadataModel(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table
     fields: List['MetadataField'] = Relationship(back_populates='model')
 
 
-class MetadataField(BaseModel, TimestampMixin, table=True):
+class MetadataField(BaseModel, TimestampMixin, SoftDeleteMixin, table=True):
     """字段元数据表
 
     存储数据模型中每个字段的详细配置信息。
@@ -133,6 +138,8 @@ class MetadataField(BaseModel, TimestampMixin, table=True):
             id: 字段唯一标识符（UUID）
             created_at: 创建时间
             updated_at: 更新时间
+            deleted_at: Optional[datetime] = Field(default=None)
+            is_deleted: bool = Field(default=False)
 
         业务字段:
             model_id: 所属模型ID
@@ -347,7 +354,9 @@ class MetadataVersion(BaseModel, TimestampMixin, AuditMixin, table=True):
     change_log: Optional[str] = Field(default=None, description='变更日志')
 
 
-class MetadataPage(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table=True):
+class MetadataPage(
+    BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin, table=True
+):
     """页面元数据表
 
     存储动态页面的配置信息，支持可视化页面构建。
@@ -359,6 +368,8 @@ class MetadataPage(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table=
             created_by: 创建者用户ID
             created_at: 创建时间
             updated_at: 更新时间
+            deleted_at: Optional[datetime] = Field(default=None)
+            is_deleted: bool = Field(default=False)
 
         业务字段:
             name: 页面名称

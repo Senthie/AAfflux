@@ -1,3 +1,12 @@
+"""
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-02 12:28:05
+LastEditors: kk123047 3254834740@qq.com
+LastEditTime: 2025-12-08 15:46:32
+FilePath: : AAfflux: api: app: schemas: bpm_approval_schemas.py
+Description:
+"""
+
 """审批相关 Schemas"""
 
 from datetime import datetime

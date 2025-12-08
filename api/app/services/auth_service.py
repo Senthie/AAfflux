@@ -1,10 +1,10 @@
 """
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-02 08:55:33
-LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-04 03:15:17
-FilePath: /api/app/services/auth_service.py
-Description: Authentication service for user registration, login, and token management.
+LastEditors: kk123047 3254834740@qq.com
+LastEditTime: 2025-12-08 16:10:16
+FilePath: : AAfflux: api: app: services: auth_service.py
+Description: Authentication service for user registration, login, and token management,补充添加了is_delete,完善业务逻辑
 
 Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
@@ -62,7 +62,10 @@ class AuthService:
             ValueError: If email already exists
         """
         # Check if user already exists
-        statement = select(User).where(User.email == request.email)
+        statement = select(User).where(
+            User.email == request.email,
+            User.is_deleted.is_(False),  # 原始使用 ‘==’ 不符合ruff规则 改为is
+        )
         existing_user = self.db.exec(statement).first()
 
         if existing_user:
@@ -102,7 +105,7 @@ class AuthService:
             ValueError: If credentials are invalid
         """
         # Find user by email
-        statement = select(User).where(User.email == request.email)
+        statement = select(User).where(User.email == request.email, User.is_deleted.is_(False))
         user = self.db.exec(statement).first()
 
         if not user:
@@ -148,7 +151,7 @@ class AuthService:
 
         # Verify user still exists
         user = self.db.get(User, user_id)
-        if not user:
+        if not user or user.is_deleted:
             raise ValueError('User not found')
 
         # Generate new token pair
@@ -200,7 +203,7 @@ class AuthService:
             ValueError: If user not found
         """
         # Find user by email
-        statement = select(User).where(User.email == email)
+        statement = select(User).where(User.email == email, User.is_deleted.is_(False))
         user = self.db.exec(statement).first()
 
         if not user:
@@ -249,7 +252,7 @@ class AuthService:
 
         # Get user
         user = self.db.get(User, user_id)
-        if not user:
+        if not user or user.is_deleted:
             raise ValueError('User not found')
 
         # Update password
@@ -287,7 +290,8 @@ class AuthService:
 
         # Get user from database
         user = self.db.get(User, user_id)
-
+        if user and user.is_deleted:
+            return None
         return user
 
     async def _generate_token_pair(self, user_id: UUID) -> TokenPair:

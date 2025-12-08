@@ -13,6 +13,7 @@ from app.core.mongodb import mongodb_client
 from app.core.redis import redis_client
 from app.core.logging import configure_logging, get_logger
 from app.core.sentry import init_sentry
+from app.api.v1 import router as api_v1_router
 
 # Configure logging
 configure_logging()
@@ -118,6 +119,7 @@ async def root() -> JSONResponse:
     )
 
 
+app.include_router(api_v1_router)  # prefix 已经在 v1/__init__.py 中定义了
 # TODO: Register API routers here
 # from app.api.v1 import api_router
 # app.include_router(api_router, prefix=settings.api_v1_prefix)

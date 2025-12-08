@@ -1,25 +1,16 @@
-"""
-Author: Senthie seemoon2077@gmail.com
-Date: 2025-12-04 09:50:20
-LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-08 03:27:43
-FilePath: /api/app/models/bpm/process.py
-Description: BPM 流程模型 - 流程定义和流程实例
-
-Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
-"""
+"""BPM 流程模型 - 流程定义和流程实例"""
 
 from datetime import datetime
 from enum import Enum
 from typing import Optional
 from uuid import UUID
-
-from sqlmodel import JSON, Column, Field
-
-from app.models.base import AuditMixin, BaseModel, TimestampMixin, WorkspaceMixin
+from sqlmodel import Field, Column, JSON
+from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, AuditMixin, SoftDeleteMixin
 
 
-class ProcessDefinition(BaseModel, WorkspaceMixin, TimestampMixin, AuditMixin, table=True):
+class ProcessDefinition(
+    BaseModel, WorkspaceMixin, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True
+):
     """流程定义表 - 定义可重用的流程模板
 
     已经继承
@@ -30,9 +21,11 @@ class ProcessDefinition(BaseModel, WorkspaceMixin, TimestampMixin, AuditMixin, t
     created_by: UUID = Field(foreign_key="users.id", description="创建者")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-
+    deleted_at: Optional[datetime] = Field(default=None)
+    is_deleted: bool = Field(default=False)
     """
 
+    __tablename__ = 'bpm_process_definitions'
     __tablename__ = 'bpm_process_definitions'
 
     # 流程标识
@@ -42,18 +35,25 @@ class ProcessDefinition(BaseModel, WorkspaceMixin, TimestampMixin, AuditMixin, t
     name: str = Field(max_length=255, description='流程名称')
     description: Optional[str] = Field(default=None, description='流程描述')
     category: Optional[str] = Field(default=None, max_length=50, description='流程分类')
+    name: str = Field(max_length=255, description='流程名称')
+    description: Optional[str] = Field(default=None, description='流程描述')
+    category: Optional[str] = Field(default=None, max_length=50, description='流程分类')
 
     # 版本控制
     version: int = Field(default=1, description='流程版本号')
     is_latest: bool = Field(default=True, description='是否最新版本')
+    version: int = Field(default=1, description='流程版本号')
+    is_latest: bool = Field(default=True, description='是否最新版本')
 
     # 流程定义
+    bpmn_xml: Optional[str] = Field(default=None, description='BPMN 2.0 XML 定义')
     bpmn_xml: Optional[str] = Field(default=None, description='BPMN 2.0 XML 定义')
     process_config: dict = Field(
         default_factory=dict, sa_column=Column(JSON), description='流程配置（JSON）'
     )
 
     # 节点定义
+    nodes: dict = Field(default_factory=dict, sa_column=Column(JSON), description='流程节点列表')
     nodes: dict = Field(default_factory=dict, sa_column=Column(JSON), description='流程节点列表')
 
     # 表单配置
@@ -63,9 +63,9 @@ class ProcessDefinition(BaseModel, WorkspaceMixin, TimestampMixin, AuditMixin, t
 
     # 状态
     is_active: bool = Field(default=True, description='是否激活')
-    is_deleted: bool = Field(default=False, description='是否删除')
 
     # 统计
+    instance_count: int = Field(default=0, description='实例数量')
     instance_count: int = Field(default=0, description='实例数量')
 
     class Config:
@@ -84,12 +84,6 @@ class ProcessDefinition(BaseModel, WorkspaceMixin, TimestampMixin, AuditMixin, t
                         'name': '部门主管审批',
                         'assignee': 'manager',
                     },
-                    {
-                        'id': 'admin_approval',
-                        'type': 'user_task',
-                        'name': 'IT管理员审批',
-                        'assignee': 'admin',
-                    },
                     {'id': 'end', 'type': 'end', 'name': '结束'},
                 ],
             }
@@ -99,6 +93,14 @@ class ProcessDefinition(BaseModel, WorkspaceMixin, TimestampMixin, AuditMixin, t
 class ProcessStatus(str, Enum):
     """流程状态"""
 
+    PENDING = 'pending'  # 待启动
+    RUNNING = 'running'  # 运行中
+    WAITING = 'waiting'  # 等待中（等待审批）
+    SUSPENDED = 'suspended'  # 已暂停
+    COMPLETED = 'completed'  # 已完成
+    REJECTED = 'rejected'  # 已拒绝
+    CANCELLED = 'cancelled'  # 已取消
+    FAILED = 'failed'  # 失败
     PENDING = 'pending'  # 待启动
     RUNNING = 'running'  # 运行中
     WAITING = 'waiting'  # 等待中（等待审批）
@@ -122,9 +124,10 @@ class ProcessInstance(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
     """
 
     __tablename__ = 'bpm_process_instances'
+    __tablename__ = 'bpm_process_instances'
 
-    # 关联流程定义
-    process_definition_id: UUID = Field(foreign_key='bpm_process_definitions.id', index=True)
+    # 关联流程定义（逻辑外键）
+    process_definition_id: UUID = Field(index=True, description='流程定义ID')
     process_key: str = Field(max_length=100, index=True, description='流程标识（冗余）')
     process_version: int = Field(description='流程版本（快照）')
 
@@ -133,11 +136,13 @@ class ProcessInstance(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
         default=None, max_length=255, index=True, description='业务键（如：application_id）'
     )
     business_type: Optional[str] = Field(default=None, max_length=50, description='业务类型')
+    business_type: Optional[str] = Field(default=None, max_length=50, description='业务类型')
 
     # 关联 Workflow（如果从 Workflow 触发）
     workflow_run_id: Optional[UUID] = Field(
         default=None, index=True, description='关联的工作流执行ID'
     )
+    workflow_node_id: Optional[str] = Field(default=None, description='触发的工作流节点ID')
     workflow_node_id: Optional[str] = Field(default=None, description='触发的工作流节点ID')
 
     # 流程状态
@@ -145,8 +150,11 @@ class ProcessInstance(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
 
     # 流程变量
     variables: dict = Field(default_factory=dict, sa_column=Column(JSON), description='流程变量')
+    variables: dict = Field(default_factory=dict, sa_column=Column(JSON), description='流程变量')
 
     # 当前节点
+    current_node_id: Optional[str] = Field(default=None, description='当前执行节点ID')
+    current_task_id: Optional[UUID] = Field(default=None, description='当前任务ID')
     current_node_id: Optional[str] = Field(default=None, description='当前执行节点ID')
     current_task_id: Optional[UUID] = Field(default=None, description='当前任务ID')
 
@@ -154,12 +162,15 @@ class ProcessInstance(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
     started_at: Optional[datetime] = Field(default=None, description='启动时间')
     completed_at: Optional[datetime] = Field(default=None, description='完成时间')
     duration_seconds: Optional[int] = Field(default=None, description='执行时长（秒）')
+    started_at: Optional[datetime] = Field(default=None, description='启动时间')
+    completed_at: Optional[datetime] = Field(default=None, description='完成时间')
+    duration_seconds: Optional[int] = Field(default=None, description='执行时长（秒）')
 
     # 结果
     result: Optional[dict] = Field(default=None, sa_column=Column(JSON), description='执行结果')
     error_message: Optional[str] = Field(default=None, description='错误信息')
-    # 创建信息
-    started_by: UUID = Field(foreign_key='users.id', description='启动者')
+    # 创建信息（逻辑外键）
+    started_by: UUID = Field(description='启动者用户ID')
 
     class Config:
         json_schema_extra = {

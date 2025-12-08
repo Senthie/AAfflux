@@ -1,0 +1,20 @@
+[33m6d6ce64[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32musermm[m[33m, [m[1;31morigin/usermm[m[33m)[m feat（数据库）：为多个模型添加软删除功能 - 添加软删除迁移脚本以实现 deleted_at 和 is_deleted 字段 - 更新 PromptTemplateVersion 模型以继承 SoftDeleteMixin - 更新 FormDefinition 模型以继承 SoftDeleteMixin - 更新 Conversation 模型以继承 SoftDeleteMixin - 更新 Message 模型以继承 SoftDeleteMixin - 更新 EndUser 模型以继承 SoftDeleteMixin - 更新 Dataset 模型以继承 SoftDeleteMixin - 更新 FileReference 模型以继承 SoftDeleteMixin - 更新 Plugin 模型以继承 SoftDeleteMixin - 更新 Workflow 模型以继承 SoftDeleteMixin - 在 deleted_at 和 is_deleted 字段上创建数据库索引以提高查询性能 - 为软删除实现添加全面的迁移文档 - 在 BPM、对话、数据集、文件、插件和工作流模块中实现软删除字段
+[33mbb99255[m 功能（用户）：添加用户管理 API 端点和服务层 - 创建用户管理 API 路由器，包含用于个人资料检索、更新、密码更改、头像上传和账户删除的端点 - 添加用户模式以进行请求/响应验证，包括 UserProfileResponse、UserUpdateRequest、PasswordChangeRequest 和 AvatarUploadResponse - 实现 UserService，包含用于用户个人资料更新、密码管理、头像处理和软删除功能的方法 - 更新 AuthService，通过在所有用户查询中检查 is_deleted 标志来正确处理软删除的用户 - 通过将布尔比较中的相等运算符替换为.is_() 来解决 ruff 合规性问题 - 使用 Annotated 类型添加依赖注入模式，以使端点签名更清晰
+[33m7a90c87[m 创建了应该新的task，jhonkon个人使用
+[33me68d6d2[m 修改了一些格式问题
+[33m9f77c8e[m feat（文件存储）：使用 GridFS 和文件 API 端点实现文件存储系统 - 添加基于 GridFS 的存储后端，并引入基础存储抽象层 - 创建文件存储异常以处理错误 - 实现文件 API v1 端点以执行文件操作 - 添加文件服务层以处理业务逻辑 - 创建文件模式以验证请求/响应 - 添加文件引用模型以跟踪文件元数据 - 使用文件关系支持更新应用程序模型 - 使用更新后的模型和关系迁移数据库模式 - 添加元数据引擎状态文档 - 包含文件存储功能的任务实施计划 - 在 pyproject.toml 中更新项目依赖项 - 添加执行器模块以处理异步任务 - 用新的全面迁移文件替换过时的迁移文件
+[33md30d51c[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m Merge branch 'auth'
+[33mbf41607[m[33m ([m[1;31morigin/auth[m[33m)[m style: 在整个代码库中应用ruff格式化和代码检查修复
+[33mb89da21[m 添加针对ruff的支持
+[33m508adc5[m Merge pull request #3 from Senthie/auth
+[33m8ebcc60[m 解决了重构后的代码
+[33mef42379[m Merge branch 'main' into auth
+[33m264e7b0[m 规范化文档的存储
+[33m27bc309[m 格式化了markdown文件
+[33m55fc093[m Merge pull request #1 from Senthie/jkAAfflux
+[33m2417202[m feat(auth): Implement complete authentication and authorization module
+[33mf9d90b8[m[33m ([m[1;31morigin/jkAAfflux[m[33m)[m refactor: 优化模型结构和元数据引擎实现
+[33m7b55f0b[m 为Hook 添加了两个新规则
+[33m4a7b8c3[m 实现 app/services/auth_service.py（注册、登录、令牌管理）
+[33mb7e98f7[m chore(deps): Add pylance language server to project dependencies
+[33m3486df3[m 合并远程main分支，解决base.py冲突

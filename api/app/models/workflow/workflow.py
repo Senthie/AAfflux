@@ -15,10 +15,10 @@ from uuid import UUID
 from typing import Optional, List
 from sqlmodel import Field, Column, Relationship
 from sqlalchemy.dialects.postgresql import JSONB
-from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, AuditMixin
+from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, AuditMixin, SoftDeleteMixin
 
 
-class Workflow(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table=True):
+class Workflow(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin, table=True):
     """工作流表 - DAG工作流定义。
 
     存储工作流的基本信息和输入输出schema。
@@ -30,6 +30,8 @@ class Workflow(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table=True
         workspace_id: 所属工作空间ID（逻辑外键，租户隔离字段）
         created_at: 创建时间
         updated_at: 最后更新时间
+        deleted_at: Optional[datetime] = Field(default=None)
+        is_deleted: bool = Field(default=False)
 
         name: 工作流名称
         description: 工作流描述
@@ -45,7 +47,7 @@ class Workflow(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, table=True
     output_schema: dict = Field(default_factory=dict, sa_column=Column(JSONB))
 
 
-class Node(BaseModel, table=True):
+class Node(BaseModel, SoftDeleteMixin, table=True):
     """节点表 - 工作流中的处理节点。
 
     定义工作流中的各个处理单元，包括类型、配置和位置信息。
@@ -54,6 +56,8 @@ class Node(BaseModel, table=True):
     Attributes:
     已经继承
         id: 节点唯一标识符（UUID）
+        deleted_at: Optional[datetime] = Field(default=None)
+        is_deleted: bool = Field(default=False)
 
         workflow_id: 所属工作流ID（逻辑外键）
         type: 节点类型（LLM/CONDITION/CODE/HTTP/TRANSFORM）
