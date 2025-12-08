@@ -6,6 +6,7 @@ LastEditTime: 2025-12-08 14:44:59
 FilePath: : AAfflux: api: app: models: bpm: form.py
 Description: 添加了softdelete软删除字段
 """
+
 """表单模型"""
 
 from datetime import datetime
@@ -13,10 +14,12 @@ from typing import Optional
 from uuid import UUID, uuid4
 
 from sqlmodel import Field, SQLModel, Column, JSON
-from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, AuditMixin,SoftDeleteMixin
+from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, AuditMixin, SoftDeleteMixin
 
 
-class FormDefinition(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin,table=True):
+class FormDefinition(
+    BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin, table=True
+):
     """表单定义表
 
     已经继承

@@ -12,7 +12,6 @@ from api.app.models.bpm import ProcessInstance, ProcessStatus, Task, TaskStatus,
 class ProcessExecutor:
     """流程执行引擎"""
 
-
     def __init__(self, session: Session):
         self.session = session
 
@@ -34,7 +33,7 @@ class ProcessExecutor:
         process_def = self.session.exec(statement).first()
 
         if not process_def:
-            raise ValueError(f"Process definition not found: {process_key}")
+            raise ValueError(f'Process definition not found: {process_key}')
 
         # 创建流程实例
         instance = ProcessInstance(
@@ -63,18 +62,18 @@ class ProcessExecutor:
         nodes = process_def.nodes
 
         # 找到开始节点
-        start_node = next((n for n in nodes if n.get("type") == "start"), None)
+        start_node = next((n for n in nodes if n.get('type') == 'start'), None)
         if not start_node:
-            raise ValueError("Start node not found")
+            raise ValueError('Start node not found')
 
         # 找到第一个用户任务
-        first_task_node = next((n for n in nodes if n.get("type") == "user_task"), None)
+        first_task_node = next((n for n in nodes if n.get('type') == 'user_task'), None)
 
         if first_task_node:
             # 创建任务
             await self._create_task(instance, first_task_node)
             instance.status = ProcessStatus.WAITING
-            instance.current_node_id = first_task_node["id"]
+            instance.current_node_id = first_task_node['id']
         else:
             # 没有任务，直接完成
             instance.status = ProcessStatus.COMPLETED
@@ -87,8 +86,8 @@ class ProcessExecutor:
         """创建任务"""
         task = Task(
             process_instance_id=instance.id,
-            task_def_key=node["id"],
-            task_name=node["name"],
+            task_def_key=node['id'],
+            task_name=node['name'],
             workspace_id=instance.workspace_id,
             status=TaskStatus.PENDING,
             variables=instance.variables,
@@ -104,7 +103,7 @@ class ProcessExecutor:
         """完成任务"""
         task = self.session.get(Task, task_id)
         if not task:
-            raise ValueError("Task not found")
+            raise ValueError('Task not found')
 
         # 更新任务状态
         task.status = TaskStatus.COMPLETED

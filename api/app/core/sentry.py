@@ -16,7 +16,7 @@ def init_sentry() -> None:
             environment=settings.sentry_environment,
             traces_sample_rate=settings.sentry_traces_sample_rate,
             integrations=[
-                FastApiIntegration(transaction_style="endpoint"),
+                FastApiIntegration(transaction_style='endpoint'),
                 SqlalchemyIntegration(),
             ],
             send_default_pii=False,
@@ -37,9 +37,9 @@ def before_send_filter(event: dict, hint: dict) -> Optional[dict]:
         Modified event or None to drop
     """
     # Filter out health check errors
-    if "request" in event:
-        url = event["request"].get("url", "")
-        if "/health" in url or "/metrics" in url:
+    if 'request' in event:
+        url = event['request'].get('url', '')
+        if '/health' in url or '/metrics' in url:
             return None
 
     return event

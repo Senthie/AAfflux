@@ -78,11 +78,9 @@ class Task(BaseModel, TimestampMixin, WorkspaceMixin, table=True):
     assignee: Optional[UUID] = Field(default=None, index=True, description='任务处理人用户ID')
     candidate_users: dict = Field(
         default_factory=dict, sa_column=Column(JSON), description='候选用户列表'
-
     )
     candidate_groups: dict = Field(
         default_factory=dict, sa_column=Column(JSON), description='候选组列表'
-
     )
 
     # 任务状态

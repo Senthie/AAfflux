@@ -6,6 +6,7 @@ LastEditTime: 2025-12-08 14:32:21
 FilePath: : AAfflux: api: app: models: file: reference.py
 Description:实现了softdelete软删除的基础类继承
 """
+
 """文件引用模型 - 1张表。
 
 本模块定义了文件引用的数据模型。
@@ -14,10 +15,10 @@ Description:实现了softdelete软删除的基础类继承
 
 from uuid import UUID, uuid4
 from sqlmodel import Field
-from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin,SoftDeleteMixin
+from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, SoftDeleteMixin
 
 
-class FileReference(BaseModel, WorkspaceMixin, TimestampMixin, SoftDeleteMixin,table=True):
+class FileReference(BaseModel, WorkspaceMixin, TimestampMixin, SoftDeleteMixin, table=True):
     """文件引用表 - PostgreSQL中的文件引用。
 
     在PostgreSQL中存储文件的元数据和引用信息。

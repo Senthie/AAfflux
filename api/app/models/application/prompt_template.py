@@ -54,7 +54,7 @@ class PromptTemplate(
     version: int = Field(default=1)
 
 
-class PromptTemplateVersion(BaseModel, TimestampMixin, SoftDeleteMixin,table=True):
+class PromptTemplateVersion(BaseModel, TimestampMixin, SoftDeleteMixin, table=True):
     """提示词模板版本表 - 模板的历史版本。
 
     保存提示词模板的所有历史版本，支持版本回滚。

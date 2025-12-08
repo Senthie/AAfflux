@@ -8,10 +8,10 @@ from uuid import UUID
 from typing import Optional
 from sqlmodel import Field, Column
 from sqlalchemy.dialects.postgresql import JSONB
-from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin,SoftDeleteMixin
+from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, SoftDeleteMixin
 
 
-class Conversation(BaseModel, WorkspaceMixin, TimestampMixin, SoftDeleteMixin,table=True):
+class Conversation(BaseModel, WorkspaceMixin, TimestampMixin, SoftDeleteMixin, table=True):
     """对话表 - 会话管理。
 
     存储终端用户与AI应用的对话会话。
@@ -42,17 +42,17 @@ class Conversation(BaseModel, WorkspaceMixin, TimestampMixin, SoftDeleteMixin,ta
         - 记录消息数量用于统计和限制
     """
 
-    __tablename__ = "conversations"
+    __tablename__ = 'conversations'
     application_id: UUID = Field(index=True)  # Logical FK to applications
     end_user_id: UUID = Field(index=True)  # Logical FK to end_users
     title: str = Field(max_length=500)
-    status: str = Field(max_length=20, index=True, default="active")  # active, archived, deleted
+    status: str = Field(max_length=20, index=True, default='active')  # active, archived, deleted
     summary: Optional[str] = None
     message_count: int = Field(default=0)
     custom_metadata: Optional[dict] = Field(default=None, sa_column=Column(JSONB))
 
 
-class Message(BaseModel, TimestampMixin, SoftDeleteMixin,table=True):
+class Message(BaseModel, TimestampMixin, SoftDeleteMixin, table=True):
     """消息表 - 对话消息。
 
     存储对话中的每条消息，包括用户输入和AI回复。
@@ -92,7 +92,7 @@ class Message(BaseModel, TimestampMixin, SoftDeleteMixin,table=True):
         - 记录模型信息用于追踪和分析
     """
 
-    __tablename__ = "messages"
+    __tablename__ = 'messages'
 
     conversation_id: UUID = Field(index=True)  # Logical FK to conversations
     application_id: UUID = Field(index=True)  # Logical FK to applications
@@ -111,6 +111,6 @@ class Message(BaseModel, TimestampMixin, SoftDeleteMixin,table=True):
     completion_tokens: int = Field(default=0)
     total_tokens: int = Field(default=0)
     latency: float = Field(default=0.0)
-    status: str = Field(max_length=20, index=True, default="success")  # success, failed, processing
+    status: str = Field(max_length=20, index=True, default='success')  # success, failed, processing
     error: Optional[str] = None
     custom_metadata: Optional[dict] = Field(default=None, sa_column=Column(JSONB))

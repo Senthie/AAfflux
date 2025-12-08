@@ -58,7 +58,7 @@ class Dataset(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteM
     word_count: int = Field(default=0)
 
 
-class Document(BaseModel, TimestampMixin, AuditMixin, SoftDeleteMixin,table=True):
+class Document(BaseModel, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):
     """文档表 - 知识库文档。
 
     存储上传到知识库的文档信息。
@@ -115,7 +115,7 @@ class Document(BaseModel, TimestampMixin, AuditMixin, SoftDeleteMixin,table=True
     archived: bool = Field(default=False, index=True)
 
 
-class DocumentSegment(BaseModel, TimestampMixin, AuditMixin, SoftDeleteMixin,table=True):
+class DocumentSegment(BaseModel, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):
     """文档段落表 - 文档分段。
 
     存储文档分段后的段落信息。

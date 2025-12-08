@@ -32,8 +32,6 @@ def db_session():
     # Monkey patch JSONB to use JSON for SQLite
     import sqlalchemy.dialects.sqlite.base as sqlite_base
 
-    original_visit = sqlite_base.SQLiteTypeCompiler.visit_JSON
-
     def visit_JSONB(self, type_, **kw):
         return self.visit_JSON(type_, **kw)
 

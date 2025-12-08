@@ -30,5 +30,5 @@ class TaskClaimRequest(BaseModel):
 class TaskCompleteRequest(BaseModel):
     """完成任务请求"""
 
-    result: dict = Field(..., description="任务结果")
-    comment: Optional[str] = Field(None, description="处理意见")
+    result: dict = Field(..., description='任务结果')
+    comment: Optional[str] = Field(None, description='处理意见')

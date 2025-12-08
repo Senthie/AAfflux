@@ -17,13 +17,13 @@ from app.schemas.bpm_approval_schemas import (
 )
 
 __all__ = [
-    "ProcessDefinitionCreate",
-    "ProcessDefinitionResponse",
-    "ProcessInstanceCreate",
-    "ProcessInstanceResponse",
-    "TaskResponse",
-    "TaskCompleteRequest",
-    "TaskClaimRequest",
-    "ApprovalRequest",
-    "ApprovalResponse",
+    'ProcessDefinitionCreate',
+    'ProcessDefinitionResponse',
+    'ProcessInstanceCreate',
+    'ProcessInstanceResponse',
+    'TaskResponse',
+    'TaskCompleteRequest',
+    'TaskClaimRequest',
+    'ApprovalRequest',
+    'ApprovalResponse',
 ]

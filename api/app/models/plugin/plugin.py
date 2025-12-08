@@ -69,7 +69,7 @@ class Plugin(BaseModel, TimestampMixin, SoftDeleteMixin, table=True):
     is_verified: bool = Field(default=False, index=True)
 
 
-class InstalledPlugin(BaseModel, TimestampMixin, WorkspaceMixin, SoftDeleteMixin,table=True):
+class InstalledPlugin(BaseModel, TimestampMixin, WorkspaceMixin, SoftDeleteMixin, table=True):
     """已安装插件表 - 工作空间插件。
 
     记录工作空间安装的插件及其配置。

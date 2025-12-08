@@ -14,6 +14,7 @@ from app.core.redis import redis_client
 from app.core.logging import configure_logging, get_logger
 from app.core.sentry import init_sentry
 from app.api.v1 import router as api_v1_router
+
 # Configure logging
 configure_logging()
 logger = get_logger(__name__)
@@ -30,47 +31,47 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     Handles startup and shutdown events.
     """
     # Startup
-    logger.info("Starting application", app_name=settings.app_name)
+    logger.info('Starting application', app_name=settings.app_name)
 
     try:
         # Initialize database
         await init_db()
-        logger.info("Database initialized")
+        logger.info('Database initialized')
 
         # Connect to MongoDB
         await mongodb_client.connect()
-        logger.info("MongoDB connected")
+        logger.info('MongoDB connected')
 
         # Connect to Redis
         await redis_client.connect()
-        logger.info("Redis connected")
+        logger.info('Redis connected')
 
     except Exception as e:
-        logger.error("Failed to initialize application", error=str(e))
+        logger.error('Failed to initialize application', error=str(e))
         raise
 
     yield
 
     # Shutdown
-    logger.info("Shutting down application")
+    logger.info('Shutting down application')
 
     try:
         await close_db()
         await mongodb_client.close()
         await redis_client.close()
-        logger.info("All connections closed")
+        logger.info('All connections closed')
     except Exception as e:
-        logger.error("Error during shutdown", error=str(e))
+        logger.error('Error during shutdown', error=str(e))
 
 
 # Create FastAPI application
 app = FastAPI(
     title=settings.app_name,
-    version="0.1.0",
-    description="Low-code platform backend with workflow orchestration and AI integration",
-    docs_url="/docs",
-    redoc_url="/redoc",
-    openapi_url="/openapi.json",
+    version='0.1.0',
+    description='Low-code platform backend with workflow orchestration and AI integration',
+    docs_url='/docs',
+    redoc_url='/redoc',
+    openapi_url='/openapi.json',
     lifespan=lifespan,
 )
 
@@ -84,7 +85,7 @@ app.add_middleware(
 )
 
 
-@app.get("/health", tags=["Health"])
+@app.get('/health', tags=['Health'])
 async def health_check() -> JSONResponse:
     """
     Health check endpoint.
@@ -94,14 +95,14 @@ async def health_check() -> JSONResponse:
     """
     return JSONResponse(
         content={
-            "status": "healthy",
-            "app": settings.app_name,
-            "version": "0.1.0",
+            'status': 'healthy',
+            'app': settings.app_name,
+            'version': '0.1.0',
         }
     )
 
 
-@app.get("/", tags=["Root"])
+@app.get('/', tags=['Root'])
 async def root() -> JSONResponse:
     """
     Root endpoint.
@@ -111,11 +112,12 @@ async def root() -> JSONResponse:
     """
     return JSONResponse(
         content={
-            "message": "Welcome to Low-Code Platform Backend API",
-            "docs": "/docs",
-            "health": "/health",
+            'message': 'Welcome to Low-Code Platform Backend API',
+            'docs': '/docs',
+            'health': '/health',
         }
     )
+
 
 app.include_router(api_v1_router)  # prefix 已经在 v1/__init__.py 中定义了
 # TODO: Register API routers here

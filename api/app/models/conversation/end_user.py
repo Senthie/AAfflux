@@ -6,6 +6,7 @@ LastEditTime: 2025-12-08 14:46:26
 FilePath: : AAfflux: api: app: models: conversation: end_user.py
 Description:添加了softdelete软删除字段
 """
+
 """终端用户模型 - 1张表。
 
 本模块定义了终端用户（C端用户）的数据模型。
@@ -15,12 +16,12 @@ Description:添加了softdelete软删除字段
 from datetime import datetime
 from typing import Optional
 from sqlmodel import Field
-from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin,SoftDeleteMixin
+from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, SoftDeleteMixin
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Column
 
 
-class EndUser(BaseModel, WorkspaceMixin, TimestampMixin, SoftDeleteMixin,table=True):
+class EndUser(BaseModel, WorkspaceMixin, TimestampMixin, SoftDeleteMixin, table=True):
     """终端用户表 - C端用户。
 
     存储使用已发布应用的终端用户信息。

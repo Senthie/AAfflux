@@ -31,7 +31,6 @@ class ProcessDefinition(
     # 流程标识
     key: str = Field(
         index=True, max_length=100, description='流程唯一标识（如：workspace_approval）'
-
     )
     name: str = Field(max_length=255, description='流程名称')
     description: Optional[str] = Field(default=None, description='流程描述')
@@ -51,7 +50,6 @@ class ProcessDefinition(
     bpmn_xml: Optional[str] = Field(default=None, description='BPMN 2.0 XML 定义')
     process_config: dict = Field(
         default_factory=dict, sa_column=Column(JSON), description='流程配置（JSON）'
-
     )
 
     # 节点定义
@@ -61,7 +59,6 @@ class ProcessDefinition(
     # 表单配置
     form_schema: Optional[dict] = Field(
         default=None, sa_column=Column(JSON), description='表单 Schema'
-
     )
 
     # 状态
@@ -87,12 +84,10 @@ class ProcessDefinition(
                         'name': '部门主管审批',
                         'assignee': 'manager',
                     },
-
                     {'id': 'end', 'type': 'end', 'name': '结束'},
                 ],
             }
         }
-
 
 
 class ProcessStatus(str, Enum):
@@ -139,7 +134,6 @@ class ProcessInstance(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
     # 业务关联
     business_key: Optional[str] = Field(
         default=None, max_length=255, index=True, description='业务键（如：application_id）'
-
     )
     business_type: Optional[str] = Field(default=None, max_length=50, description='业务类型')
     business_type: Optional[str] = Field(default=None, max_length=50, description='业务类型')
@@ -147,7 +141,6 @@ class ProcessInstance(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
     # 关联 Workflow（如果从 Workflow 触发）
     workflow_run_id: Optional[UUID] = Field(
         default=None, index=True, description='关联的工作流执行ID'
-
     )
     workflow_node_id: Optional[str] = Field(default=None, description='触发的工作流节点ID')
     workflow_node_id: Optional[str] = Field(default=None, description='触发的工作流节点ID')
@@ -181,7 +174,6 @@ class ProcessInstance(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
 
     class Config:
         json_schema_extra = {
-
             'example': {
                 'process_key': 'workspace_approval',
                 'business_key': 'workspace_123',
@@ -193,6 +185,5 @@ class ProcessInstance(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
                     'reason': '项目需要',
                 },
                 'current_node_id': 'manager_approval',
-
             }
         }
