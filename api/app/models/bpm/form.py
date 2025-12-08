@@ -2,7 +2,7 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-02 12:27:34
 LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-08 17:11:52
+LastEditTime: 2025-12-08 17:43:59
 FilePath: : AAfflux: api: app: models: bpm: form.py
 Description: 添加了softdelete软删除字段
 """
@@ -20,8 +20,8 @@ from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, AuditMixi
 class FormDefinition(
     BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin, table=True
 ):
-    """表单定义表
-
+    """表单定义表"""
+    """
     已经继承
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     # 租户隔离

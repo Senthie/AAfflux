@@ -11,19 +11,7 @@ from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, AuditMixi
 class ProcessDefinition(
     BaseModel, WorkspaceMixin, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True
 ):
-    """流程定义表 - 定义可重用的流程模板
-
-    已经继承
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
-    # 租户隔离
-    workspace_id: Optional[UUID] = Field(default=None, foreign_key="workspaces.id", index=True)
-    # 创建信息
-    created_by: UUID = Field(foreign_key="users.id", description="创建者")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
-    deleted_at: Optional[datetime] = Field(default=None)
-    is_deleted: bool = Field(default=False)
-    """
+    """流程定义表 - 定义可重用的流程模板"""
 
     __tablename__ = 'bpm_process_definitions'
 
@@ -96,17 +84,19 @@ class ProcessStatus(str, Enum):
 
 
 class ProcessInstance(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
-    """流程实例表 - 流程定义的具体执行实例
+    """流程定义表 - 定义可重用的流程模板
 
     已经继承
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     # 租户隔离
-    workspace_id: UUID = Field(foreign_key="workspaces.id", index=True)
+    workspace_id: Optional[UUID] = Field(default=None, foreign_key="workspaces.id", index=True)
     # 创建信息
+    created_by: UUID = Field(foreign_key="users.id", description="创建者")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+    deleted_at: Optional[datetime] = Field(default=None)
+    is_deleted: bool = Field(default=False)
     """
-
     __tablename__ = 'bpm_process_instances'
 
     # 关联流程定义（逻辑外键）
