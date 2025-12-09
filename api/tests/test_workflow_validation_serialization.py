@@ -165,7 +165,6 @@ class TestWorkflowValidator:
     provide AsyncSession. The service needs to be refactored to use async API.
     """
 
-    @pytest.mark.skip(reason='WorkflowValidator needs async refactoring')
     @pytest.mark.asyncio
     async def test_validate_node_config_llm_valid(self, test_session: AsyncSession):
         """Test validating a valid LLM node configuration."""
@@ -186,7 +185,6 @@ class TestWorkflowValidator:
         result = validator.validate_node_config(node)
         assert result.is_valid
 
-    @pytest.mark.skip(reason='WorkflowValidator needs async refactoring')
     @pytest.mark.asyncio
     async def test_validate_node_config_llm_missing_required(self, test_session: AsyncSession):
         """Test validating an LLM node with missing required fields."""
@@ -206,7 +204,6 @@ class TestWorkflowValidator:
         assert not result.is_valid
         assert any('prompt' in error.lower() for error in result.errors)
 
-    @pytest.mark.skip(reason='WorkflowValidator needs async refactoring')
     @pytest.mark.asyncio
     async def test_validate_node_config_invalid_temperature(self, test_session: AsyncSession):
         """Test validating an LLM node with invalid temperature."""
@@ -227,7 +224,6 @@ class TestWorkflowValidator:
         assert not result.is_valid
         assert any('temperature' in error.lower() for error in result.errors)
 
-    @pytest.mark.skip(reason='WorkflowValidator needs async refactoring')
     @pytest.mark.asyncio
     async def test_check_cyclic_dependency_no_cycle(
         self, test_session: AsyncSession, sample_workflow: Workflow
@@ -264,9 +260,8 @@ class TestWorkflowValidator:
         await test_session.commit()
 
         # Should not have cycle
-        assert validator.check_cyclic_dependency(sample_workflow.id)
+        assert await validator.check_cyclic_dependency(sample_workflow.id)
 
-    @pytest.mark.skip(reason='WorkflowValidator needs async refactoring')
     @pytest.mark.asyncio
     async def test_validate_workflow_empty(
         self, test_session: AsyncSession, sample_workflow: Workflow
@@ -274,7 +269,7 @@ class TestWorkflowValidator:
         """Test validating an empty workflow."""
         validator = WorkflowValidator(test_session)
 
-        result = validator.validate_workflow(sample_workflow.id)
+        result = await validator.validate_workflow(sample_workflow.id)
         assert not result.is_valid
         assert any('at least one node' in error.lower() for error in result.errors)
 
@@ -287,7 +282,6 @@ class TestWorkflowSerializer:
     but tests provide AsyncSession. The service needs to be refactored to use async API.
     """
 
-    @pytest.mark.skip(reason='WorkflowSerializer needs async refactoring')
     @pytest.mark.asyncio
     async def test_serialize_workflow(self, test_session: AsyncSession, sample_workflow: Workflow):
         """Test serializing a workflow."""
@@ -305,23 +299,21 @@ class TestWorkflowSerializer:
         await test_session.commit()
 
         # Serialize
-        data = serializer.serialize_workflow(sample_workflow.id)
+        data = await serializer.serialize_workflow(sample_workflow.id)
 
         assert data['version'] == '1.0'
         assert data['workflow']['name'] == 'Test Workflow'
         assert len(data['nodes']) == 1
         assert data['nodes'][0]['name'] == 'Test Node'
 
-    @pytest.mark.skip(reason='WorkflowSerializer needs async refactoring')
     @pytest.mark.asyncio
     async def test_serialize_nonexistent_workflow(self, test_session: AsyncSession):
         """Test serializing a non-existent workflow."""
         serializer = WorkflowSerializer(test_session)
 
         with pytest.raises(SerializationError):
-            serializer.serialize_workflow(uuid4())
+            await serializer.serialize_workflow(uuid4())
 
-    @pytest.mark.skip(reason='WorkflowSerializer needs async refactoring')
     @pytest.mark.asyncio
     async def test_deserialize_workflow(self, test_session: AsyncSession):
         """Test deserializing a workflow."""
@@ -350,12 +342,11 @@ class TestWorkflowSerializer:
             'connections': [],
         }
 
-        workflow = serializer.deserialize_workflow(workflow_data, workspace_id, user_id)
+        workflow = await serializer.deserialize_workflow(workflow_data, workspace_id, user_id)
 
         assert workflow.name == 'Imported Workflow'
         assert workflow.workspace_id == workspace_id
 
-    @pytest.mark.skip(reason='WorkflowSerializer needs async refactoring')
     @pytest.mark.asyncio
     async def test_deserialize_invalid_version(self, test_session: AsyncSession):
         """Test deserializing with invalid version."""
@@ -369,9 +360,8 @@ class TestWorkflowSerializer:
         }
 
         with pytest.raises(DeserializationError):
-            serializer.deserialize_workflow(workflow_data, uuid4(), uuid4())
+            await serializer.deserialize_workflow(workflow_data, uuid4(), uuid4())
 
-    @pytest.mark.skip(reason='WorkflowSerializer needs async refactoring')
     @pytest.mark.asyncio
     async def test_validate_serialized_workflow_valid(self, test_session: AsyncSession):
         """Test validating valid serialized workflow data."""
@@ -393,7 +383,6 @@ class TestWorkflowSerializer:
 
         assert serializer.validate_serialized_workflow(workflow_data)
 
-    @pytest.mark.skip(reason='WorkflowSerializer needs async refactoring')
     @pytest.mark.asyncio
     async def test_validate_serialized_workflow_invalid(self, test_session: AsyncSession):
         """Test validating invalid serialized workflow data."""
@@ -408,7 +397,6 @@ class TestWorkflowSerializer:
 
         assert not serializer.validate_serialized_workflow(workflow_data)
 
-    @pytest.mark.skip(reason='WorkflowSerializer needs async refactoring')
     @pytest.mark.asyncio
     async def test_round_trip_serialization(
         self, test_session: AsyncSession, sample_workflow: Workflow
@@ -446,10 +434,10 @@ class TestWorkflowSerializer:
         await test_session.commit()
 
         # Serialize
-        data = serializer.serialize_workflow(sample_workflow.id)
+        data = await serializer.serialize_workflow(sample_workflow.id)
 
         # Deserialize
-        new_workflow = serializer.deserialize_workflow(
+        new_workflow = await serializer.deserialize_workflow(
             data, sample_workflow.workspace_id, sample_workflow.created_by
         )
 
