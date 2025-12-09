@@ -2,7 +2,7 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-02 11:12:23
 LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-08 16:59:06
+LastEditTime: 2025-12-09 09:20:10
 FilePath: : AAfflux: api: app: models: file: reference.py
 Description:实现了softdelete软删除的基础类继承
 """

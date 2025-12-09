@@ -2,47 +2,49 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-02 08:55:33
 LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-08 16:10:16
+LastEditTime: 2025-12-09 16:31:13
 FilePath: : AAfflux: api: app: services: auth_service.py
-Description: Authentication service for user registration, login, and token management,补充添加了is_delete,完善业务逻辑
+Description: Authentication service for user registration, login, and token management
 
 Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
+from datetime import datetime
 from typing import Optional
 from uuid import UUID
-from datetime import datetime
-from sqlmodel import Session, select
 
+from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
+
+from app.core.config import settings
+from app.core.redis import RedisClient
 from app.models.auth import User
 from app.schemas.auth_schema import (
-    RegisterRequest,
     LoginRequest,
-    TokenPair,
-    RegisterResponse,
     LoginResponse,
+    RegisterRequest,
+    RegisterResponse,
+    TokenPair,
     UserResponse,
 )
 from app.utils.password import get_password_hash, verify_password
 from app.utils.token import (
+    TokenType,
     generate_access_token,
     generate_refresh_token,
     verify_token,
-    TokenType,
 )
-from app.core.config import settings
-from app.core.redis import RedisClient
 
 
 class AuthService:
     """Service for handling authentication operations."""
 
-    def __init__(self, db: Session, redis: RedisClient):
+    def __init__(self, db: AsyncSession, redis: RedisClient):
         """
         Initialize AuthService.
 
         Args:
-            db: Database session
+            db: Async database session
             redis: Redis client for token management
         """
         self.db = db
@@ -64,9 +66,10 @@ class AuthService:
         # Check if user already exists
         statement = select(User).where(
             User.email == request.email,
-            User.is_deleted.is_(False),  # 原始使用 ‘==’ 不符合ruff规则 改为is
+            User.is_deleted.is_(False),
         )
-        existing_user = self.db.exec(statement).first()
+        result = await self.db.execute(statement)
+        existing_user = result.scalar_one_or_none()
 
         if existing_user:
             raise ValueError('Email already registered')
@@ -80,8 +83,8 @@ class AuthService:
         )
 
         self.db.add(user)
-        self.db.commit()
-        self.db.refresh(user)
+        await self.db.commit()
+        await self.db.refresh(user)
 
         # Generate tokens
         tokens = await self._generate_token_pair(user.id)
@@ -106,7 +109,8 @@ class AuthService:
         """
         # Find user by email
         statement = select(User).where(User.email == request.email, User.is_deleted.is_(False))
-        user = self.db.exec(statement).first()
+        result = await self.db.execute(statement)
+        user = result.scalar_one_or_none()
 
         if not user:
             raise ValueError('Invalid email or password')
@@ -150,7 +154,7 @@ class AuthService:
             raise ValueError('Token has been revoked')
 
         # Verify user still exists
-        user = self.db.get(User, user_id)
+        user = await self.db.get(User, user_id)
         if not user or user.is_deleted:
             raise ValueError('User not found')
 
@@ -204,7 +208,8 @@ class AuthService:
         """
         # Find user by email
         statement = select(User).where(User.email == email, User.is_deleted.is_(False))
-        user = self.db.exec(statement).first()
+        result = await self.db.execute(statement)
+        user = result.scalar_one_or_none()
 
         if not user:
             raise ValueError('User not found')
@@ -251,7 +256,7 @@ class AuthService:
             raise ValueError('Invalid or expired reset token')
 
         # Get user
-        user = self.db.get(User, user_id)
+        user = await self.db.get(User, user_id)
         if not user or user.is_deleted:
             raise ValueError('User not found')
 
@@ -260,7 +265,7 @@ class AuthService:
         user.updated_at = datetime.utcnow()
 
         self.db.add(user)
-        self.db.commit()
+        await self.db.commit()
 
         # Delete reset token
         await self.redis.delete(f'password_reset:{user_id}')
@@ -289,9 +294,10 @@ class AuthService:
         user_id = UUID(payload['user_id'])
 
         # Get user from database
-        user = self.db.get(User, user_id)
+        user = await self.db.get(User, user_id)
         if user and user.is_deleted:
             return None
+
         return user
 
     async def _generate_token_pair(self, user_id: UUID) -> TokenPair:

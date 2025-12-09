@@ -2,7 +2,7 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-05 17:50:01
 LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-08 11:40:50
+LastEditTime: 2025-12-09 14:38:28
 FilePath: : AAfflux: api: app: api: v1: users.py
 Description: 用户管理，增删改查
 """
@@ -26,11 +26,19 @@ from app.schemas.user import (
 
 from app.models.auth.user import User
 
-router = APIRouter(PREFIX='/users', tags=['User Management'])
+router = APIRouter(prefix='/users', tags=['User Management'])
 
 # 依赖注入定义
 DbSession = Annotated[AsyncSession, Depends(get_session)]
 CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+def get_user_service(session: DbSession) -> UserService:
+    """获取用户服务实例"""
+    return UserService(session)
+
+
+UserServiceDep = Annotated[UserService, Depends(get_user_service)]
 
 
 @router.get('/me', response_model=UserProfileResponse, summary='获取当前用户信息')
@@ -41,10 +49,11 @@ async def get_current_user_info(current_user: CurrentUser) -> UserProfileRespons
 
 @router.put('/me', response_model=UserProfileResponse, summary='更新用户资料')
 async def update_user_profile(
-    user_update: UserUpdateRequest, current_user: CurrentUser, session: DbSession
+    user_update: UserUpdateRequest,
+    current_user: CurrentUser,
+    service: UserServiceDep,
 ) -> UserProfileResponse:
     """更新用户资料（用户名、邮箱等）"""
-    service = UserService(session)
     updated_user = await service.update_user(user=current_user, update_data=user_update)
     return UserProfileResponse.model_validate(updated_user)
 
@@ -55,10 +64,11 @@ async def update_user_profile(
     summary='修改密码',
 )
 async def change_password(
-    password_data: PasswordChangeRequest, current_user: CurrentUser, session: DbSession
+    password_data: PasswordChangeRequest,
+    current_user: CurrentUser,
+    service: UserServiceDep,
 ) -> PasswordChangeResponse:
     """修改当前用户密码"""
-    service = UserService(session)
     success = await service.change_password(
         user=current_user,
         old_password=password_data.old_password,
@@ -83,11 +93,10 @@ async def change_password(
 )
 async def upload_avatar(
     current_user: CurrentUser,
-    session: DbSession,
+    service: UserServiceDep,
     file: UploadFile = File(..., description='头像文件'),
 ) -> AvatarUploadResponse:
     """上传/更新头像"""
-    service = UserService(session)
     avatar_url = await service.update_avatar(user=current_user, file=file)
 
     return AvatarUploadResponse(
@@ -102,9 +111,11 @@ async def upload_avatar(
     status_code=status.HTTP_200_OK,
     summary='删除账户',
 )
-async def delete_account(current_user: CurrentUser, session: DbSession) -> UserDeleteResponse:
+async def delete_account(
+    current_user: CurrentUser,
+    service: UserServiceDep,
+) -> UserDeleteResponse:
     """删除账号（软删除）"""
-    service = UserService(session)
     success = await service.soft_delete_user(user=current_user)
 
     return UserDeleteResponse(

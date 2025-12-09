@@ -1,9 +1,10 @@
+
 """
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-08 09:58:13
-LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-09 01:29:32
-FilePath: /api/tests/conftest.py
+LastEditors: kk123047 3254834740@qq.com
+LastEditTime: 2025-12-09 12:10:58
+FilePath: : AAfflux: api: tests: conftest.py
 Description:Pytest configuration and fixtures.
 
 Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
