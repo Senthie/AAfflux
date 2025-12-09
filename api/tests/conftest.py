@@ -55,8 +55,6 @@ async def test_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
     )
 
     async with async_session() as session:
-        # Start a transaction
-        async with session.begin():
-            yield session
-            # Transaction will be rolled back automatically if test fails
-            # or you can explicitly rollback in tests
+        yield session
+        # Rollback any uncommitted changes
+        await session.rollback()
