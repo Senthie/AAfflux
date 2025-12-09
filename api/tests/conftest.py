@@ -1,7 +1,7 @@
 """
 Author: Senthie seemoon2077@gmail.com
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-08 12:27:39
+LastEditTime: 2026-01-08 12:28:59
 FilePath: /api/tests/conftest.py
 FilePath: /api/tests/conftest.py
 Description:Pytest configuration and fixtures.
@@ -29,14 +29,6 @@ from dotenv import load_dotenv
 from sqlmodel import SQLModel
 
 from app.core.config import settings
-
-load_dotenv('.env.test')
-
-# 从环境变量获取测试数据库 URL
-TEST_DATABASE_URL = os.getenv(
-    # 创建引擎
-    'postgresql+asyncpg://postgres:postgres@14.12.0.102:5432/lowcode_test'
-)
 
 
 @pytest.fixture(scope='function')
