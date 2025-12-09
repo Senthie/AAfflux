@@ -20,11 +20,15 @@ from sqlmodel import SQLModel
 from app.core.config import settings
 
 
-@pytest.fixture(scope='session')
-def test_engine():
-    """Create test database engine."""
+@pytest.fixture(scope='function')
+async def test_session() -> AsyncGenerator[AsyncSession, None]:
+    """Create test database session.
 
-    # Create async engine
+    Note: This uses the real database from .env file.
+    Tables are created if they don't exist, but NOT dropped after tests.
+    Each test gets its own engine and session to avoid event loop issues.
+    """
+    # Create async engine for this test
     engine = create_async_engine(
         settings.database_url,
         echo=settings.database_echo,
@@ -32,24 +36,14 @@ def test_engine():
         max_overflow=settings.database_max_overflow,
         pool_pre_ping=True,
     )
-    return engine
 
-
-@pytest.fixture(scope='function')
-async def test_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
-    """Create test database session.
-
-    Note: This uses the real database from .env file.
-    Tables are created if they don't exist, but NOT dropped after tests.
-    Use transactions and rollback for test isolation.
-    """
     # Ensure tables exist (idempotent operation)
-    async with test_engine.begin() as conn:
+    async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
 
-    # Create session with transaction
+    # Create session
     async_session = async_sessionmaker(
-        test_engine,
+        engine,
         class_=AsyncSession,
         expire_on_commit=False,
     )
@@ -58,3 +52,6 @@ async def test_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
         yield session
         # Rollback any uncommitted changes
         await session.rollback()
+
+    # Dispose engine after test
+    await engine.dispose()
