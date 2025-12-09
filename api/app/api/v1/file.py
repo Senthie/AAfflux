@@ -12,24 +12,24 @@ Description: 提供文件上传、下载、删除、列表等功能。
 提供文件上传、下载、删除、列表等功能。
 """
 
-from uuid import UUID
 from typing import Annotated
+from uuid import UUID
 
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Path, Query, UploadFile, status
 from fastapi.responses import StreamingResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.database import get_session
-from app.services.file_server import FileService
-from app.schemas.file import (
-    FileUploadResponse,
-    FileMetadataResponse,
-    FileListResponse,
-    FileListItem,
-    FileDeleteResponse,
-)
-from app.core.storage.exceptions import FileNotFoundError
 from app.core.logging import get_logger
+from app.core.storage.exceptions import FileNotFoundError
+from app.schemas.file import (
+    FileDeleteResponse,
+    FileListItem,
+    FileListResponse,
+    FileMetadataResponse,
+    FileUploadResponse,
+)
+from app.services.file_server import FileService
 
 logger = get_logger(__name__)
 
@@ -100,7 +100,7 @@ async def upload_file(
     description='下载指定文件，支持流式传输',
 )
 async def download_file(
-    file_id: Annotated[UUID, Query(description='文件 ID')],
+    file_id: Annotated[UUID, Path(description='文件 ID')],
     file_service: Annotated[FileService, Depends(get_file_service)],
 ) -> StreamingResponse:
     """下载文件
@@ -148,7 +148,7 @@ async def download_file(
     description='删除指定文件（同时删除元数据和文件内容）',
 )
 async def delete_file(
-    file_id: Annotated[UUID, Query(description='文件 ID')],
+    file_id: Annotated[UUID, Path(description='文件 ID')],
     file_service: Annotated[FileService, Depends(get_file_service)],
 ) -> FileDeleteResponse:
     """删除文件
@@ -193,7 +193,7 @@ async def delete_file(
     description='获取指定文件的元数据信息',
 )
 async def get_file_metadata(
-    file_id: Annotated[UUID, Query(description='文件 ID')],
+    file_id: Annotated[UUID, Path(description='文件 ID')],
     file_service: Annotated[FileService, Depends(get_file_service)],
 ) -> FileMetadataResponse:
     """获取文件元数据

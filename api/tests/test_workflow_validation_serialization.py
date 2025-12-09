@@ -6,7 +6,8 @@ This module tests the workflow validator and serializer services.
 from uuid import uuid4
 
 import pytest
-from sqlmodel import Session, SQLModel, create_engine
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
 from app.models.workflow.workflow import Connection, Node, Workflow
 from app.services.workflow_serializer import (
@@ -26,26 +27,7 @@ from app.utils.dag import (
 
 
 @pytest.fixture
-def db_session():
-    """Create a test database session."""
-
-    # Monkey patch JSONB to use JSON for SQLite
-    import sqlalchemy.dialects.sqlite.base as sqlite_base
-
-    def visit_JSONB(self, type_, **kw):
-        return self.visit_JSON(type_, **kw)
-
-    sqlite_base.SQLiteTypeCompiler.visit_JSONB = visit_JSONB
-
-    engine = create_engine('sqlite:///:memory:')
-    SQLModel.metadata.create_all(engine)
-    with Session(engine) as session:
-        yield session
-    SQLModel.metadata.drop_all(engine)
-
-
-@pytest.fixture
-def sample_workflow(db_session: Session):
+async def sample_workflow(test_session: AsyncSession):
     """Create a sample workflow for testing."""
     workspace_id = uuid4()
     user_id = uuid4()
@@ -58,9 +40,9 @@ def sample_workflow(db_session: Session):
         input_schema={'type': 'object'},
         output_schema={'type': 'object'},
     )
-    db_session.add(workflow)
-    db_session.commit()
-    db_session.refresh(workflow)
+    test_session.add(workflow)
+    await test_session.commit()
+    await test_session.refresh(workflow)
 
     return workflow
 
@@ -178,9 +160,10 @@ class TestDAGUtils:
 class TestWorkflowValidator:
     """Test workflow validator."""
 
-    def test_validate_node_config_llm_valid(self, db_session: Session):
+    @pytest.mark.asyncio
+    async def test_validate_node_config_llm_valid(self, test_session: AsyncSession):
         """Test validating a valid LLM node configuration."""
-        validator = WorkflowValidator(db_session)
+        validator = WorkflowValidator(test_session)
 
         node = Node(
             workflow_id=uuid4(),
@@ -197,9 +180,10 @@ class TestWorkflowValidator:
         result = validator.validate_node_config(node)
         assert result.is_valid
 
-    def test_validate_node_config_llm_missing_required(self, db_session: Session):
+    @pytest.mark.asyncio
+    async def test_validate_node_config_llm_missing_required(self, test_session: AsyncSession):
         """Test validating an LLM node with missing required fields."""
-        validator = WorkflowValidator(db_session)
+        validator = WorkflowValidator(test_session)
 
         node = Node(
             workflow_id=uuid4(),
@@ -215,9 +199,10 @@ class TestWorkflowValidator:
         assert not result.is_valid
         assert any('prompt' in error.lower() for error in result.errors)
 
-    def test_validate_node_config_invalid_temperature(self, db_session: Session):
+    @pytest.mark.asyncio
+    async def test_validate_node_config_invalid_temperature(self, test_session: AsyncSession):
         """Test validating an LLM node with invalid temperature."""
-        validator = WorkflowValidator(db_session)
+        validator = WorkflowValidator(test_session)
 
         node = Node(
             workflow_id=uuid4(),
@@ -234,9 +219,12 @@ class TestWorkflowValidator:
         assert not result.is_valid
         assert any('temperature' in error.lower() for error in result.errors)
 
-    def test_check_cyclic_dependency_no_cycle(self, db_session: Session, sample_workflow: Workflow):
+    @pytest.mark.asyncio
+    async def test_check_cyclic_dependency_no_cycle(
+        self, test_session: AsyncSession, sample_workflow: Workflow
+    ):
         """Test checking for cyclic dependencies with no cycle."""
-        validator = WorkflowValidator(db_session)
+        validator = WorkflowValidator(test_session)
 
         # Create nodes
         node_a = Node(
@@ -251,9 +239,9 @@ class TestWorkflowValidator:
             name='Node B',
             config={'model': 'gpt-4', 'prompt': 'test'},
         )
-        db_session.add(node_a)
-        db_session.add(node_b)
-        db_session.commit()
+        test_session.add(node_a)
+        test_session.add(node_b)
+        await test_session.commit()
 
         # Create connection A -> B
         connection = Connection(
@@ -263,15 +251,18 @@ class TestWorkflowValidator:
             source_output='output',
             target_input='input',
         )
-        db_session.add(connection)
-        db_session.commit()
+        test_session.add(connection)
+        await test_session.commit()
 
         # Should not have cycle
         assert validator.check_cyclic_dependency(sample_workflow.id)
 
-    def test_validate_workflow_empty(self, db_session: Session, sample_workflow: Workflow):
+    @pytest.mark.asyncio
+    async def test_validate_workflow_empty(
+        self, test_session: AsyncSession, sample_workflow: Workflow
+    ):
         """Test validating an empty workflow."""
-        validator = WorkflowValidator(db_session)
+        validator = WorkflowValidator(test_session)
 
         result = validator.validate_workflow(sample_workflow.id)
         assert not result.is_valid
@@ -281,9 +272,10 @@ class TestWorkflowValidator:
 class TestWorkflowSerializer:
     """Test workflow serializer."""
 
-    def test_serialize_workflow(self, db_session: Session, sample_workflow: Workflow):
+    @pytest.mark.asyncio
+    async def test_serialize_workflow(self, test_session: AsyncSession, sample_workflow: Workflow):
         """Test serializing a workflow."""
-        serializer = WorkflowSerializer(db_session)
+        serializer = WorkflowSerializer(test_session)
 
         # Add a node
         node = Node(
@@ -293,8 +285,8 @@ class TestWorkflowSerializer:
             config={'model': 'gpt-4', 'prompt': 'test'},
             position={'x': 100, 'y': 200},
         )
-        db_session.add(node)
-        db_session.commit()
+        test_session.add(node)
+        await test_session.commit()
 
         # Serialize
         data = serializer.serialize_workflow(sample_workflow.id)
@@ -304,16 +296,18 @@ class TestWorkflowSerializer:
         assert len(data['nodes']) == 1
         assert data['nodes'][0]['name'] == 'Test Node'
 
-    def test_serialize_nonexistent_workflow(self, db_session: Session):
+    @pytest.mark.asyncio
+    async def test_serialize_nonexistent_workflow(self, test_session: AsyncSession):
         """Test serializing a non-existent workflow."""
-        serializer = WorkflowSerializer(db_session)
+        serializer = WorkflowSerializer(test_session)
 
         with pytest.raises(SerializationError):
             serializer.serialize_workflow(uuid4())
 
-    def test_deserialize_workflow(self, db_session: Session):
+    @pytest.mark.asyncio
+    async def test_deserialize_workflow(self, test_session: AsyncSession):
         """Test deserializing a workflow."""
-        serializer = WorkflowSerializer(db_session)
+        serializer = WorkflowSerializer(test_session)
 
         workspace_id = uuid4()
         user_id = uuid4()
@@ -343,9 +337,10 @@ class TestWorkflowSerializer:
         assert workflow.name == 'Imported Workflow'
         assert workflow.workspace_id == workspace_id
 
-    def test_deserialize_invalid_version(self, db_session: Session):
+    @pytest.mark.asyncio
+    async def test_deserialize_invalid_version(self, test_session: AsyncSession):
         """Test deserializing with invalid version."""
-        serializer = WorkflowSerializer(db_session)
+        serializer = WorkflowSerializer(test_session)
 
         workflow_data = {
             'version': '2.0',  # Unsupported version
@@ -357,9 +352,10 @@ class TestWorkflowSerializer:
         with pytest.raises(DeserializationError):
             serializer.deserialize_workflow(workflow_data, uuid4(), uuid4())
 
-    def test_validate_serialized_workflow_valid(self, db_session: Session):
+    @pytest.mark.asyncio
+    async def test_validate_serialized_workflow_valid(self, test_session: AsyncSession):
         """Test validating valid serialized workflow data."""
-        serializer = WorkflowSerializer(db_session)
+        serializer = WorkflowSerializer(test_session)
 
         node_id = str(uuid4())
         workflow_data = {
@@ -377,9 +373,10 @@ class TestWorkflowSerializer:
 
         assert serializer.validate_serialized_workflow(workflow_data)
 
-    def test_validate_serialized_workflow_invalid(self, db_session: Session):
+    @pytest.mark.asyncio
+    async def test_validate_serialized_workflow_invalid(self, test_session: AsyncSession):
         """Test validating invalid serialized workflow data."""
-        serializer = WorkflowSerializer(db_session)
+        serializer = WorkflowSerializer(test_session)
 
         # Missing 'nodes' key
         workflow_data = {
@@ -390,9 +387,12 @@ class TestWorkflowSerializer:
 
         assert not serializer.validate_serialized_workflow(workflow_data)
 
-    def test_round_trip_serialization(self, db_session: Session, sample_workflow: Workflow):
+    @pytest.mark.asyncio
+    async def test_round_trip_serialization(
+        self, test_session: AsyncSession, sample_workflow: Workflow
+    ):
         """Test round-trip serialization and deserialization."""
-        serializer = WorkflowSerializer(db_session)
+        serializer = WorkflowSerializer(test_session)
 
         # Add nodes and connections
         node_a = Node(
@@ -409,9 +409,9 @@ class TestWorkflowSerializer:
             config={'model': 'gpt-4', 'prompt': 'test'},
             position={'x': 100, 'y': 0},
         )
-        db_session.add(node_a)
-        db_session.add(node_b)
-        db_session.commit()
+        test_session.add(node_a)
+        test_session.add(node_b)
+        await test_session.commit()
 
         connection = Connection(
             workflow_id=sample_workflow.id,
@@ -420,8 +420,8 @@ class TestWorkflowSerializer:
             source_output='output',
             target_input='input',
         )
-        db_session.add(connection)
-        db_session.commit()
+        test_session.add(connection)
+        await test_session.commit()
 
         # Serialize
         data = serializer.serialize_workflow(sample_workflow.id)
@@ -436,13 +436,13 @@ class TestWorkflowSerializer:
         assert new_workflow.description == sample_workflow.description
 
         # Check nodes were created
-        from sqlmodel import select
-
         nodes_statement = select(Node).where(Node.workflow_id == new_workflow.id)
-        nodes = db_session.exec(nodes_statement).all()
+        result = await test_session.execute(nodes_statement)
+        nodes = result.scalars().all()
         assert len(nodes) == 2
 
         # Check connections were created
         connections_statement = select(Connection).where(Connection.workflow_id == new_workflow.id)
-        connections = db_session.exec(connections_statement).all()
+        result = await test_session.execute(connections_statement)
+        connections = result.scalars().all()
         assert len(connections) == 1
