@@ -2,7 +2,7 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-05 17:49:22
 LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-09 14:30:52
+LastEditTime: 2025-12-09 15:49:34
 FilePath: : AAfflux: api: app: services: user_service.py
 Description:用户管理服务
 """
@@ -32,14 +32,14 @@ class UserService:
     async def get_user_by_id(self, user_id: UUID) -> Optional[User]:
         """根据ID获取用户"""
         result = await self.session.execute(
-            select(User).where(User.id == user_id, User.is_deleted == False)
+            select(User).where(User.id == user_id, User.is_deleted is False)
         )
         return result.scalar_one_or_none()
 
     async def get_user_by_email(self, email: str) -> Optional[User]:
         """根据邮箱获取用户"""
         result = await self.session.execute(
-            select(User).where(User.email == email, User.is_deleted == False)
+            select(User).where(User.email == email, User.is_deleted is False)
         )
         return result.scalar_one_or_none()
 
@@ -125,7 +125,7 @@ class UserService:
     async def restore_user(self, user_id: UUID) -> Optional[User]:
         """恢复已删除的用户"""
         result = await self.session.execute(
-            select(User).where(User.id == user_id, User.is_deleted == True)
+            select(User).where(User.id == user_id, User.is_deleted is True)
         )
         user = result.scalar_one_or_none()
 
