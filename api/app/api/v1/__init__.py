@@ -2,7 +2,7 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-02 08:50:10
 LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-08 16:14:08
+LastEditTime: 2025-12-09 16:25:28
 FilePath: : AAfflux: api: app: api: v1: __init__.py
 Description:
 """
@@ -10,10 +10,16 @@ Description:
 """API v1 路由"""
 
 from fastapi import APIRouter
-from app.api.v1 import bpm_processes, bpm_tasks, bpm_approvals
+from app.api.v1 import auth, users, bpm_processes, bpm_tasks, bpm_approvals
 from app.api.v1 import file as file_router
 
 router = APIRouter(prefix='/api/v1', tags=['API v1'])
+
+# 注册认证路由（公开接口）
+router.include_router(auth.router, tags=['Authentication'])
+
+# 注册用户管理路由（需要认证）
+router.include_router(users.router, tags=['User Management'])
 
 # 注册 BPM 路由
 router.include_router(bpm_processes.router, prefix='/bpm/processes', tags=['BPM Processes'])
