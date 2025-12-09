@@ -1,43 +1,54 @@
+"""
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-02 08:50:10
+LastEditors: kk123047 3254834740@qq.com
+LastEditTime: 2025-12-09 09:55:36
+FilePath: : AAfflux: api: tests: conftest.py
+Description: 
+"""
 """Pytest configuration and fixtures."""
 
+import os
 import pytest
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy import text
 from sqlmodel import SQLModel
+from dotenv import load_dotenv
 
+# 加载测试环境配置
+load_dotenv('.env.test')
 
-# Test database URL (use SQLite for testing)
-TEST_DATABASE_URL = 'sqlite+aiosqlite:///:memory:'
-
-
-@pytest.fixture(scope='session')
-def test_engine():
-    """Create test database engine."""
-    engine = create_async_engine(
-        TEST_DATABASE_URL,
-        echo=False,
-        connect_args={'check_same_thread': False},
-    )
-    return engine
+# 从环境变量获取测试数据库 URL
+TEST_DATABASE_URL = os.getenv(
+    'DATABASE_URL',
+    'postgresql+asyncpg://postgres:postgres@14.12.0.102:5432/lowcode_test'
+)
 
 
 @pytest.fixture(scope='function')
-async def test_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
-    """Create test database session."""
-    # Create tables
-    async with test_engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.create_all)
-
-    # Create session
+async def test_session() -> AsyncGenerator[AsyncSession, None]:
+    """Create test database session.
+    
+    每个测试函数使用独立的数据库会话。
+    注意：测试结束后需要手动清理数据，或使用唯一的测试数据。
+    """
+    # 创建引擎
+    engine = create_async_engine(
+        TEST_DATABASE_URL,
+        echo=False,
+        pool_pre_ping=True,
+    )
+    
+    # 创建 session
     async_session = async_sessionmaker(
-        test_engine,
+        engine,
         class_=AsyncSession,
         expire_on_commit=False,
     )
-
+    
     async with async_session() as session:
         yield session
-
-    # Drop tables
-    async with test_engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.drop_all)
+    
+    # 清理引擎
+    await engine.dispose()
