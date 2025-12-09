@@ -13,18 +13,18 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.database import get_session
-from app.core.redis import get_redis, RedisClient
-from app.services.auth_service import AuthService
+from app.core.redis import RedisClient, get_redis
 from app.schemas.auth_schema import (
-    RegisterRequest,
-    RegisterResponse,
     LoginRequest,
     LoginResponse,
-    RefreshTokenRequest,
-    TokenPair,
-    PasswordResetRequest,
     PasswordResetConfirm,
+    PasswordResetRequest,
+    RefreshTokenRequest,
+    RegisterRequest,
+    RegisterResponse,
+    TokenPair,
 )
+from app.services.auth_service import AuthService
 
 router = APIRouter(prefix='/auth', tags=['Authentication'])
 
