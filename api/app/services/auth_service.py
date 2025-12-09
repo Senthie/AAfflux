@@ -9,30 +9,31 @@ Description: Authentication service for user registration, login, and token mana
 Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
+from datetime import datetime
 from typing import Optional
 from uuid import UUID
-from datetime import datetime
+
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from app.core.config import settings
+from app.core.redis import RedisClient
 from app.models.auth import User
 from app.schemas.auth_schema import (
-    RegisterRequest,
     LoginRequest,
-    TokenPair,
-    RegisterResponse,
     LoginResponse,
+    RegisterRequest,
+    RegisterResponse,
+    TokenPair,
     UserResponse,
 )
 from app.utils.password import get_password_hash, verify_password
 from app.utils.token import (
+    TokenType,
     generate_access_token,
     generate_refresh_token,
     verify_token,
-    TokenType,
 )
-from app.core.config import settings
-from app.core.redis import RedisClient
 
 
 class AuthService:
