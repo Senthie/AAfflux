@@ -1,6 +1,6 @@
 """Base model classes and mixins for the application."""
 
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any, Dict, Optional
 from uuid import UUID, uuid4
 
@@ -44,7 +44,7 @@ class BaseModel(SQLModel):
 
         # Update timestamp if available
         if hasattr(self, 'updated_at'):
-            self.updated_at = datetime.now(timezone.utc)
+            self.updated_at = datetime.utcnow()
 
     def __eq__(self, other: object) -> bool:
         """Check equality based on all field values.
@@ -68,12 +68,12 @@ class BaseModel(SQLModel):
 class TimestampMixin:
     """Mixin class providing timestamp fields and related methods."""
 
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
 
     def touch(self) -> None:
         """Update the updated_at timestamp to current time."""
-        self.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
+        self.updated_at = datetime.utcnow()
 
 
 class SoftDeleteMixin:
@@ -85,7 +85,7 @@ class SoftDeleteMixin:
     def soft_delete(self) -> None:
         """Mark the record as deleted without removing it from database."""
         self.is_deleted = True
-        self.deleted_at = datetime.now(timezone.utc).replace(tzinfo=None)
+        self.deleted_at = datetime.utcnow()
 
     def restore(self) -> None:
         """Restore a soft-deleted record."""

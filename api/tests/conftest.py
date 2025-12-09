@@ -2,7 +2,7 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-02 08:50:10
 LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-09 09:55:36
+LastEditTime: 2025-12-09 11:09:47
 FilePath: : AAfflux: api: tests: conftest.py
 Description: 
 """
@@ -29,7 +29,7 @@ TEST_DATABASE_URL = os.getenv(
 @pytest.fixture(scope='function')
 async def test_session() -> AsyncGenerator[AsyncSession, None]:
     """Create test database session.
-    
+
     每个测试函数使用独立的数据库会话。
     注意：测试结束后需要手动清理数据，或使用唯一的测试数据。
     """
@@ -39,16 +39,16 @@ async def test_session() -> AsyncGenerator[AsyncSession, None]:
         echo=False,
         pool_pre_ping=True,
     )
-    
+
     # 创建 session
     async_session = async_sessionmaker(
         engine,
         class_=AsyncSession,
         expire_on_commit=False,
     )
-    
+
     async with async_session() as session:
         yield session
-    
+
     # 清理引擎
     await engine.dispose()

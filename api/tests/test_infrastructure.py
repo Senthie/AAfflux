@@ -1,6 +1,7 @@
 """Tests for infrastructure components."""
 
 import pytest
+
 from app.core.config import settings
 
 
@@ -39,12 +40,11 @@ class TestDatabaseConnection:
         result = await test_session.execute(text('SELECT 1'))
         assert result is not None
 
+    @pytest.mark.asyncio
+    async def test_application_startup(self):
+        """Test that application can start up."""
+        from app.main import app
 
-@pytest.mark.asyncio
-async def test_application_startup():
-    """Test that application can start up."""
-    from app.main import app
-
-    assert app is not None
-    assert app.title == 'Low-Code Platform Backend'
-    assert app.version == '0.1.0'
+        assert app is not None
+        assert app.title == 'Low-Code Platform Backend'
+        assert app.version == '0.1.0'
