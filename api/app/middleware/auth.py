@@ -1,16 +1,16 @@
 """Authentication middleware for FastAPI."""
 
-from typing import Optional, Callable
-from fastapi import Request, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from starlette.middleware.base import BaseHTTPMiddleware
-from sqlmodel import Session
+from typing import Callable, Optional
 
-from app.models.user import User
-from app.services.auth_service import AuthService
+from fastapi import HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlmodel import Session
+from starlette.middleware.base import BaseHTTPMiddleware
+
 from app.core.database import get_session
 from app.core.redis import get_redis
-
+from app.models import User
+from app.services.auth_service import AuthService
 
 security = HTTPBearer()
 
