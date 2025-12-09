@@ -16,7 +16,8 @@ Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 from typing import Any, Dict
 from uuid import UUID
 
-from sqlmodel import Session, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
 from app.models.workflow.workflow import Connection, Node, Workflow
 
@@ -39,15 +40,15 @@ class WorkflowSerializer:
     # Current serialization format version
     FORMAT_VERSION = '1.0'
 
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         """Initialize workflow serializer.
 
         Args:
-            db: Database session
+            db: Async database session
         """
         self.db = db
 
-    def serialize_workflow(self, workflow_id: UUID) -> Dict[str, Any]:
+    async def serialize_workflow(self, workflow_id: UUID) -> Dict[str, Any]:
         """Serialize a workflow to JSON format.
 
         Args:
@@ -60,17 +61,19 @@ class WorkflowSerializer:
             SerializationError: If workflow cannot be serialized
         """
         # Get workflow
-        workflow = self.db.get(Workflow, workflow_id)
+        workflow = await self.db.get(Workflow, workflow_id)
         if not workflow:
             raise SerializationError(f'Workflow {workflow_id} not found')
 
         # Get all nodes
         nodes_statement = select(Node).where(Node.workflow_id == workflow_id)
-        nodes = self.db.exec(nodes_statement).all()
+        nodes_result = await self.db.execute(nodes_statement)
+        nodes = nodes_result.scalars().all()
 
         # Get all connections
         connections_statement = select(Connection).where(Connection.workflow_id == workflow_id)
-        connections = self.db.exec(connections_statement).all()
+        connections_result = await self.db.execute(connections_statement)
+        connections = connections_result.scalars().all()
 
         # Build JSON structure
         workflow_data = {
@@ -128,7 +131,7 @@ class WorkflowSerializer:
             'target_input': connection.target_input,
         }
 
-    def deserialize_workflow(
+    async def deserialize_workflow(
         self, workflow_data: Dict[str, Any], workspace_id: UUID, created_by: UUID
     ) -> Workflow:
         """Deserialize a workflow from JSON format.
@@ -182,7 +185,7 @@ class WorkflowSerializer:
         )
 
         self.db.add(workflow)
-        self.db.flush()  # Get the workflow ID without committing
+        await self.db.flush()  # Get the workflow ID without committing
 
         # Map old node IDs to new node IDs
         node_id_map: Dict[str, UUID] = {}
@@ -192,7 +195,7 @@ class WorkflowSerializer:
             try:
                 node = self._deserialize_node(node_data, workflow.id)
                 self.db.add(node)
-                self.db.flush()
+                await self.db.flush()
 
                 # Store mapping
                 old_id = node_data.get('id')
@@ -210,8 +213,8 @@ class WorkflowSerializer:
                 raise DeserializationError(f'Failed to deserialize connection: {str(e)}') from e
 
         # Commit all changes
-        self.db.commit()
-        self.db.refresh(workflow)
+        await self.db.commit()
+        await self.db.refresh(workflow)
 
         return workflow
 
@@ -367,7 +370,7 @@ class WorkflowSerializer:
         except Exception:
             return False
 
-    def export_workflow_to_json(self, workflow_id: UUID) -> str:
+    async def export_workflow_to_json(self, workflow_id: UUID) -> str:
         """Export a workflow to JSON string.
 
         Args:
@@ -381,10 +384,10 @@ class WorkflowSerializer:
         """
         import json
 
-        workflow_data = self.serialize_workflow(workflow_id)
+        workflow_data = await self.serialize_workflow(workflow_id)
         return json.dumps(workflow_data, indent=2, ensure_ascii=False)
 
-    def import_workflow_from_json(
+    async def import_workflow_from_json(
         self, json_str: str, workspace_id: UUID, created_by: UUID
     ) -> Workflow:
         """Import a workflow from JSON string.
@@ -407,4 +410,4 @@ class WorkflowSerializer:
         except json.JSONDecodeError as e:
             raise DeserializationError(f'Invalid JSON: {str(e)}') from e
 
-        return self.deserialize_workflow(workflow_data, workspace_id, created_by)
+        return await self.deserialize_workflow(workflow_data, workspace_id, created_by)

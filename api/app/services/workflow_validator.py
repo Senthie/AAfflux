@@ -17,7 +17,8 @@ Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 from typing import Dict, List, Optional
 from uuid import UUID
 
-from sqlmodel import Session, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
 from app.models.workflow.workflow import Connection, Node, Workflow
 from app.utils.dag import build_adjacency_list, detect_cycle
@@ -68,15 +69,15 @@ class WorkflowValidator:
         'TRANSFORM': ['transformation'],
     }
 
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         """Initialize workflow validator.
 
         Args:
-            db: Database session
+            db: Async database session
         """
         self.db = db
 
-    def validate_workflow(self, workflow_id: UUID) -> ValidationResult:
+    async def validate_workflow(self, workflow_id: UUID) -> ValidationResult:
         """Validate a complete workflow.
 
         Checks:
@@ -95,14 +96,15 @@ class WorkflowValidator:
         result = ValidationResult(is_valid=True)
 
         # Check workflow exists
-        workflow = self.db.get(Workflow, workflow_id)
+        workflow = await self.db.get(Workflow, workflow_id)
         if not workflow:
             result.add_error(f'Workflow {workflow_id} not found')
             return result
 
         # Get all nodes for this workflow
         nodes_statement = select(Node).where(Node.workflow_id == workflow_id)
-        nodes = self.db.exec(nodes_statement).all()
+        nodes_result = await self.db.execute(nodes_statement)
+        nodes = nodes_result.scalars().all()
 
         if not nodes:
             result.add_error('Workflow must have at least one node')
@@ -117,7 +119,8 @@ class WorkflowValidator:
 
         # Get all connections
         connections_statement = select(Connection).where(Connection.workflow_id == workflow_id)
-        connections = self.db.exec(connections_statement).all()
+        connections_result = await self.db.execute(connections_statement)
+        connections = connections_result.scalars().all()
 
         # Validate connections
         node_ids = {node.id for node in nodes}
@@ -132,12 +135,12 @@ class WorkflowValidator:
                 )
 
         # Check for cyclic dependencies
-        if not self.check_cyclic_dependency(workflow_id):
+        if not await self.check_cyclic_dependency(workflow_id):
             result.add_error('Workflow contains cyclic dependencies')
 
         return result
 
-    def check_cyclic_dependency(self, workflow_id: UUID) -> bool:
+    async def check_cyclic_dependency(self, workflow_id: UUID) -> bool:
         """Check if workflow has cyclic dependencies.
 
         Args:
@@ -148,7 +151,8 @@ class WorkflowValidator:
         """
         # Get all connections for this workflow
         connections_statement = select(Connection).where(Connection.workflow_id == workflow_id)
-        connections = self.db.exec(connections_statement).all()
+        connections_result = await self.db.execute(connections_statement)
+        connections = connections_result.scalars().all()
 
         # Build adjacency list
         connection_tuples = [(conn.source_node_id, conn.target_node_id) for conn in connections]
@@ -302,7 +306,7 @@ class WorkflowValidator:
 
         return result
 
-    def validate_connection(
+    async def validate_connection(
         self, source_node_id: UUID, target_node_id: UUID, workflow_id: UUID
     ) -> ValidationResult:
         """Validate a connection between two nodes.
@@ -323,8 +327,8 @@ class WorkflowValidator:
         result = ValidationResult(is_valid=True)
 
         # Check nodes exist
-        source_node = self.db.get(Node, source_node_id)
-        target_node = self.db.get(Node, target_node_id)
+        source_node = await self.db.get(Node, source_node_id)
+        target_node = await self.db.get(Node, target_node_id)
 
         if not source_node:
             result.add_error(f'Source node {source_node_id} not found')
@@ -346,7 +350,8 @@ class WorkflowValidator:
         # Check if connection would create a cycle
         # Get existing connections
         connections_statement = select(Connection).where(Connection.workflow_id == workflow_id)
-        connections = self.db.exec(connections_statement).all()
+        connections_result = await self.db.execute(connections_statement)
+        connections = connections_result.scalars().all()
 
         # Build adjacency list with the new connection
         connection_tuples = [(conn.source_node_id, conn.target_node_id) for conn in connections]
