@@ -9,7 +9,15 @@ Description: API v1 路由
 
 from fastapi import APIRouter
 
-from app.api.v1 import auth, bpm_approvals, bpm_processes, bpm_tasks, file as file_router, users
+from app.api.v1 import (
+    auth,
+    bpm_approvals,
+    bpm_processes,
+    bpm_tasks,
+    file as file_router,
+    users,
+    workflows,
+)
 
 router = APIRouter(prefix='/api/v1', tags=['API v1'])
 
