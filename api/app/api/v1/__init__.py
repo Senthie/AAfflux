@@ -10,8 +10,16 @@ Description:
 """API v1 路由"""
 
 from fastapi import APIRouter
-from app.api.v1 import auth, users, bpm_processes, bpm_tasks, bpm_approvals
-from app.api.v1 import file as file_router
+
+from app.api.v1 import (
+    auth,
+    bpm_approvals,
+    bpm_processes,
+    bpm_tasks,
+    file as file_router,
+    users,
+    workflows,
+)
 
 router = APIRouter(prefix='/api/v1', tags=['API v1'])
 
@@ -28,5 +36,8 @@ router.include_router(bpm_approvals.router, prefix='/bpm/approvals', tags=['BPM 
 
 # 注册文件路由
 router.include_router(file_router.router, prefix='/files', tags=['Files'])
+
+# 注册工作流路由
+router.include_router(workflows.router, tags=['Workflows'])
 
 __all__ = ['router']
