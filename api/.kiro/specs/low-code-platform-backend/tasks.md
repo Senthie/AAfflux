@@ -208,7 +208,7 @@
   - **属性 58: 反序列化验证**
   - **验证: 需求 15.4**
 
-- [ ] 10. 实现工作流管理服务
+- [x] 10. 实现工作流管理服务
   - 实现 app/services/workflow_service.py（工作流 CRUD、节点管理、连接管理）
   - 实现 app/schemas/workflow.py（工作流相关的 Pydantic schemas）
   - 实现 app/api/v1/workflows.py（工作流管理 API 端点）
