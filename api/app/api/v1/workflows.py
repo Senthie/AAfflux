@@ -1,7 +1,14 @@
 """
-Workflow management API endpoints.
+Author: Senthie seemoon2077@gmail.com
+Date: 2025-12-09 03:26:58
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2025-12-09 08:54:06
+FilePath: /api/app/api/v1/workflows.py
+Description:Workflow management API endpoints.
 
 This module provides RESTful API endpoints for managing workflows, nodes, and connections.
+
+Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from typing import Annotated
