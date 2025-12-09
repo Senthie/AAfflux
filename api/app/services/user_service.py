@@ -20,7 +20,7 @@ from app.models.auth.user import User
 from app.schemas.user import UserUpdateRequest
 
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
 
 class UserService:
@@ -51,7 +51,7 @@ class UserService:
             if existing_user:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="该邮箱已被使用",
+                    detail='该邮箱已被使用',
                 )
 
         # 更新字段
@@ -67,9 +67,7 @@ class UserService:
         await self.session.refresh(user)
         return user
 
-    async def change_password(
-        self, user: User, old_password: str, new_password: str
-    ) -> bool:
+    async def change_password(self, user: User, old_password: str, new_password: str) -> bool:
         """修改密码"""
         # 验证旧密码
         if not pwd_context.verify(old_password, user.password_hash):
@@ -86,10 +84,10 @@ class UserService:
     async def update_avatar(self, user: User, file: UploadFile) -> str:
         """更新用户头像"""
         # 验证文件类型
-        if not file.content_type or not file.content_type.startswith("image/"):
+        if not file.content_type or not file.content_type.startswith('image/'):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="只支持图片文件",
+                detail='只支持图片文件',
             )
 
         # 验证文件大小 (5MB)
@@ -97,12 +95,12 @@ class UserService:
         if len(content) > 5 * 1024 * 1024:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="文件大小不能超过5MB",
+                detail='文件大小不能超过5MB',
             )
 
         # TODO: 实际项目中应该上传到对象存储服务（如S3、OSS等）
         # 这里简化处理，返回一个模拟的URL
-        avatar_url = f"https://example.com/avatars/{user.id}.jpg"
+        avatar_url = f'https://example.com/avatars/{user.id}.jpg'
 
         user.avatar_url = avatar_url
         user.updated_at = datetime.utcnow()
