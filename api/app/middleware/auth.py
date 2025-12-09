@@ -34,6 +34,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
             '/docs',
             '/redoc',
             '/openapi.json',
+            '/health',
+            '/',
             '/api/v1/auth/register',
             '/api/v1/auth/login',
             '/api/v1/auth/refresh',
@@ -56,16 +58,21 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
         # Verify token and attach user to request state
         try:
-            # Get dependencies
-            db = next(get_session())
-            redis = await get_redis()
+            # Get database session using async generator
+            session_gen = get_session()
+            db = await anext(session_gen)
 
-            auth_service = AuthService(db, redis)
-            user = await auth_service.verify_access_token(token)
+            try:
+                redis = await get_redis()
+                auth_service = AuthService(db, redis)
+                user = await auth_service.verify_access_token(token)
 
-            if user:
-                request.state.user = user
-                request.state.token = token
+                if user:
+                    request.state.user = user
+                    request.state.token = token
+            finally:
+                # Close the session properly
+                await session_gen.aclose()
         except (ValueError, RuntimeError, ConnectionError):
             # If verification fails, continue without user
             pass

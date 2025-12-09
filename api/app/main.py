@@ -7,13 +7,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.api.v1 import router as api_v1_router
 from app.core.config import settings
-from app.core.database import init_db, close_db
+from app.core.database import close_db, init_db
+from app.core.logging import configure_logging, get_logger
 from app.core.mongodb import mongodb_client
 from app.core.redis import redis_client
-from app.core.logging import configure_logging, get_logger
 from app.core.sentry import init_sentry
-from app.api.v1 import router as api_v1_router
+from app.middleware.auth import AuthMiddleware
 
 # Configure logging
 configure_logging()
@@ -83,6 +84,9 @@ app.add_middleware(
     allow_methods=settings.cors_allow_methods,
     allow_headers=settings.cors_allow_headers,
 )
+
+# 在 CORS 中间件之后添加
+app.add_middleware(AuthMiddleware)
 
 
 @app.get('/health', tags=['Health'])
