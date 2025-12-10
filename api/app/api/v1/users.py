@@ -10,6 +10,7 @@ Description: 用户管理，增删改查
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, UploadFile, HTTPException, File, status
+from fastapi.security import HTTPBearer
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.database import get_session
@@ -26,6 +27,8 @@ from app.schemas.user import (
 
 from app.models.auth.user import User
 
+security = HTTPBearer()
+
 router = APIRouter(prefix='/users', tags=['User Management'])
 
 # 依赖注入定义
@@ -41,13 +44,23 @@ def get_user_service(session: DbSession) -> UserService:
 UserServiceDep = Annotated[UserService, Depends(get_user_service)]
 
 
-@router.get('/me', response_model=UserProfileResponse, summary='获取当前用户信息')
+@router.get(
+    '/me',
+    response_model=UserProfileResponse, 
+    summary='获取当前用户信息',
+    dependencies=[Depends(security)]
+)
 async def get_current_user_info(current_user: CurrentUser) -> UserProfileResponse:
     """获取当前登陆用户的详细信息"""
     return UserProfileResponse.model_validate(current_user)
 
 
-@router.put('/me', response_model=UserProfileResponse, summary='更新用户资料')
+@router.put(
+    '/me',
+    response_model=UserProfileResponse, 
+    summary='更新用户资料',
+    dependencies=[Depends(security)]
+)
 async def update_user_profile(
     user_update: UserUpdateRequest,
     current_user: CurrentUser,
@@ -62,6 +75,7 @@ async def update_user_profile(
     '/me/password',
     response_model=PasswordChangeResponse,
     summary='修改密码',
+    dependencies=[Depends(security)]
 )
 async def change_password(
     password_data: PasswordChangeRequest,
@@ -90,6 +104,7 @@ async def change_password(
     '/me/avatar',
     response_model=AvatarUploadResponse,
     summary='上传头像/更新头像',
+    dependencies=[Depends(security)]
 )
 async def upload_avatar(
     current_user: CurrentUser,
@@ -110,6 +125,7 @@ async def upload_avatar(
     response_model=UserDeleteResponse,
     status_code=status.HTTP_200_OK,
     summary='删除账户',
+    dependencies=[Depends(security)]
 )
 async def delete_account(
     current_user: CurrentUser,
