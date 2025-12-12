@@ -2,14 +2,9 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-05 14:59:04
 LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-05 16:06:07
+LastEditTime: 2025-12-10 17:24:06
 FilePath: : AAfflux: api: app: services: file_server.py
-Description: "文件服务 - 协调 PostgreSQL 元数据和 MongoDB 文件存储
-"""
-
-"""文件服务 - 协调 PostgreSQL 元数据和 MongoDB 文件存储
-
-职责：
+Description:
 1. 管理 PostgreSQL 中的文件元数据（FileReference）
 2. 协调 MongoDB GridFS 的文件存储
 3. 提供统一的文件上传、下载、删除接口
