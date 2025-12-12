@@ -7,11 +7,6 @@ FilePath: : AAfflux: api: app: schemas: file.py
 Description: 定义文件上传、下载、列表等操作的数据传输对象。
 """
 
-"""文件相关的 Pydantic Schemas
-
-定义文件上传、下载、列表等操作的数据传输对象。
-"""
-
 from datetime import datetime
 from uuid import UUID
 from pydantic import BaseModel, Field

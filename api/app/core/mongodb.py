@@ -1,3 +1,12 @@
+"""
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-02 08:50:10
+LastEditors: kk123047 3254834740@qq.com
+LastEditTime: 2025-12-10 11:27:03
+FilePath: : AAfflux: api: app: core: mongodb.py
+Description:
+"""
+
 """MongoDB connection and GridFS support."""
 
 from typing import Optional
@@ -10,6 +19,11 @@ from app.core.config import settings
 
 class MongoDBClient:
     """MongoDB client wrapper with GridFS support."""
+
+    # 添加 db_name 属性
+    @property
+    def db_name(self) -> str:
+        return settings.mongodb_database
 
     def __init__(self) -> None:
         """Initialize MongoDB client."""

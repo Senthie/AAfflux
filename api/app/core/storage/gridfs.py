@@ -2,7 +2,7 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-05 15:23:34
 LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-05 15:59:48
+LastEditTime: 2025-12-10 11:56:01
 FilePath: : AAfflux: api: app: core: storage: gridfs.py
 Description: gridfs 实现
 """
@@ -83,6 +83,9 @@ class GridFSBackend(StorageBackend):
             str: GridFS file_id（ObjectId 字符串）
         """
         try:
+            # 确保文件指针在开头
+            await file.seek(0)
+
             # 准备元数据
             file_metadata = {
                 'filename': file.filename,
