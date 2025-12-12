@@ -2,12 +2,10 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-02 08:50:10
 LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-09 16:25:28
+LastEditTime: 2025-12-12 14:48:55
 FilePath: : AAfflux: api: app: api: v1: __init__.py
-Description:
+Description: API v1 路由注册
 """
-
-"""API v1 路由"""
 
 from fastapi import APIRouter
 

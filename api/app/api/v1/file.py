@@ -2,14 +2,9 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-05 16:08:55
 LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-05 16:11:28
+LastEditTime: 2025-12-12 15:57:03
 FilePath: : AAfflux: api: app: api: v1: file.py
-Description: 提供文件上传、下载、删除、列表等功能。
-"""
-
-"""文件管理 API 端点
-
-提供文件上传、下载、删除、列表等功能。
+Description:文件管理 API 端点 提供文件上传、下载、删除、列表等功能,添加文件预览功能。
 """
 
 from typing import Annotated
@@ -33,7 +28,7 @@ from app.services.file_server import FileService
 
 logger = get_logger(__name__)
 
-router = APIRouter()
+router = APIRouter(prefix='/files', tags=['Files'])
 
 
 # 依赖注入：获取文件服务
@@ -217,6 +212,41 @@ async def get_file_metadata(
         )
 
     return FileMetadataResponse.model_validate(file_reference)
+
+
+@router.get(
+    '/{file_id}/view',
+    response_class=StreamingResponse,
+    summary='预览文件',
+    description='预览文件，用于头像显示等场景',
+)
+async def view_file(
+    file_id: Annotated[UUID, Path(description='文件 ID')],
+    file_service: Annotated[FileService, Depends(get_file_service)],
+) -> StreamingResponse:
+    """预览文件（用于头像等）"""
+    try:
+        file_reference, file_stream = await file_service.download_file(file_id)
+
+        return StreamingResponse(
+            content=file_stream,
+            media_type=file_reference.content_type,
+            headers={
+                'Cache-Control': 'public, max-age=3600',  # 缓存1小时
+            },
+        )
+
+    except FileNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f'File not found: {file_id}',
+        ) from e
+    except Exception as e:
+        logger.error('File view failed', file_id=str(file_id), error=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f'Failed to view file: {str(e)}',
+        ) from e
 
 
 @router.get(
