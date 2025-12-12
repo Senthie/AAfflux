@@ -80,6 +80,7 @@ app = FastAPI(
 # Configure security scheme for Swagger UI
 security = HTTPBearer()
 
+
 # Add security scheme to OpenAPI
 def custom_openapi():
     if app.openapi_schema:
@@ -95,17 +96,18 @@ def custom_openapi():
     )
 
     # Add security scheme
-    openapi_schema["components"]["securitySchemes"] = {
-        "BearerAuth": {
-            "type": "http",
-            "scheme": "bearer",
-            "bearerFormat": "JWT",
-            "description": "Enter JWT token"
+    openapi_schema['components']['securitySchemes'] = {
+        'BearerAuth': {
+            'type': 'http',
+            'scheme': 'bearer',
+            'bearerFormat': 'JWT',
+            'description': 'Enter JWT token',
         }
     }
 
     app.openapi_schema = openapi_schema
     return app.openapi_schema
+
 
 app.openapi = custom_openapi
 
