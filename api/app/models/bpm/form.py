@@ -21,6 +21,7 @@ class FormDefinition(
     BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin, table=True
 ):
     """表单定义表"""
+
     """
     已经继承
     id: UUID = Field(default_factory=uuid4, primary_key=True)
