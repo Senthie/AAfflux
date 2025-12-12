@@ -2,7 +2,7 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-05 17:50:01
 LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-09 14:38:28
+LastEditTime: 2025-12-12 11:35:21
 FilePath: : AAfflux: api: app: api: v1: users.py
 Description: 用户管理，增删改查
 """
@@ -27,6 +27,7 @@ from app.schemas.user import (
 
 from app.models.auth.user import User
 
+
 security = HTTPBearer()
 
 router = APIRouter(prefix='/users', tags=['User Management'])
@@ -46,9 +47,9 @@ UserServiceDep = Annotated[UserService, Depends(get_user_service)]
 
 @router.get(
     '/me',
-    response_model=UserProfileResponse, 
+    response_model=UserProfileResponse,
     summary='获取当前用户信息',
-    dependencies=[Depends(security)]
+    dependencies=[Depends(security)],
 )
 async def get_current_user_info(current_user: CurrentUser) -> UserProfileResponse:
     """获取当前登陆用户的详细信息"""
@@ -57,9 +58,9 @@ async def get_current_user_info(current_user: CurrentUser) -> UserProfileRespons
 
 @router.put(
     '/me',
-    response_model=UserProfileResponse, 
+    response_model=UserProfileResponse,
     summary='更新用户资料',
-    dependencies=[Depends(security)]
+    dependencies=[Depends(security)],
 )
 async def update_user_profile(
     user_update: UserUpdateRequest,
@@ -75,7 +76,7 @@ async def update_user_profile(
     '/me/password',
     response_model=PasswordChangeResponse,
     summary='修改密码',
-    dependencies=[Depends(security)]
+    dependencies=[Depends(security)],
 )
 async def change_password(
     password_data: PasswordChangeRequest,
@@ -88,7 +89,6 @@ async def change_password(
         old_password=password_data.old_password,
         new_password=password_data.new_password,
     )
-
     if not success:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -104,7 +104,7 @@ async def change_password(
     '/me/avatar',
     response_model=AvatarUploadResponse,
     summary='上传头像/更新头像',
-    dependencies=[Depends(security)]
+    dependencies=[Depends(security)],
 )
 async def upload_avatar(
     current_user: CurrentUser,
@@ -125,14 +125,14 @@ async def upload_avatar(
     response_model=UserDeleteResponse,
     status_code=status.HTTP_200_OK,
     summary='删除账户',
-    dependencies=[Depends(security)]
+    dependencies=[Depends(security)],
 )
 async def delete_account(
     current_user: CurrentUser,
     service: UserServiceDep,
 ) -> UserDeleteResponse:
     """删除账号（软删除）"""
-    success = await service.soft_delete_user(user=current_user)
+    success = await service.delete_user(user_id=current_user.id)
 
     return UserDeleteResponse(
         success=success,
