@@ -218,7 +218,7 @@
   - **属性 31: 工作流删除级联**
   - **验证: 需求 7.5**
 
-- [ ] 11. 实现工作流执行引擎
+- [x] 11. 实现工作流执行引擎
   - 实现 app/engine/topological_sorter.py（拓扑排序）
   - 实现 app/engine/execution_context.py（执行上下文管理）
   - 实现 app/engine/node_executor.py（节点执行器基类和注册机制）

@@ -1,4 +1,13 @@
-"""Celery configuration for async task processing."""
+"""
+Author: Senthie seemoon2077@gmail.com
+Date: 2025-12-09 11:19:57
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2025-12-10 16:13:35
+FilePath: /api/app/core/celery.py
+Description: Celery configuration for async task processing.
+
+Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
+"""
 
 from celery import Celery
 
@@ -9,7 +18,7 @@ celery_app = Celery(
     'lowcode_platform',
     broker=settings.celery_broker_url,
     backend=settings.celery_result_backend,
-    include=['app.tasks.workflow_tasks', 'app.tasks.cleanup_tasks'],
+    include=['app.tasks.workflow_tasks'],
 )
 
 # Configure Celery
