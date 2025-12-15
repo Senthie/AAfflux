@@ -9,8 +9,10 @@ Description:Tests for workflow execution engine components.
 Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
+from typing import Any, Dict, List
 from uuid import uuid4
 
+from hypothesis import given, settings, strategies as st
 import pytest
 
 from app.engine.execution_context import ExecutionContext
@@ -21,6 +23,7 @@ from app.engine.node_executor import (
     register_node_executor,
 )
 from app.engine.topological_sorter import TopologicalSorter
+from app.engine.workflow_engine import WorkflowEngine
 from app.models.workflow.workflow import (
     Connection,
     ExecutionRecord,
@@ -345,3 +348,83 @@ class TestBuiltinExecutors:
 
         # Verify result (should return global variables since no connections)
         assert result == context.global_variables
+
+
+class TestWorkflowEngineProperties:
+    """Property-based tests for workflow engine."""
+
+    # Feature: low-code-platform-backend, Property 32: 输入参数验证
+    @settings(max_examples=100)
+    @given(
+        required_fields=st.lists(
+            st.text(
+                min_size=1,
+                max_size=20,
+                alphabet=st.characters(whitelist_categories=('Lu', 'Ll', 'Nd')),
+            ),
+            min_size=0,
+            max_size=5,
+            unique=True,
+        ),
+        provided_inputs=st.dictionaries(
+            keys=st.text(
+                min_size=1,
+                max_size=20,
+                alphabet=st.characters(whitelist_categories=('Lu', 'Ll', 'Nd')),
+            ),
+            values=st.one_of(
+                st.text(),
+                st.integers(),
+                st.floats(allow_nan=False, allow_infinity=False),
+                st.booleans(),
+            ),
+            min_size=0,
+            max_size=10,
+        ),
+    )
+    def test_input_parameter_validation_property(
+        self, required_fields: List[str], provided_inputs: Dict[str, Any]
+    ):
+        """
+        Property 32: Input parameter validation
+        For any workflow execution request, the input parameters should match the workflow definition's input variables.
+
+        **Validates: Requirements 8.1**
+        """
+        # Create a workflow with input schema
+        workflow = Workflow(
+            id=uuid4(),
+            name='Test Workflow',
+            workspace_id=uuid4(),
+            created_by=uuid4(),
+            input_schema={
+                'type': 'object',
+                'required': required_fields,
+                'properties': {field: {'type': 'string'} for field in required_fields},
+            },
+            output_schema={'type': 'object'},
+        )
+
+        # Create a mock workflow engine
+        engine = WorkflowEngine(db=None)  # We'll test the validation method directly
+
+        # Test the validation logic
+        missing_fields = [field for field in required_fields if field not in provided_inputs]
+
+        if missing_fields:
+            # If there are missing required fields, validation should raise ValueError
+            with pytest.raises(ValueError) as exc_info:
+                engine._validate_inputs(workflow, provided_inputs)
+            # Check that the error message contains information about missing fields
+            assert 'Missing required input fields' in str(exc_info.value)
+            for field in missing_fields:
+                assert field in str(exc_info.value)
+        else:
+            # If all required fields are present, validation should pass
+            try:
+                engine._validate_inputs(workflow, provided_inputs)
+                # If no exception is raised, the validation passed as expected
+                assert True
+            except ValueError:
+                # This should not happen when all required fields are present
+                pytest.fail('Validation failed unexpectedly when all required fields were provided')
