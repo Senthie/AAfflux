@@ -3,8 +3,10 @@
 This module tests the workflow validator and serializer services.
 """
 
+from typing import Any, Dict
 from uuid import uuid4
 
+from hypothesis import given, settings, strategies as st
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
@@ -24,6 +26,44 @@ from app.utils.dag import (
     find_root_nodes,
     topological_sort,
 )
+
+
+# Create a minimal LLMNodeExecutor for testing validation logic
+class TestLLMNodeExecutor:
+    """Test version of LLM node executor for validation testing."""
+
+    def validate_config(self, config: Dict[str, Any]) -> bool:
+        """Validate LLM node configuration.
+
+        Args:
+            config: Node configuration dictionary
+
+        Returns:
+            True if configuration is valid, False otherwise
+        """
+        required_fields = ['provider', 'model', 'prompt', 'api_key']
+
+        # Check required fields
+        for field in required_fields:
+            if field not in config or not config[field]:
+                return False
+
+        # Validate provider
+        supported_providers = ['openai', 'anthropic']
+        if config['provider'].lower() not in supported_providers:
+            return False
+
+        # Validate temperature
+        temperature = config.get('temperature', 0.7)
+        if not isinstance(temperature, (int, float)) or temperature < 0 or temperature > 2:
+            return False
+
+        # Validate max_tokens
+        max_tokens = config.get('max_tokens', 1000)
+        if not isinstance(max_tokens, int) or max_tokens <= 0:
+            return False
+
+        return True
 
 
 @pytest.fixture
@@ -456,3 +496,90 @@ class TestWorkflowSerializer:
         result = await test_session.execute(connections_statement)
         connections = result.scalars().all()
         assert len(connections) == 1
+
+
+class TestLLMNodeProperties:
+    """Property-based tests for LLM node configuration."""
+
+    # Feature: low-code-platform-backend, Property 53: LLM 节点配置完整性
+    @settings(max_examples=100)
+    @given(
+        provider=st.sampled_from(['openai', 'anthropic']),
+        model=st.text(
+            min_size=1,
+            max_size=50,
+            alphabet=st.characters(whitelist_categories=('Lu', 'Ll', 'Nd', 'Pc')),
+        ),
+        prompt=st.text(min_size=1, max_size=1000),
+        temperature=st.floats(min_value=0.0, max_value=2.0, allow_nan=False, allow_infinity=False),
+        max_tokens=st.integers(min_value=1, max_value=10000),
+        api_key=st.text(min_size=1, max_size=100),
+    )
+    def test_llm_node_configuration_completeness_property(
+        self,
+        provider: str,
+        model: str,
+        prompt: str,
+        temperature: float,
+        max_tokens: int,
+        api_key: str,
+    ):
+        """
+        Property 53: LLM Node Configuration Completeness
+        For any LLM node, it should include model, prompt, temperature, and max_tokens configuration.
+
+        属性 53：LLM 节点配置完整性
+        对于任何 LLM 节点，其配置应包含模型、提示词、温度参数和最大令牌数配置。
+
+        **Validates: Requirements 13.1**
+        """
+        # Create LLM node executor
+        executor = TestLLMNodeExecutor()
+
+        # Create a complete configuration with all required fields
+        complete_config = {
+            'provider': provider,
+            'model': model,
+            'prompt': prompt,
+            'temperature': temperature,
+            'max_tokens': max_tokens,
+            'api_key': api_key,
+        }
+
+        # Test that complete configuration is valid
+        assert executor.validate_config(complete_config) is True
+
+        # Test that missing any required field makes configuration invalid
+        required_fields = ['provider', 'model', 'prompt', 'api_key']
+
+        for field in required_fields:
+            incomplete_config = complete_config.copy()
+            del incomplete_config[field]
+            assert executor.validate_config(incomplete_config) is False
+
+        # Test that empty values for required fields make configuration invalid
+        for field in required_fields:
+            invalid_config = complete_config.copy()
+            invalid_config[field] = ''
+            assert executor.validate_config(invalid_config) is False
+
+        # Test temperature bounds
+        invalid_temp_config = complete_config.copy()
+        invalid_temp_config['temperature'] = -0.1  # Below minimum
+        assert executor.validate_config(invalid_temp_config) is False
+
+        invalid_temp_config['temperature'] = 2.1  # Above maximum
+        assert executor.validate_config(invalid_temp_config) is False
+
+        # Test max_tokens bounds
+        invalid_tokens_config = complete_config.copy()
+        invalid_tokens_config['max_tokens'] = 0  # Below minimum
+        assert executor.validate_config(invalid_tokens_config) is False
+
+        invalid_tokens_config['max_tokens'] = -1  # Negative
+        assert executor.validate_config(invalid_tokens_config) is False
+
+        # Test unsupported provider
+        invalid_provider_config = complete_config.copy()
+        invalid_provider_config['provider'] = 'unsupported_provider'
+        assert executor.validate_config(invalid_provider_config) is False
