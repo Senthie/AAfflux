@@ -2,7 +2,7 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-10 14:41:10
 LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-11 16:34:53
+LastEditTime: 2025-12-15 16:01:56
 FilePath: : AAfflux: api: app: services: team_service.py
 Description:团队管理服务
 """
@@ -106,8 +106,8 @@ class TeamService:
 
     async def send_invitation(
         self, team_id: UUID, email: str, role: str, invited_by: UUID
-    ) -> TeamInvitation:
-        """发送团队邀请"""
+    ) -> dict:
+        """发送团队邀请（返回邀请链接）"""
         import secrets
 
         # 生成邀请令牌
@@ -126,9 +126,16 @@ class TeamService:
         await self.session.commit()
         await self.session.refresh(invitation)
 
-        # TODO: 发送邮件
+        # 生成邀请链接
+        invite_link = f"https://yourapp.com/accept-invitation?token={token}"
 
-        return invitation
+        return {
+            "invitation": invitation,
+            "invite_link": invite_link,
+            "token": token,
+            "expires_at": invitation.expires_at,
+            "message": "请将此邀请链接发送给被邀请人"
+        }
 
     async def accept_invitation(self, token: str, user_id: UUID) -> Optional[TeamMember]:
         """接受团队邀请"""
@@ -164,8 +171,23 @@ class TeamService:
         """获取团队信息"""
         return await self.session.get(Team, team_id)
 
-    # 需要实现邮件发送功能
-    async def _send_invitation_email(self, invitation: TeamInvitation):
-        """发送邀请邮件"""
-        # TODO: 集成邮件服务
-        pass
+    async def get_invitation_by_token(self, token: str) -> Optional[TeamInvitation]:
+        """根据令牌获取邀请信息"""
+        invitation = await self.session.execute(
+            select(TeamInvitation).where(
+                TeamInvitation.token == token,
+                TeamInvitation.status == 'PENDING'
+            )
+        )
+        return invitation.scalar_one_or_none()
+
+    async def get_pending_invitations(self, team_id: UUID) -> List[TeamInvitation]:
+        """获取团队待处理的邀请列表"""
+        result = await self.session.execute(
+            select(TeamInvitation).where(
+                TeamInvitation.team_id == team_id,
+                TeamInvitation.status == 'PENDING',
+                TeamInvitation.expires_at > datetime.utcnow()
+            )
+        )
+        return list(result.scalars().all())

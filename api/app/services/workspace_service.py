@@ -2,7 +2,7 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-10 14:41:43
 LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-11 11:53:10
+LastEditTime: 2025-12-15 12:19:50
 FilePath: : AAfflux: api: app: services: workspace_service.py
 Description:工作空间管理服务
 """
@@ -17,7 +17,6 @@ from app.models.workflow.workflow import Workflow
 from app.models.application.application import Application
 from app.models.file.reference import FileReference
 from app.schemas.workspace import WorkspaceCreate, WorkspaceUpdate
-
 
 class WorkspaceService:
     """工作空间管理服务"""
@@ -154,6 +153,8 @@ class WorkspaceService:
     async def get_team_workspaces(self, team_id: UUID) -> List[Workspace]:
         """获取团队下的所有工作空间"""
         result = await self.session.execute(
-            select(Workspace).where(Workspace.team_id == team_id, Workspace.is_deleted.is_(False))
+            select(Workspace).where(
+                Workspace.team_id == team_id, Workspace.is_deleted.is_(False
+                ))
         )
         return list(result.scalars().all())
