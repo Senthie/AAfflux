@@ -204,11 +204,11 @@ class OpenAIClient(LLMClient):
                 )
 
         except httpx.TimeoutException as e:
-            raise LLMTimeoutError(f'OpenAI API timeout: {e}')
+            raise LLMTimeoutError(f'OpenAI API timeout: {e}') from e
         except httpx.RequestError as e:
-            raise LLMError(f'OpenAI API request error: {e}')
+            raise LLMError(f'OpenAI API request error: {e}') from e
         except json.JSONDecodeError as e:
-            raise LLMError(f'Failed to parse OpenAI API response: {e}')
+            raise LLMError(f'Failed to parse OpenAI API response: {e}') from e
 
     async def __aenter__(self):
         """异步上下文管理器入口"""

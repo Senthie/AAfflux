@@ -94,4 +94,4 @@ def decrypt_text(encrypted_text: str) -> str:
         decrypted_bytes = f.decrypt(encrypted_bytes)
         return decrypted_bytes.decode()
     except Exception as e:
-        raise ValueError(f'Failed to decrypt text: {e}')
+        raise ValueError(f'Failed to decrypt text: {e}') from e

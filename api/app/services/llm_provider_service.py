@@ -61,7 +61,7 @@ class LLMProviderService:
             select(LLMProvider).where(
                 LLMProvider.workspace_id == workspace_id,
                 LLMProvider.name == provider_data.name,
-                LLMProvider.is_deleted == False,
+                not LLMProvider.is_deleted,
             )
         ).first()
 
@@ -102,7 +102,7 @@ class LLMProviderService:
         except IntegrityError as e:
             self.session.rollback()
             logger.error(f'Failed to create LLM provider: {e}')
-            raise ValueError('Failed to create provider due to database constraint')
+            raise ValueError('Failed to create provider due to database constraint') from e
 
     async def update_provider(
         self, provider_id: UUID, provider_data: LLMProviderUpdate, workspace_id: UUID
@@ -129,7 +129,7 @@ class LLMProviderService:
                     LLMProvider.workspace_id == workspace_id,
                     LLMProvider.name == provider_data.name,
                     LLMProvider.id != provider_id,
-                    LLMProvider.is_deleted == False,
+                    not LLMProvider.is_deleted,
                 )
             ).first()
 
@@ -167,7 +167,7 @@ class LLMProviderService:
         except IntegrityError as e:
             self.session.rollback()
             logger.error(f'Failed to update LLM provider: {e}')
-            raise ValueError('Failed to update provider due to database constraint')
+            raise ValueError('Failed to update provider due to database constraint') from e
 
     def get_provider(self, provider_id: UUID, workspace_id: UUID) -> LLMProviderResponse:
         """获取LLM提供商配置
@@ -197,7 +197,7 @@ class LLMProviderService:
         """
         providers = self.session.exec(
             select(LLMProvider)
-            .where(LLMProvider.workspace_id == workspace_id, LLMProvider.is_deleted == False)
+            .where(LLMProvider.workspace_id == workspace_id, not LLMProvider.is_deleted)
             .offset(skip)
             .limit(limit)
             .order_by(LLMProvider.created_at.desc())
@@ -229,7 +229,7 @@ class LLMProviderService:
         except Exception as e:
             self.session.rollback()
             logger.error(f'Failed to delete LLM provider: {e}')
-            raise ValueError('Failed to delete provider')
+            raise ValueError('Failed to delete provider') from e
 
     async def get_provider_models(
         self, provider_id: UUID, workspace_id: UUID
@@ -361,7 +361,7 @@ class LLMProviderService:
             select(LLMProvider).where(
                 LLMProvider.id == provider_id,
                 LLMProvider.workspace_id == workspace_id,
-                LLMProvider.is_deleted == False,
+                not LLMProvider.is_deleted,
             )
         ).first()
 
