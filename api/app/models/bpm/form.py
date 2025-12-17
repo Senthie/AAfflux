@@ -33,8 +33,8 @@ class FormDefinition(
 
     # 创建信息
     created_by: UUID = Field(foreign_key="users.id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
     """
 
     __tablename__ = 'bpm_form_definitions'

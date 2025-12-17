@@ -2,7 +2,7 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-10 14:41:10
 LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-15 16:01:56
+LastEditTime: 2025-12-17 09:19:35
 FilePath: : AAfflux: api: app: services: team_service.py
 Description:团队管理服务
 """
@@ -17,6 +17,10 @@ from app.models.tenant.organization import Team, TeamMember
 from app.models.tenant.invitation import TeamInvitation
 from app.schemas.team import TeamCreate
 from app.utils.rbac import Role
+from app.utils.invitation_security import InvitationSecurityManager
+from app.services.invitation_audit_service import InvitationAuditService
+from app.core.redis import get_redis
+from app.core.config import settings
 
 
 class TeamService:
@@ -24,6 +28,31 @@ class TeamService:
 
     def __init__(self, session: AsyncSession):
         self.session = session
+        self._redis = None
+        self._security_manager = None
+        self._audit_service = None
+
+    async def _get_redis(self):
+        """获取Redis客户端"""
+        if self._redis is None:
+            self._redis = await get_redis()
+            #确保链接建立
+            if not self._redis.redis:
+                await self._redis.connect()
+        return self._redis
+
+    async def _get_security_manager(self):
+        """获取安全管理器"""
+        if self._security_manager is None:
+            redis_client = await self._get_redis()
+            self._security_manager = InvitationSecurityManager(redis_client)
+        return self._security_manager
+
+    async def _get_audit_service(self):
+        """获取审计服务"""
+        if self._audit_service is None:
+            self._audit_service = InvitationAuditService(self.session)
+        return self._audit_service
 
     async def create_team(self, data: TeamCreate, creator_id: UUID) -> Team:
         """创建团队"""
@@ -104,42 +133,131 @@ class TeamService:
 
         return member_obj
 
+
+
     async def send_invitation(
-        self, team_id: UUID, email: str, role: str, invited_by: UUID
+        self,
+        team_id: UUID,
+        email: str,
+        role: str,
+        invited_by: UUID,
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None,
+        workspace_id: Optional[UUID] = None,
     ) -> dict:
-        """发送团队邀请（返回邀请链接）"""
-        import secrets
+        """发送团队邀请（安全版本）"""
 
-        # 生成邀请令牌
-        token = secrets.token_urlsafe(32)
+        security_manager = await self._get_security_manager()
+        audit_service = await self._get_audit_service()
 
+        # 1. 检查频率限制
+        rate_check = await security_manager.check_rate_limit(invited_by)
+        if not rate_check['allowed']:
+            # 记录频率限制日志
+            await audit_service.log_rate_limit_exceeded(
+                user_id=invited_by,
+                limit_type=rate_check['period'],
+                current_count=rate_check['current_count'],
+                limit=rate_check['limit'],
+                ip_address=ip_address,
+                user_agent=user_agent,
+                workspace_id=workspace_id,
+            )
+            raise ValueError(rate_check['reason'])
+
+        # 2. 检查重复邀请
+        if await self._check_duplicate_invitation(team_id, email):
+            raise ValueError(f'邮箱 {email} 已有待处理的邀请')
+
+        # 3. 生成安全令牌
+        secure_token = security_manager.generate_secure_token(team_id, email)
+
+        # 4. 创建邀请记录
         invitation = TeamInvitation(
             team_id=team_id,
             email=email,
             role=role,
-            token=token,
+            token=secure_token,
             invited_by=invited_by,
-            expires_at=datetime.utcnow() + timedelta(days=7),
+            expires_at=datetime.utcnow()
+            + timedelta(days=settings.invitation_security.token_expire_days),
         )
 
         self.session.add(invitation)
+        await self.session.flush()  # 获取invitation.id
+
+        # 5. 增加频率计数
+        await security_manager.increment_rate_limit(invited_by)
+
+        # 6. 记录审计日志
+        await audit_service.log_invitation_sent(
+            invitation_id=invitation.id,
+            team_id=team_id,
+            inviter_id=invited_by,
+            invitee_email=email,
+            role=role,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            workspace_id=workspace_id,
+        )
+
         await self.session.commit()
         await self.session.refresh(invitation)
 
-        # 生成邀请链接
-        invite_link = f"https://yourapp.com/accept-invitation?token={token}"
+        # 7. 生成邀请链接
+        invite_link = f'https://yourapp.com/accept-invitation?token={secure_token}'
 
         return {
-            "invitation": invitation,
-            "invite_link": invite_link,
-            "token": token,
-            "expires_at": invitation.expires_at,
-            "message": "请将此邀请链接发送给被邀请人"
+            'invitation': invitation,
+            'invite_link': invite_link,
+            'token': secure_token,
+            'expires_at': invitation.expires_at,
+            'message': '邀请已安全发送',
         }
 
-    async def accept_invitation(self, token: str, user_id: UUID) -> Optional[TeamMember]:
-        """接受团队邀请"""
-        # 查找邀请
+
+
+    async def accept_invitation(
+        self,
+        token: str,
+        user_id: UUID,
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None,
+        workspace_id: Optional[UUID] = None,
+    ) -> Optional[TeamMember]:
+        """接受团队邀请（安全版本）"""
+
+        security_manager = await self._get_security_manager()
+        audit_service = await self._get_audit_service()
+
+        # 1. 检查令牌使用情况
+        token_usage = await security_manager.check_token_usage(token)
+        if token_usage['used']:
+            await audit_service.log_invitation_failed(
+                token=token,
+                user_id=user_id,
+                reason='令牌已被使用',
+                ip_address=ip_address,
+                user_agent=user_agent,
+                workspace_id=workspace_id,
+            )
+            return None
+
+        # 2. 检查是否在黑名单中
+        redis_client = await self._get_redis()
+        blocked_key = f'blocked_tokens:{token}'
+        if await redis_client.exists(blocked_key):
+            await audit_service.log_invitation_failed(
+                token=token,
+                user_id=user_id,
+                reason='令牌已被阻止',
+                ip_address=ip_address,
+                user_agent=user_agent,
+                workspace_id=workspace_id,
+            )
+            return None
+
+        # 3. 查找邀请记录
         invitation = await self.session.execute(
             select(TeamInvitation).where(
                 TeamInvitation.token == token, TeamInvitation.status == 'PENDING'
@@ -147,19 +265,81 @@ class TeamService:
         )
 
         invite_obj = invitation.scalar_one_or_none()
-        if not invite_obj or invite_obj.expires_at < datetime.utcnow():
+        if not invite_obj:
+            # 记录尝试使用无效令牌
+            await security_manager.record_token_attempt(token, success=False)
+            await audit_service.log_invitation_failed(
+                token=token,
+                user_id=user_id,
+                reason='令牌无效',
+                ip_address=ip_address,
+                user_agent=user_agent,
+                workspace_id=workspace_id,
+            )
             return None
 
-        # 创建团队成员
-        member = await self.add_member(invite_obj.team_id, user_id, invite_obj.role)
+        # 4. 检查令牌是否过期
+        if invite_obj.expires_at < datetime.utcnow():
+            await security_manager.record_token_attempt(token, success=False)
+            await audit_service.log_invitation_failed(
+                token=token,
+                user_id=user_id,
+                reason='令牌已过期',
+                ip_address=ip_address,
+                user_agent=user_agent,
+                workspace_id=workspace_id,
+            )
+            return None
 
-        # 更新邀请状态
-        invite_obj.status = 'ACCEPTED'
-        invite_obj.accepted_at = datetime.utcnow()
+        # 5. 验证令牌签名
+        if not security_manager.verify_token_signature(token, invite_obj.team_id, invite_obj.email):
+            await security_manager.record_token_attempt(token, success=False)
+            await audit_service.log_invitation_failed(
+                token=token,
+                user_id=user_id,
+                reason='令牌签名无效',
+                ip_address=ip_address,
+                user_agent=user_agent,
+                workspace_id=workspace_id,
+            )
+            return None
 
-        await self.session.commit()
+        # 6. 创建团队成员
+        try:
+            member = await self.add_member(invite_obj.team_id, user_id, invite_obj.role)
 
-        return member
+            # 7. 立即使令牌失效
+            invite_obj.status = 'ACCEPTED'
+            invite_obj.accepted_at = datetime.utcnow()
+
+            # 8. 记录令牌使用成功
+            await security_manager.record_token_attempt(token, success=True, user_id=user_id)
+
+            # 9. 记录审计日志
+            await audit_service.log_invitation_accepted(
+                invitation_id=invite_obj.id,
+                team_id=invite_obj.team_id,
+                accepter_id=user_id,
+                token=token,
+                ip_address=ip_address,
+                user_agent=user_agent,
+                workspace_id=workspace_id,
+            )
+
+            await self.session.commit()
+            return member
+
+        except ValueError as e:
+            # 如果用户已经是成员，也要记录日志
+            await audit_service.log_invitation_failed(
+                token=token,
+                user_id=user_id,
+                reason=str(e),
+                ip_address=ip_address,
+                user_agent=user_agent,
+                workspace_id=workspace_id,
+            )
+            return None
 
     async def get_team_members(self, team_id: UUID) -> List[TeamMember]:
         """获取团队成员列表"""
@@ -175,8 +355,7 @@ class TeamService:
         """根据令牌获取邀请信息"""
         invitation = await self.session.execute(
             select(TeamInvitation).where(
-                TeamInvitation.token == token,
-                TeamInvitation.status == 'PENDING'
+                TeamInvitation.token == token, TeamInvitation.status == 'PENDING'
             )
         )
         return invitation.scalar_one_or_none()
@@ -187,7 +366,19 @@ class TeamService:
             select(TeamInvitation).where(
                 TeamInvitation.team_id == team_id,
                 TeamInvitation.status == 'PENDING',
-                TeamInvitation.expires_at > datetime.utcnow()
+                TeamInvitation.expires_at > datetime.utcnow(),
             )
         )
         return list(result.scalars().all())
+
+    async def _check_duplicate_invitation(self, team_id: UUID, email: str) -> bool:
+        """检查重复邀请"""
+        existing = await self.session.execute(
+            select(TeamInvitation).where(
+                TeamInvitation.team_id == team_id,
+                TeamInvitation.email == email,
+                TeamInvitation.status == 'PENDING',
+                TeamInvitation.expires_at > datetime.utcnow(),
+            )
+        )
+        return existing.scalar_one_or_none() is not None

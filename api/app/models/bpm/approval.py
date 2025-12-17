@@ -1,3 +1,11 @@
+"""
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-02 12:27:32
+LastEditors: kk123047 3254834740@qq.com
+LastEditTime: 2025-12-17 09:15:58
+FilePath: : AAfflux: api: app: models: bpm: approval.py
+Description: 
+"""
 """审批记录模型"""
 
 from datetime import datetime
