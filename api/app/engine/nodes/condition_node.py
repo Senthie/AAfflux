@@ -212,7 +212,7 @@ class ConditionNodeExecutor(BaseNodeExecutor):
             left = self._eval_node(node.left, variables)
             result = True
 
-            for op, comparator in zip(node.ops, node.comparators):
+            for op, comparator in zip(node.ops, node.comparators, strict=True):
                 right = self._eval_node(comparator, variables)
                 op_func = self.SAFE_OPERATORS.get(type(op))
                 if op_func:
@@ -245,7 +245,7 @@ class ConditionNodeExecutor(BaseNodeExecutor):
 
         elif isinstance(node, ast.Dict):
             result = {}
-            for key_node, value_node in zip(node.keys, node.values):
+            for key_node, value_node in zip(node.keys, node.values, strict=True):
                 key = self._eval_node(key_node, variables)
                 value = self._eval_node(value_node, variables)
                 result[key] = value
