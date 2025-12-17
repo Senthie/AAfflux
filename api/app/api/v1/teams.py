@@ -221,5 +221,3 @@ async def accept_team_invitation(
         )
 
     return TeamMemberResponse.model_validate(member)
-
-

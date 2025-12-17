@@ -6,6 +6,7 @@ LastEditTime: 2025-12-17 11:18:36
 FilePath: : AAfflux: api: app: models: bpm: approval.py
 Description: 审批记录模型
 """
+
 from datetime import datetime
 from enum import Enum
 from typing import Optional
