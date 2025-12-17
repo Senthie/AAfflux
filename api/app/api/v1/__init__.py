@@ -17,6 +17,7 @@ from app.api.v1 import (
     bpm_processes,
     bpm_tasks,
     file as file_router,
+    templates,
     users,
     workflows,
 )
@@ -39,5 +40,8 @@ router.include_router(file_router.router, prefix='/files', tags=['Files'])
 
 # 注册工作流路由
 router.include_router(workflows.router, tags=['Workflows'])
+
+# 注册模板路由
+router.include_router(templates.router, tags=['Templates'])
 
 __all__ = ['router']
