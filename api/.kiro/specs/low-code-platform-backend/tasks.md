@@ -268,7 +268,7 @@
   - **属性 56: 数据转换节点**
   - **验证: 需求 13.5**
 
-- [ ] 13. 实现提示词模板模块
+- [x] 13. 实现提示词模板模块
   - 实现 app/services/prompt_template_service.py（模板 CRUD、版本管理、引用检查）
   - 实现 app/utils/template_renderer.py（模板渲染和变量解析）
   - 实现 app/schemas/template.py（模板相关的 Pydantic schemas）
