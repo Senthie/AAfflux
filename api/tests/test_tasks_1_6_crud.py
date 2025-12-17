@@ -41,7 +41,7 @@ from app.models.workflow.workflow import Workflow
 async def test_db_session() -> AsyncGenerator[AsyncSession, None]:
     """专用测试数据库会话 - 使用 lowcode_test 数据库"""
     # 构建测试数据库URL
-    test_db_url = "postgresql+asyncpg://postgres:postgres@14.12.0.102:5432/lowcode_test"
+    test_db_url = 'postgresql+asyncpg://postgres:postgres@14.12.0.102:5432/lowcode_test'
 
     # 创建测试专用引擎
     engine = create_async_engine(
@@ -101,27 +101,27 @@ class TestTask2DataModels:
         # Create
         unique_id = str(uuid4())[:8]
         user = User(
-            name=f"Test User {unique_id}",
-            email=f"test{unique_id}@example.com",
-            password_hash="hashed_password",
-            is_active=True
+            name=f'Test User {unique_id}',
+            email=f'test{unique_id}@example.com',
+            password_hash='hashed_password',
+            is_active=True,
         )
         test_db_session.add(user)
         await test_db_session.commit()
         await test_db_session.refresh(user)
 
         # Read
-        stmt = select(User).where(User.email == f"test{unique_id}@example.com")
+        stmt = select(User).where(User.email == f'test{unique_id}@example.com')
         result = await test_db_session.execute(stmt)
         found_user = result.scalar_one_or_none()
         assert found_user is not None
-        assert found_user.name == f"Test User {unique_id}"
+        assert found_user.name == f'Test User {unique_id}'
 
         # Update
-        found_user.name = f"Updated User {unique_id}"
+        found_user.name = f'Updated User {unique_id}'
         await test_db_session.commit()
         await test_db_session.refresh(found_user)
-        assert found_user.name == f"Updated User {unique_id}"
+        assert found_user.name == f'Updated User {unique_id}'
 
         # Delete (soft delete)
         found_user.is_deleted = True
@@ -136,23 +136,23 @@ class TestTask2DataModels:
         # Create
         unique_id = str(uuid4())[:8]
         org = Organization(
-            name=f"Test Organization {unique_id}",
-            description="Test Description",
-            created_by=user_id
+            name=f'Test Organization {unique_id}',
+            description='Test Description',
+            created_by=user_id,
         )
         test_db_session.add(org)
         await test_db_session.commit()
         await test_db_session.refresh(org)
 
         # Read
-        stmt = select(Organization).where(Organization.name == f"Test Organization {unique_id}")
+        stmt = select(Organization).where(Organization.name == f'Test Organization {unique_id}')
         result = await test_db_session.execute(stmt)
         found_org = result.scalar_one_or_none()
         assert found_org is not None
-        assert found_org.description == "Test Description"
+        assert found_org.description == 'Test Description'
 
         # Update
-        found_org.description = "Updated Description"
+        found_org.description = 'Updated Description'
         await test_db_session.commit()
 
         # Delete (soft delete)
@@ -169,25 +169,25 @@ class TestTask2DataModels:
         # Create
         unique_id = str(uuid4())[:8]
         workflow = Workflow(
-            name=f"Test Workflow {unique_id}",
-            description="Test workflow description",
+            name=f'Test Workflow {unique_id}',
+            description='Test workflow description',
             workspace_id=workspace_id,
             created_by=user_id,
-            input_schema={"type": "object"},
-            output_schema={"type": "object"}
+            input_schema={'type': 'object'},
+            output_schema={'type': 'object'},
         )
         test_db_session.add(workflow)
         await test_db_session.commit()
         await test_db_session.refresh(workflow)
 
         # Read
-        stmt = select(Workflow).where(Workflow.name == f"Test Workflow {unique_id}")
+        stmt = select(Workflow).where(Workflow.name == f'Test Workflow {unique_id}')
         result = await test_db_session.execute(stmt)
         found_workflow = result.scalar_one_or_none()
         assert found_workflow is not None
 
         # Update
-        found_workflow.description = "Updated workflow description"
+        found_workflow.description = 'Updated workflow description'
         await test_db_session.commit()
 
         # Delete (soft delete)
@@ -205,20 +205,20 @@ class TestTask2DataModels:
         # Create
         unique_id = str(uuid4())[:8]
         app = Application(
-            name=f"Test Application {unique_id}",
+            name=f'Test Application {unique_id}',
             workspace_id=workspace_id,
             workflow_id=workflow_id,
             created_by=user_id,
-            api_key_hash="test_hash",
-            endpoint=f"/api/test/{unique_id}",
-            is_published=False
+            api_key_hash='test_hash',
+            endpoint=f'/api/test/{unique_id}',
+            is_published=False,
         )
         test_db_session.add(app)
         await test_db_session.commit()
         await test_db_session.refresh(app)
 
         # Read
-        stmt = select(Application).where(Application.name == f"Test Application {unique_id}")
+        stmt = select(Application).where(Application.name == f'Test Application {unique_id}')
         result = await test_db_session.execute(stmt)
         found_app = result.scalar_one_or_none()
         assert found_app is not None
@@ -241,28 +241,28 @@ class TestTask2DataModels:
         # Create
         unique_id = str(uuid4())[:8]
         dataset = Dataset(
-            name=f"Test Dataset {unique_id}",
-            description="Test dataset description",
+            name=f'Test Dataset {unique_id}',
+            description='Test dataset description',
             workspace_id=workspace_id,
             created_by=user_id,
-            embedding_model="text-embedding-ada-002",
-            embedding_model_provider="openai",
-            indexing_technique="vector",
+            embedding_model='text-embedding-ada-002',
+            embedding_model_provider='openai',
+            indexing_technique='vector',
             document_count=0,
-            word_count=0
+            word_count=0,
         )
         test_db_session.add(dataset)
         await test_db_session.commit()
         await test_db_session.refresh(dataset)
 
         # Read
-        stmt = select(Dataset).where(Dataset.name == f"Test Dataset {unique_id}")
+        stmt = select(Dataset).where(Dataset.name == f'Test Dataset {unique_id}')
         result = await test_db_session.execute(stmt)
         found_dataset = result.scalar_one_or_none()
         assert found_dataset is not None
 
         # Update
-        found_dataset.description = "Updated dataset description"
+        found_dataset.description = 'Updated dataset description'
         await test_db_session.commit()
 
         # Delete (soft delete)
@@ -278,14 +278,14 @@ class TestTask2DataModels:
         # Create
         subscription = Subscription(
             workspace_id=workspace_id,
-            plan_type="pro",
-            plan_name="Professional Plan",
-            status="active",
-            billing_cycle="monthly",
-            price=Decimal("99.00"),
-            quota_limits={"api_calls": 10000},
+            plan_type='pro',
+            plan_name='Professional Plan',
+            status='active',
+            billing_cycle='monthly',
+            price=Decimal('99.00'),
+            quota_limits={'api_calls': 10000},
             current_period_start=datetime.now(),
-            current_period_end=datetime.now()
+            current_period_end=datetime.now(),
         )
         test_db_session.add(subscription)
         await test_db_session.commit()
@@ -298,7 +298,7 @@ class TestTask2DataModels:
         assert found_sub is not None
 
         # Update
-        found_sub.status = "cancelled"
+        found_sub.status = 'cancelled'
         await test_db_session.commit()
 
         # Delete (soft delete)
@@ -318,10 +318,10 @@ class TestTask3Authentication:
         # Create
         token = RefreshToken(
             user_id=user_id,
-            token_hash="hashed_token",
+            token_hash='hashed_token',
             expires_at=datetime.now(),
             revoked=False,
-            created_by=user_id  # 添加必需的created_by字段
+            created_by=user_id,  # 添加必需的created_by字段
         )
         test_db_session.add(token)
         await test_db_session.commit()
@@ -350,17 +350,17 @@ class TestTask3Authentication:
         # Create
         api_key = APIKey(
             application_id=application_id,
-            key_hash="hashed_api_key",
-            key_prefix="ak_test",
-            name="Test API Key",
-            is_active=True
+            key_hash='hashed_api_key',
+            key_prefix='ak_test',
+            name='Test API Key',
+            is_active=True,
         )
         test_db_session.add(api_key)
         await test_db_session.commit()
         await test_db_session.refresh(api_key)
 
         # Read
-        stmt = select(APIKey).where(APIKey.key_prefix == "ak_test")
+        stmt = select(APIKey).where(APIKey.key_prefix == 'ak_test')
         result = await test_db_session.execute(stmt)
         found_key = result.scalar_one_or_none()
         assert found_key is not None
@@ -377,7 +377,9 @@ class TestTask3Authentication:
 class TestTask4FileStorage:
     """Test Task 4: File Storage"""
 
-    @pytest.mark.skip(reason="FileReference table has problematic 'd' field - database schema issue")
+    @pytest.mark.skip(
+        reason="FileReference table has problematic 'd' field - database schema issue"
+    )
     @pytest.mark.asyncio
     async def test_file_reference_crud(self, test_db_session: AsyncSession):
         """Test File Reference CRUD operations."""
@@ -389,26 +391,26 @@ class TestTask4FileStorage:
         file_ref = FileReference(
             workspace_id=workspace_id,
             file_id=file_id,
-            filename="test_file.txt",
-            content_type="text/plain",
+            filename='test_file.txt',
+            content_type='text/plain',
             size_bytes=1024,
-            storage_type="gridfs",
-            mongo_id="507f1f77bcf86cd799439011",
-            uploaded_by=user_id
+            storage_type='gridfs',
+            mongo_id='507f1f77bcf86cd799439011',
+            uploaded_by=user_id,
         )
         test_db_session.add(file_ref)
         await test_db_session.commit()
         await test_db_session.refresh(file_ref)
 
         # Read
-        stmt = select(FileReference).where(FileReference.filename == "test_file.txt")
+        stmt = select(FileReference).where(FileReference.filename == 'test_file.txt')
         result = await test_db_session.execute(stmt)
         found_file = result.scalar_one_or_none()
         assert found_file is not None
-        assert found_file.content_type == "text/plain"
+        assert found_file.content_type == 'text/plain'
 
         # Update
-        found_file.filename = "updated_file.txt"
+        found_file.filename = 'updated_file.txt'
         await test_db_session.commit()
 
         # Delete (soft delete)
@@ -429,23 +431,23 @@ class TestTask5TenantManagement:
         # Create
         unique_id = str(uuid4())[:8]
         team = Team(
-            name=f"Test Team {unique_id}",
-            description="Test team description",
+            name=f'Test Team {unique_id}',
+            description='Test team description',
             organization_id=organization_id,
-            created_by=user_id
+            created_by=user_id,
         )
         test_db_session.add(team)
         await test_db_session.commit()
         await test_db_session.refresh(team)
 
         # Read
-        stmt = select(Team).where(Team.name == f"Test Team {unique_id}")
+        stmt = select(Team).where(Team.name == f'Test Team {unique_id}')
         result = await test_db_session.execute(stmt)
         found_team = result.scalar_one_or_none()
         assert found_team is not None
 
         # Update
-        found_team.description = "Updated team description"
+        found_team.description = 'Updated team description'
         await test_db_session.commit()
 
         # Delete (soft delete)
@@ -462,23 +464,23 @@ class TestTask5TenantManagement:
         # Create
         unique_id = str(uuid4())[:8]
         workspace = Workspace(
-            name=f"Test Workspace {unique_id}",
-            description="Test workspace description",
+            name=f'Test Workspace {unique_id}',
+            description='Test workspace description',
             team_id=team_id,
-            created_by=user_id
+            created_by=user_id,
         )
         test_db_session.add(workspace)
         await test_db_session.commit()
         await test_db_session.refresh(workspace)
 
         # Read
-        stmt = select(Workspace).where(Workspace.name == f"Test Workspace {unique_id}")
+        stmt = select(Workspace).where(Workspace.name == f'Test Workspace {unique_id}')
         result = await test_db_session.execute(stmt)
         found_workspace = result.scalar_one_or_none()
         assert found_workspace is not None
 
         # Update
-        found_workspace.description = "Updated workspace description"
+        found_workspace.description = 'Updated workspace description'
         await test_db_session.commit()
 
         # Delete (soft delete)
@@ -497,9 +499,9 @@ class TestTask5TenantManagement:
         member = TeamMember(
             team_id=team_id,
             user_id=user_id,
-            role="member",
+            role='member',
             invited_by=invited_by,
-            joined_at=datetime.now()
+            joined_at=datetime.now(),
         )
         test_db_session.add(member)
         await test_db_session.commit()
@@ -510,10 +512,10 @@ class TestTask5TenantManagement:
         result = await test_db_session.execute(stmt)
         found_member = result.scalar_one_or_none()
         assert found_member is not None
-        assert found_member.role == "member"
+        assert found_member.role == 'member'
 
         # Update
-        found_member.role = "admin"
+        found_member.role = 'admin'
         await test_db_session.commit()
 
         # Delete
@@ -528,26 +530,26 @@ class TestTask5TenantManagement:
 
         # Create
         invitation = TeamInvitation(
-            email="invite@example.com",
+            email='invite@example.com',
             team_id=team_id,
-            role="MEMBER",
-            token="test_token_123",
+            role='MEMBER',
+            token='test_token_123',
             invited_by=invited_by,
-            status="PENDING",
-            expires_at=datetime.now()
+            status='PENDING',
+            expires_at=datetime.now(),
         )
         test_db_session.add(invitation)
         await test_db_session.commit()
         await test_db_session.refresh(invitation)
 
         # Read
-        stmt = select(TeamInvitation).where(TeamInvitation.email == "invite@example.com")
+        stmt = select(TeamInvitation).where(TeamInvitation.email == 'invite@example.com')
         result = await test_db_session.execute(stmt)
         found_invitation = result.scalar_one_or_none()
         assert found_invitation is not None
 
         # Update
-        found_invitation.status = "ACCEPTED"
+        found_invitation.status = 'ACCEPTED'
         await test_db_session.commit()
 
         # Delete
@@ -569,13 +571,13 @@ class TestTask6PermissionControl:
         audit_log = AuditLog(
             workspace_id=workspace_id,
             user_id=user_id,
-            action="CREATE",
-            resource_type="workflow",
+            action='CREATE',
+            resource_type='workflow',
             resource_id=resource_id,
-            details={"name": "Test Workflow"},
-            ip_address="192.168.1.1",
-            user_agent="Test Agent",
-            status="success"
+            details={'name': 'Test Workflow'},
+            ip_address='192.168.1.1',
+            user_agent='Test Agent',
+            status='success',
         )
         test_db_session.add(audit_log)
         await test_db_session.commit()
@@ -586,10 +588,10 @@ class TestTask6PermissionControl:
         result = await test_db_session.execute(stmt)
         found_log = result.scalar_one_or_none()
         assert found_log is not None
-        assert found_log.resource_type == "workflow"
+        assert found_log.resource_type == 'workflow'
 
         # Update
-        found_log.status = "completed"
+        found_log.status = 'completed'
         await test_db_session.commit()
 
         # Delete
@@ -606,29 +608,24 @@ class TestIntegrationScenarios:
         # Create user (Task 3)
         unique_id = str(uuid4())[:8]
         user = User(
-            name=f"Integration Test User {unique_id}",
-            email=f"integration{unique_id}@example.com",
-            password_hash="hashed_password",
-            is_active=True
+            name=f'Integration Test User {unique_id}',
+            email=f'integration{unique_id}@example.com',
+            password_hash='hashed_password',
+            is_active=True,
         )
         test_db_session.add(user)
         await test_db_session.commit()
         await test_db_session.refresh(user)
 
         # Create organization (Task 5)
-        org = Organization(
-            name=f"Integration Test Org {unique_id}",
-            created_by=user.id
-        )
+        org = Organization(name=f'Integration Test Org {unique_id}', created_by=user.id)
         test_db_session.add(org)
         await test_db_session.commit()
         await test_db_session.refresh(org)
 
         # Create team (Task 5)
         team = Team(
-            name=f"Integration Test Team {unique_id}",
-            organization_id=org.id,
-            created_by=user.id
+            name=f'Integration Test Team {unique_id}', organization_id=org.id, created_by=user.id
         )
         test_db_session.add(team)
         await test_db_session.commit()
@@ -636,9 +633,7 @@ class TestIntegrationScenarios:
 
         # Create workspace (Task 5)
         workspace = Workspace(
-            name=f"Integration Test Workspace {unique_id}",
-            team_id=team.id,
-            created_by=user.id
+            name=f'Integration Test Workspace {unique_id}', team_id=team.id, created_by=user.id
         )
         test_db_session.add(workspace)
         await test_db_session.commit()
@@ -646,11 +641,11 @@ class TestIntegrationScenarios:
 
         # Create workflow (Task 2)
         workflow = Workflow(
-            name=f"Integration Test Workflow {unique_id}",
+            name=f'Integration Test Workflow {unique_id}',
             workspace_id=workspace.id,
             created_by=user.id,
-            input_schema={"type": "object"},
-            output_schema={"type": "object"}
+            input_schema={'type': 'object'},
+            output_schema={'type': 'object'},
         )
         test_db_session.add(workflow)
         await test_db_session.commit()
@@ -658,13 +653,13 @@ class TestIntegrationScenarios:
 
         # Create application (Task 2)
         app = Application(
-            name=f"Integration Test App {unique_id}",
+            name=f'Integration Test App {unique_id}',
             workspace_id=workspace.id,
             workflow_id=workflow.id,
             created_by=user.id,
-            api_key_hash="integration_hash",
-            endpoint=f"/api/integration/{unique_id}",
-            is_published=True
+            api_key_hash='integration_hash',
+            endpoint=f'/api/integration/{unique_id}',
+            is_published=True,
         )
         test_db_session.add(app)
         await test_db_session.commit()
@@ -674,11 +669,11 @@ class TestIntegrationScenarios:
         audit_log = AuditLog(
             workspace_id=workspace.id,
             user_id=user.id,
-            action="CREATE",
-            resource_type="application",
+            action='CREATE',
+            resource_type='application',
             resource_id=app.id,
-            details={"name": app.name},
-            status="success"
+            details={'name': app.name},
+            status='success',
         )
         test_db_session.add(audit_log)
         await test_db_session.commit()
