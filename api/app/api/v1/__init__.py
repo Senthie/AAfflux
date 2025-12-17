@@ -17,6 +17,7 @@ from app.api.v1 import (
     bpm_processes,
     bpm_tasks,
     file as file_router,
+    providers,
     templates,
     users,
     workflows,
@@ -43,5 +44,8 @@ router.include_router(workflows.router, tags=['Workflows'])
 
 # 注册模板路由
 router.include_router(templates.router, tags=['Templates'])
+
+# 注册LLM提供商路由
+router.include_router(providers.router, tags=['LLM Providers'])
 
 __all__ = ['router']
