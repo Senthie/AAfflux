@@ -2,12 +2,10 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-02 12:27:32
 LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-17 09:15:58
+LastEditTime: 2025-12-17 11:18:36
 FilePath: : AAfflux: api: app: models: bpm: approval.py
-Description: 
+Description: 审批记录模型
 """
-"""审批记录模型"""
-
 from datetime import datetime
 from enum import Enum
 from typing import Optional
