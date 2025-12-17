@@ -18,6 +18,7 @@ from app.models.application.application import Application
 from app.models.file.reference import FileReference
 from app.schemas.workspace import WorkspaceCreate, WorkspaceUpdate
 
+
 class WorkspaceService:
     """工作空间管理服务"""
 
@@ -153,8 +154,6 @@ class WorkspaceService:
     async def get_team_workspaces(self, team_id: UUID) -> List[Workspace]:
         """获取团队下的所有工作空间"""
         result = await self.session.execute(
-            select(Workspace).where(
-                Workspace.team_id == team_id, Workspace.is_deleted.is_(False
-                ))
+            select(Workspace).where(Workspace.team_id == team_id, Workspace.is_deleted.is_(False))
         )
         return list(result.scalars().all())

@@ -2,15 +2,15 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-10 17:44:58
 LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-16 10:33:07
+LastEditTime: 2025-12-16 12:10:21
 FilePath: : AAfflux: api: app: api: v1: teams.py
-Description:团队管理 API 端点
+Description:团队管理 API 端点，更新了接口使用的安全方法。
 """
 
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.database import get_session
@@ -78,8 +78,7 @@ async def get_team(
     #     )
     # return TeamResponse.model_validate(team)
     raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail='Method not implemented yet'
+        status_code=status.HTTP_501_NOT_IMPLEMENTED, detail='Method not implemented yet'
     )
 
 
@@ -113,10 +112,7 @@ async def add_team_member(
         member = await service.add_member(team_id, data.user_id, data.role)
         return TeamMemberResponse.model_validate(member)
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
 
 
 @router.put(
@@ -133,10 +129,7 @@ async def update_team_member(
     """更新团队成员角色"""
     member = await service.update_member_role(team_id, user_id, data.role)
     if not member:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail='Team member not found'
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Team member not found')
     return TeamMemberResponse.model_validate(member)
 
 
@@ -153,46 +146,80 @@ async def remove_team_member(
     """移除团队成员"""
     success = await service.remove_member(team_id, user_id)
     if not success:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail='Team member not found'
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Team member not found')
 
 
 @router.post(
     '/{team_id}/invitations',
     response_model=TeamInvitationResponse,
     status_code=status.HTTP_201_CREATED,
-    summary='发送团队邀请',
+    summary='发送团队邀请（安全版本）',
 )
 async def send_team_invitation(
     team_id: UUID,
     data: TeamInvitationCreate,
+    request: Request,
     current_user: CurrentUser,
     service: TeamServiceDep,
 ) -> TeamInvitationResponse:
-    """发送团队邀请"""
-    invitation = await service.send_invitation(
-        team_id, data.email, data.role, current_user.id
-    )
-    return TeamInvitationResponse.model_validate(invitation)
+    """发送团队邀请 - 包含安全检查"""
+    try:
+        # 获取客户端信息
+        ip_address = request.client.host
+        user_agent = request.headers.get('user-agent')
+
+        invitation = await service.send_invitation(
+            team_id=team_id,
+            email=data.email,
+            role=data.role,
+            invited_by=current_user.id,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            workspace_id=None,  # 可以从team获取workspace_id
+        )
+        return TeamInvitationResponse.model_validate(invitation)
+
+    except ValueError as e:
+        error_msg = str(e)
+        if '频率限制' in error_msg or '最多发送' in error_msg:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=error_msg
+            ) from e
+        elif '已有待处理' in error_msg:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=error_msg) from e
+        else:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_msg) from e
 
 
 @router.post(
     '/invitations/accept',
     response_model=TeamMemberResponse,
-    summary='接受团队邀请',
+    summary='接受团队邀请（安全版本）',
 )
 async def accept_team_invitation(
     data: TeamInvitationAccept,
+    request: Request,
     current_user: CurrentUser,
     service: TeamServiceDep,
 ) -> TeamMemberResponse:
-    """接受团队邀请"""
-    member = await service.accept_invitation(data.token, current_user.id)
+    """接受团队邀请 - 包含安全检查"""
+    # 获取客户端信息
+    ip_address = request.client.host
+    user_agent = request.headers.get('user-agent')
+
+    member = await service.accept_invitation(
+        token=data.token,
+        user_id=current_user.id,
+        ip_address=ip_address,
+        user_agent=user_agent,
+        workspace_id=None,
+    )
+
     if not member:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Invalid or expired invitation token'
+            status_code=status.HTTP_400_BAD_REQUEST, detail='邀请令牌无效、已过期或已被使用'
         )
+
     return TeamMemberResponse.model_validate(member)
+
+
