@@ -2,9 +2,9 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-10 14:41:10
 LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-17 09:19:35
+LastEditTime: 2025-12-17 16:45:19
 FilePath: : AAfflux: api: app: services: team_service.py
-Description:团队管理服务
+Description:团队管理服务，实现了团队的crud操作，还有团队成员的邀请链接，令牌的审查。
 """
 
 from typing import List, Optional
@@ -15,10 +15,12 @@ from sqlmodel import select
 
 from app.models.tenant.organization import Team, TeamMember
 from app.models.tenant.invitation import TeamInvitation
+from app.models.auth.user import User
 from app.schemas.team import TeamCreate
 from app.utils.rbac import Role
 from app.utils.invitation_security import InvitationSecurityManager
 from app.services.invitation_audit_service import InvitationAuditService
+from app.services.email_service import EmailService
 from app.core.redis import get_redis
 from app.core.config import settings
 
@@ -31,12 +33,13 @@ class TeamService:
         self._redis = None
         self._security_manager = None
         self._audit_service = None
+        self._email_service = EmailService()
 
     async def _get_redis(self):
         """获取Redis客户端"""
         if self._redis is None:
             self._redis = await get_redis()
-            #确保链接建立
+            # 确保链接建立
             if not self._redis.redis:
                 await self._redis.connect()
         return self._redis
@@ -133,8 +136,6 @@ class TeamService:
 
         return member_obj
 
-
-
     async def send_invitation(
         self,
         team_id: UUID,
@@ -204,18 +205,26 @@ class TeamService:
         await self.session.commit()
         await self.session.refresh(invitation)
 
-        # 7. 生成邀请链接
-        invite_link = f'https://yourapp.com/accept-invitation?token={secure_token}'
+        # 7. 获取团队和邀请者信息
+        team = await self.get_team(team_id)
+        inviter = await self.session.get(User, invited_by)
+
+        # 8. 发送邀请邮件
+        email_sent = await self._email_service.send_invitation_email(
+            to_email=email,
+            inviter_name=inviter.username if inviter else '系统管理员',
+            team_name=team.name if team else '未知团队',
+            invite_token=secure_token,
+            expires_at=invitation.expires_at.strftime('%Y年%m月%d日 %H:%M'),
+        )
 
         return {
             'invitation': invitation,
-            'invite_link': invite_link,
+            'email_sent': email_sent,
             'token': secure_token,
             'expires_at': invitation.expires_at,
-            'message': '邀请已安全发送',
+            'message': '邀请邮件已发送' if email_sent else '邀请创建成功，但邮件发送失败',
         }
-
-
 
     async def accept_invitation(
         self,

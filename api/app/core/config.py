@@ -94,6 +94,14 @@ class Settings(BaseSettings):
     cors_allow_methods: list[str] = ['*']
     cors_allow_headers: list[str] = ['*']
 
+    # SMTP邮件配置
+    smtp_server: str = 'smtp.exmail.qq.com'  # 企业微信邮箱
+    smtp_port: int = 465  # SSL端口
+    smtp_username: str = ''
+    smtp_password: str = ''
+    from_email: str = 'noreply@yourcompany.com'
+    frontend_url: str = 'https://yourapp.com'
+
     @field_validator('celery_broker_url', mode='before')
     @classmethod
     def set_celery_broker(cls, v: Optional[str], info) -> str:
