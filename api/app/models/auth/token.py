@@ -1,9 +1,9 @@
 """
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-04 06:14:57
-LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-04 07:35:46
-FilePath: /api/app/models/auth/token.py
+LastEditors: kk123047 3254834740@qq.com
+LastEditTime: 2025-12-15 11:01:52
+FilePath: : AAfflux: api: app: models: auth: token.py
 Description:
     认证相关模型 - 2张表。
 
@@ -33,6 +33,8 @@ class RefreshToken(BaseModel, TimestampMixin, AuditMixin, table=True):
     已经继承
         created_at: 创建时间
         id: 令牌记录唯一标识符（UUID）
+        created_by:
+        created_at:
 
         user_id: 用户ID（逻辑外键）
         token_hash: 令牌哈希值（唯一）

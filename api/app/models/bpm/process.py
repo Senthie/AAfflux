@@ -36,7 +36,6 @@ class ProcessDefinition(
     # 节点定义
     nodes: dict = Field(default_factory=dict, sa_column=Column(JSON), description='流程节点列表')
 
-
     # 表单配置
     form_schema: Optional[dict] = Field(
         default=None, sa_column=Column(JSON), description='表单 Schema'
@@ -97,6 +96,7 @@ class ProcessInstance(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
     deleted_at: Optional[datetime] = Field(default=None)
     is_deleted: bool = Field(default=False)
     """
+
     __tablename__ = 'bpm_process_instances'
 
     # 关联流程定义（逻辑外键）
@@ -110,13 +110,11 @@ class ProcessInstance(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
     )
     business_type: Optional[str] = Field(default=None, max_length=50, description='业务类型')
 
-
     # 关联 Workflow（如果从 Workflow 触发）
     workflow_run_id: Optional[UUID] = Field(
         default=None, index=True, description='关联的工作流执行ID'
     )
     workflow_node_id: Optional[str] = Field(default=None, description='触发的工作流节点ID')
-
 
     # 流程状态
     status: ProcessStatus = Field(default=ProcessStatus.PENDING, index=True)
@@ -124,17 +122,14 @@ class ProcessInstance(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
     # 流程变量
     variables: dict = Field(default_factory=dict, sa_column=Column(JSON), description='流程变量')
 
-
     # 当前节点
     current_node_id: Optional[str] = Field(default=None, description='当前执行节点ID')
     current_task_id: Optional[UUID] = Field(default=None, description='当前任务ID')
-
 
     # 执行信息
     started_at: Optional[datetime] = Field(default=None, description='启动时间')
     completed_at: Optional[datetime] = Field(default=None, description='完成时间')
     duration_seconds: Optional[int] = Field(default=None, description='执行时长（秒）')
-
 
     # 结果
     result: Optional[dict] = Field(default=None, sa_column=Column(JSON), description='执行结果')

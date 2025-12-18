@@ -130,6 +130,51 @@ class RedisClient:
         json_value = json.dumps(value)
         return await self.set(key, json_value, expire)
 
+    async def incr(self, key: str) -> int:
+        """
+        Increment value in cache.
+
+        Args:
+            key: Cache key
+
+        Returns:
+            New value after increment
+        """
+        if not self.redis:
+            raise RuntimeError('Redis not connected')
+        return await self.redis.incr(key)
+
+    async def expire(self, key: str, seconds: int) -> bool:
+        """
+        Set expiration time for key.
+
+        Args:
+            key: Cache key
+            seconds: Expiration time in seconds
+
+        Returns:
+            True if successful
+        """
+        if not self.redis:
+            raise RuntimeError('Redis not connected')
+        return await self.redis.expire(key, seconds)
+
+    async def setex(self, key: str, seconds: int, value: str) -> bool:
+        """
+        Set value with expiration time.
+
+        Args:
+            key: Cache key
+            seconds: Expiration time in seconds
+            value: Value to set
+
+        Returns:
+            True if successful
+        """
+        if not self.redis:
+            raise RuntimeError('Redis not connected')
+        return await self.redis.setex(key, seconds, value)
+
 
 # Global Redis client instance
 redis_client = RedisClient()

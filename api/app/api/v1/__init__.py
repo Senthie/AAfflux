@@ -2,12 +2,10 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-02 08:50:10
 LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-09 16:25:28
+LastEditTime: 2025-12-17 17:42:35
 FilePath: : AAfflux: api: app: api: v1: __init__.py
-Description:
+Description: API v1 路由注册
 """
-
-"""API v1 路由"""
 
 from fastapi import APIRouter
 
@@ -47,5 +45,59 @@ router.include_router(templates.router, tags=['Templates'])
 
 # 注册LLM提供商路由
 router.include_router(providers.router, tags=['LLM Providers'])
+
+# 工作流管理路由
+try:
+    from app.api.v1.workflows import router as workflows_router
+
+    router.include_router(workflows_router, tags=['Workflow Management'])
+    print('✅ Workflows router registered')
+except Exception as e:
+    print(f'❌ Workflows router failed: {e}')
+
+# LLM提供商管理路由
+try:
+    from app.api.v1.providers import router as providers_router
+
+    router.include_router(providers_router, tags=['LLM Provider Management'])
+    print('✅ Providers router registered')
+except Exception as e:
+    print(f'❌ Providers router failed: {e}')
+
+# 模板管理路由
+try:
+    from app.api.v1.templates import router as templates_router
+
+    router.include_router(templates_router, tags=['Template Management'])
+    print('✅ Templates router registered')
+except Exception as e:
+    print(f'❌ Templates router failed: {e}')
+
+# BPM流程管理路由
+try:
+    from app.api.v1.bpm_processes import router as bmp_processes_router
+
+    router.include_router(bmp_processes_router, tags=['BPM Process Management'])
+    print('✅ BPM Processes router registered')
+except Exception as e:
+    print(f'❌ BPM Processes router failed: {e}')
+
+# BPM任务管理路由
+try:
+    from app.api.v1.bpm_tasks import router as bpm_tasks_router
+
+    router.include_router(bpm_tasks_router, tags=['BPM Task Management'])
+    print('✅ BPM Tasks router registered')
+except Exception as e:
+    print(f'❌ BPM Tasks router failed: {e}')
+
+# BPM审批管理路由
+try:
+    from app.api.v1.bpm_approvals import router as bpm_approvals_router
+
+    router.include_router(bpm_approvals_router, tags=['BPM Approval Management'])
+    print('✅ BPM Approvals router registered')
+except Exception as e:
+    print(f'❌ BPM Approvals router failed: {e}')
 
 __all__ = ['router']

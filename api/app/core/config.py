@@ -5,6 +5,28 @@ from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+class InvitationSecurityConfig(BaseSettings):
+    """邀请安全配置"""
+
+    # 频率限制配置
+    rate_limit_hour: int = 5  # 每小时最多5个邀请
+    rate_limit_day: int = 20  # 每天最多20个邀请
+    rate_limit_month: int = 100  # 每月最多100个邀请
+
+    # 令牌安全配置
+    token_length: int = 48  # 令牌长度(字节)
+    token_expire_days: int = 7  # 令牌有效期(天)
+    max_token_attempts: int = 3  # 令牌最大尝试次数
+
+    # 重复邀请配置
+    duplicate_check_enabled: bool = True
+    duplicate_grace_period_hours: int = 1  # 重复检查宽限期
+
+    # 审计配置
+    audit_enabled: bool = True
+    audit_ip_required: bool = True
+
+
 class Settings(BaseSettings):
     """Application settings."""
 
@@ -27,6 +49,12 @@ class Settings(BaseSettings):
     jwt_algorithm: str = 'HS256'
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
+    secret_key: Optional[str] = Field(
+        None, min_length=32, description='Secret key for HMAC signing'
+    )
+
+    # Invitation Security
+    invitation_security: InvitationSecurityConfig = Field(default_factory=InvitationSecurityConfig)
 
     # Database - PostgreSQL
     database_url: str = Field(..., description='PostgreSQL connection URL')
@@ -66,6 +94,14 @@ class Settings(BaseSettings):
     cors_allow_methods: list[str] = ['*']
     cors_allow_headers: list[str] = ['*']
 
+    # SMTP邮件配置
+    smtp_server: str = 'smtp.exmail.qq.com'  # 企业微信邮箱
+    smtp_port: int = 465  # SSL端口
+    smtp_username: str = ''
+    smtp_password: str = ''
+    from_email: str = 'noreply@yourcompany.com'
+    frontend_url: str = 'https://yourapp.com'
+
     @field_validator('celery_broker_url', mode='before')
     @classmethod
     def set_celery_broker(cls, v: Optional[str], info) -> str:
@@ -85,6 +121,16 @@ class Settings(BaseSettings):
             if redis_url:
                 return redis_url
         return v or ''
+
+    @field_validator('secret_key', mode='before')
+    @classmethod
+    def set_secret_key(cls, v: Optional[str], info) -> str:
+        """Set secret key from JWT secret if not provided."""
+        if v is None:
+            jwt_secret = info.data.get('jwt_secret_key')
+            if jwt_secret:
+                return jwt_secret
+        return v or 'default-secret-key-for-development-only-change-in-production'
 
 
 # Global settings instance
