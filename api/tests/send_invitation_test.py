@@ -2,8 +2,8 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-17 16:58:27
 LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-17 16:59:58
-FilePath: : AAfflux: api: send_invitation_test.py
+LastEditTime: 2025-12-18 09:09:29
+FilePath: : AAfflux: api: tests: send_invitation_test.py
 Description:邮箱发送
 """
 #!/usr/bin/env python3
@@ -30,7 +30,7 @@ async def test_send_invitation():
     email_service = EmailService()
 
     # 邮件参数
-    to_email = "handstrip01@handscript.net"
+    to_email = "jhonkon@handscript.net"
     inviter_name = "系统管理员"
     team_name = "测试团队"
     invite_token = "test_token_123456789"
