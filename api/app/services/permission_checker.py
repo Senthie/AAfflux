@@ -3,7 +3,8 @@
 from typing import Optional
 from enum import Enum
 from uuid import UUID
-from sqlmodel import Session, select
+from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.models.user import User, Team, TeamMember, Workspace
 
@@ -28,7 +29,7 @@ class Action(str, Enum):
 class PermissionChecker:
     """Service for checking user permissions."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         """
         Initialize PermissionChecker.
 
@@ -37,7 +38,7 @@ class PermissionChecker:
         """
         self.db = db
 
-    def check_permission(
+    async def check_permission(
         self,
         user: User,
         workspace: Workspace,
@@ -55,7 +56,7 @@ class PermissionChecker:
             True if user has permission, False otherwise
         """
         # Get user's role in the team
-        role = self.get_user_role(user, workspace)
+        role = await self.get_user_role(user, workspace)
 
         if not role:
             return False
@@ -63,7 +64,7 @@ class PermissionChecker:
         # Check permission based on role and action
         return self._has_permission(role, action)
 
-    def get_user_role(self, user: User, workspace: Workspace) -> Optional[Role]:
+    async def get_user_role(self, user: User, workspace: Workspace) -> Optional[Role]:
         """
         Get user's role in workspace's team.
 
@@ -79,7 +80,8 @@ class PermissionChecker:
             TeamMember.team_id == workspace.team_id,
             TeamMember.user_id == user.id,
         )
-        membership = self.db.exec(statement).first()
+        result = await self.db.execute(statement)
+        membership = result.scalar_one_or_none()
 
         if not membership:
             return None
@@ -89,7 +91,7 @@ class PermissionChecker:
         except ValueError:
             return None
 
-    def is_team_admin(self, user: User, team: Team) -> bool:
+    async def is_team_admin(self, user: User, team: Team) -> bool:
         """
         Check if user is admin of team.
 
@@ -105,11 +107,12 @@ class PermissionChecker:
             TeamMember.user_id == user.id,
             TeamMember.role == Role.ADMIN.value,
         )
-        membership = self.db.exec(statement).first()
+        result = await self.db.execute(statement)
+        membership = result.scalar_one_or_none()
 
         return membership is not None
 
-    def is_workspace_member(self, user: User, workspace: Workspace) -> bool:
+    async def is_workspace_member(self, user: User, workspace: Workspace) -> bool:
         """
         Check if user is member of workspace's team.
 
@@ -124,11 +127,12 @@ class PermissionChecker:
             TeamMember.team_id == workspace.team_id,
             TeamMember.user_id == user.id,
         )
-        membership = self.db.exec(statement).first()
+        result = await self.db.execute(statement)
+        membership = result.scalar_one_or_none()
 
         return membership is not None
 
-    def require_permission(
+    async def require_permission(
         self,
         user: User,
         workspace: Workspace,
@@ -145,7 +149,7 @@ class PermissionChecker:
         Raises:
             PermissionError: If user doesn't have permission
         """
-        if not self.check_permission(user, workspace, action):
+        if not await self.check_permission(user, workspace, action):
             raise PermissionError(
                 f'User does not have permission to {action.value} in this workspace'
             )
@@ -181,7 +185,7 @@ class PermissionChecker:
 
         return action in permissions.get(role, set())
 
-    def get_accessible_workspaces(self, user: User) -> list[Workspace]:
+    async def get_accessible_workspaces(self, user: User) -> list[Workspace]:
         """
         Get all workspaces user has access to.
 
@@ -193,7 +197,8 @@ class PermissionChecker:
         """
         # Get all teams user is member of
         statement = select(TeamMember).where(TeamMember.user_id == user.id)
-        memberships = self.db.exec(statement).all()
+        result = await self.db.execute(statement)
+        memberships = result.scalars().all()
 
         if not memberships:
             return []
@@ -204,12 +209,13 @@ class PermissionChecker:
         workspaces = []
         for team_id in team_ids:
             statement = select(Workspace).where(Workspace.team_id == team_id)
-            team_workspaces = self.db.exec(statement).all()
+            result = await self.db.execute(statement)
+            team_workspaces = result.scalars().all()
             workspaces.extend(team_workspaces)
 
         return workspaces
 
-    def can_access_workspace(self, user: User, workspace_id: UUID) -> bool:
+    async def can_access_workspace(self, user: User, workspace_id: UUID) -> bool:
         """
         Check if user can access workspace.
 
@@ -220,9 +226,11 @@ class PermissionChecker:
         Returns:
             True if user can access workspace
         """
-        workspace = self.db.get(Workspace, workspace_id)
+        statement = select(Workspace).where(Workspace.id == workspace_id)
+        result = await self.db.execute(statement)
+        workspace = result.scalar_one_or_none()
 
         if not workspace:
             return False
 
-        return self.is_workspace_member(user, workspace)
+        return await self.is_workspace_member(user, workspace)

@@ -9,7 +9,8 @@ from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session, select
+from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.models.application.llm_provider import LLMProvider
 from app.schemas.provider import (
@@ -32,7 +33,7 @@ logger = logging.getLogger(__name__)
 class LLMProviderService:
     """LLM提供商管理服务"""
 
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         """初始化服务
 
         Args:
@@ -57,13 +58,14 @@ class LLMProviderService:
             ValueError: 当提供商名称已存在或API密钥无效时
         """
         # 检查名称是否已存在
-        existing = self.session.exec(
+        result = await self.session.execute(
             select(LLMProvider).where(
                 LLMProvider.workspace_id == workspace_id,
                 LLMProvider.name == provider_data.name,
                 not LLMProvider.is_deleted,
             )
-        ).first()
+        )
+        existing = result.scalar_one_or_none()
 
         if existing:
             raise ValueError(f'Provider with name "{provider_data.name}" already exists')
@@ -95,12 +97,12 @@ class LLMProviderService:
 
         try:
             self.session.add(provider)
-            self.session.commit()
-            self.session.refresh(provider)
+            await self.session.commit()
+            await self.session.refresh(provider)
 
             return self._to_response(provider)
         except IntegrityError as e:
-            self.session.rollback()
+            await self.session.rollback()
             logger.error(f'Failed to create LLM provider: {e}')
             raise ValueError('Failed to create provider due to database constraint') from e
 
@@ -124,14 +126,15 @@ class LLMProviderService:
 
         # 检查名称冲突
         if provider_data.name and provider_data.name != provider.name:
-            existing = self.session.exec(
+            result = await self.session.execute(
                 select(LLMProvider).where(
                     LLMProvider.workspace_id == workspace_id,
                     LLMProvider.name == provider_data.name,
                     LLMProvider.id != provider_id,
                     not LLMProvider.is_deleted,
                 )
-            ).first()
+            )
+            existing = result.scalar_one_or_none()
 
             if existing:
                 raise ValueError(f'Provider with name "{provider_data.name}" already exists')
@@ -160,16 +163,16 @@ class LLMProviderService:
         provider.touch()
 
         try:
-            self.session.commit()
-            self.session.refresh(provider)
+            await self.session.commit()
+            await self.session.refresh(provider)
 
             return self._to_response(provider)
         except IntegrityError as e:
-            self.session.rollback()
+            await self.session.rollback()
             logger.error(f'Failed to update LLM provider: {e}')
             raise ValueError('Failed to update provider due to database constraint') from e
 
-    def get_provider(self, provider_id: UUID, workspace_id: UUID) -> LLMProviderResponse:
+    async def get_provider(self, provider_id: UUID, workspace_id: UUID) -> LLMProviderResponse:
         """获取LLM提供商配置
 
         Args:
@@ -179,10 +182,10 @@ class LLMProviderService:
         Returns:
             LLMProviderResponse: 提供商配置
         """
-        provider = self._get_provider_by_id(provider_id, workspace_id)
+        provider = await self._get_provider_by_id(provider_id, workspace_id)
         return self._to_response(provider)
 
-    def list_providers(
+    async def list_providers(
         self, workspace_id: UUID, skip: int = 0, limit: int = 100
     ) -> List[LLMProviderResponse]:
         """获取工作空间的LLM提供商列表
@@ -195,13 +198,14 @@ class LLMProviderService:
         Returns:
             List[LLMProviderResponse]: 提供商配置列表
         """
-        providers = self.session.exec(
+        result = await self.session.execute(
             select(LLMProvider)
             .where(LLMProvider.workspace_id == workspace_id, not LLMProvider.is_deleted)
             .offset(skip)
             .limit(limit)
             .order_by(LLMProvider.created_at.desc())
-        ).all()
+        )
+        providers = result.scalars().all()
 
         return [self._to_response(provider) for provider in providers]
 
@@ -215,7 +219,7 @@ class LLMProviderService:
         Raises:
             ValueError: 当提供商不存在或被工作流引用时
         """
-        provider = self._get_provider_by_id(provider_id, workspace_id)
+        provider = await self._get_provider_by_id(provider_id, workspace_id)
 
         # 检查是否被工作流引用
         if await self._is_provider_referenced(provider_id):
@@ -225,9 +229,9 @@ class LLMProviderService:
         provider.soft_delete()
 
         try:
-            self.session.commit()
+            await self.session.commit()
         except Exception as e:
-            self.session.rollback()
+            await self.session.rollback()
             logger.error(f'Failed to delete LLM provider: {e}')
             raise ValueError('Failed to delete provider') from e
 
@@ -243,7 +247,7 @@ class LLMProviderService:
         Returns:
             List[LLMModelInfo]: 模型信息列表
         """
-        provider = self._get_provider_by_id(provider_id, workspace_id)
+        provider = await self._get_provider_by_id(provider_id, workspace_id)
         client = await self._create_client(provider)
 
         try:
@@ -277,7 +281,7 @@ class LLMProviderService:
         """
         import time
 
-        provider = self._get_provider_by_id(request.provider_id, workspace_id)
+        provider = await self._get_provider_by_id(request.provider_id, workspace_id)
         client = await self._create_client(provider)
 
         start_time = time.time()
@@ -344,7 +348,7 @@ class LLMProviderService:
             if 'client' in locals() and hasattr(client, '__aexit__'):
                 await client.__aexit__(None, None, None)
 
-    def _get_provider_by_id(self, provider_id: UUID, workspace_id: UUID) -> LLMProvider:
+    async def _get_provider_by_id(self, provider_id: UUID, workspace_id: UUID) -> LLMProvider:
         """根据ID获取提供商配置
 
         Args:
@@ -357,13 +361,14 @@ class LLMProviderService:
         Raises:
             ValueError: 当提供商不存在时
         """
-        provider = self.session.exec(
+        result = await self.session.execute(
             select(LLMProvider).where(
                 LLMProvider.id == provider_id,
                 LLMProvider.workspace_id == workspace_id,
                 not LLMProvider.is_deleted,
             )
-        ).first()
+        )
+        provider = result.scalar_one_or_none()
 
         if not provider:
             raise ValueError(f'LLM provider with ID {provider_id} not found')

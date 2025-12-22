@@ -53,7 +53,7 @@
   - **属性 4: 登出令牌撤销**
   - **验证: 需求 1.5**
 
-- [ ] 4. 实现用户管理模块
+- [x] 4. 实现用户管理模块
   - 实现 app/services/user_service.py（资料更新、密码修改）
   - 实现 app/schemas/user.py（用户相关的 Pydantic schemas）
   - 实现 app/api/v1/users.py（用户管理 API 端点）
@@ -71,7 +71,7 @@
   - **属性 7: 头像上传验证**
   - **验证: 需求 2.3**
 
-- [ ] 5. 实现文件存储模块
+- [x] 5. 实现文件存储模块
   - 实现 app/services/file_storage_service.py（文件上传、下载、删除、列表）
   - 实现 app/utils/mongodb_client.py（MongoDB 客户端封装和 GridFS 支持）
   - 实现 app/schemas/file.py（文件相关的 Pydantic schemas）
@@ -84,7 +84,7 @@
   - 测试文件权限验证
   - _需求: 2.3_
 
-- [ ] 6. 实现团队和企业管理模块
+- [x] 6. 实现团队和企业管理模块
   - 实现 app/services/team_service.py（团队创建、成员管理、邀请）
   - 实现 app/services/organization_service.py（企业创建和管理）
   - 实现 app/services/workspace_service.py（工作空间管理）
@@ -132,7 +132,7 @@
   - **属性 17: 企业团队级联删除**
   - **验证: 需求 4.5**
 
-- [ ] 7. 实现权限控制系统
+- [x] 7. 实现权限控制系统
   - 实现 app/services/permission_checker.py（权限检查逻辑）
   - 实现 app/utils/tenant_context.py（租户上下文管理）
   - 实现 app/middleware/permission.py（权限验证中间件）
@@ -320,7 +320,9 @@
 - [x] 15. 检查点 - 确保所有测试通过
   - 确保所有测试通过，如有问题请询问用户
 
-- [ ] 16. 实现执行记录模块
+- [x] 16. 实现执行记录模块
+
+
   - 实现 app/services/execution_record_service.py（记录创建、查询、清理）
   - 实现 app/schemas/execution.py（执行记录相关的 Pydantic schemas）
   - 实现 app/api/v1/executions.py（执行记录查询 API 端点）
