@@ -321,8 +321,6 @@
   - 确保所有测试通过，如有问题请询问用户
 
 - [x] 16. 实现执行记录模块
-
-
   - 实现 app/services/execution_record_service.py（记录创建、查询、清理）
   - 实现 app/schemas/execution.py（执行记录相关的 Pydantic schemas）
   - 实现 app/api/v1/executions.py（执行记录查询 API 端点）
