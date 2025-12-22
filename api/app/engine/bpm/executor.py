@@ -1,9 +1,9 @@
 """
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-04 09:50:20
-LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-08 02:34:51
-FilePath: /api/app/engine/bpm/executor.py
+LastEditors: kk123047 3254834740@qq.com
+LastEditTime: 2025-12-22 14:59:49
+FilePath: : AAfflux: api: app: engine: bpm: executor.py
 Description: 流程执行器
 
 Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
@@ -13,7 +13,8 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from sqlmodel import Session, select
+from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.models.bpm import ProcessDefinition, ProcessInstance, ProcessStatus, Task, TaskStatus
 
@@ -21,7 +22,7 @@ from app.models.bpm import ProcessDefinition, ProcessInstance, ProcessStatus, Ta
 class ProcessExecutor:
     """流程执行引擎"""
 
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self.session = session
 
     async def start_process(
@@ -43,7 +44,8 @@ class ProcessExecutor:
             ProcessDefinition.is_latest,
             ProcessDefinition.is_active,
         )
-        process_def = self.session.exec(statement).first()
+        result = await self.session.execute(statement)
+        process_def = result.scalar_one_or_none()
 
         if not process_def:
             raise ValueError(f'Process definition not found: {process_key}')
@@ -62,8 +64,8 @@ class ProcessExecutor:
         )
 
         self.session.add(instance)
-        self.session.commit()
-        self.session.refresh(instance)
+        await self.session.commit()
+        await self.session.refresh(instance)
 
         # 执行第一个节点
         await self._execute_next_node(instance, process_def)
@@ -93,7 +95,7 @@ class ProcessExecutor:
             instance.completed_at = datetime.utcnow()
 
         self.session.add(instance)
-        self.session.commit()
+        await self.session.commit()
 
     async def _create_task(self, instance: ProcessInstance, node: dict):
         """创建任务"""
@@ -107,14 +109,17 @@ class ProcessExecutor:
         )
 
         self.session.add(task)
-        self.session.commit()
+        await self.session.commit()
         return task
 
     async def complete_task(
         self, task_id: UUID, user_id: UUID, result: dict, comment: Optional[str] = None
     ):
         """完成任务"""
-        task = self.session.get(Task, task_id)
+        statement = select(Task).where(Task.id == task_id)
+        task_result = await self.session.execute(statement)
+        task = task_result.scalar_one_or_none()
+
         if not task:
             raise ValueError('Task not found')
 
@@ -125,14 +130,17 @@ class ProcessExecutor:
         task.comment = comment
 
         self.session.add(task)
-        self.session.commit()
+        await self.session.commit()
 
         # 继续流程
         await self._continue_process(task.process_instance_id, result)
 
     async def _continue_process(self, instance_id: UUID, task_result: dict):
         """继续执行流程"""
-        instance = self.session.get(ProcessInstance, instance_id)
+        statement = select(ProcessInstance).where(ProcessInstance.id == instance_id)
+        result = await self.session.execute(statement)
+        instance = result.scalar_one_or_none()
+
         if not instance:
             return
 
@@ -141,7 +149,8 @@ class ProcessExecutor:
             Task.process_instance_id == instance_id,
             Task.status.in_([TaskStatus.PENDING, TaskStatus.IN_PROGRESS]),
         )
-        pending_tasks = self.session.exec(statement).all()
+        result = await self.session.execute(statement)
+        pending_tasks = result.scalars().all()
 
         if not pending_tasks:
             # 所有任务完成，流程结束
@@ -150,4 +159,4 @@ class ProcessExecutor:
             instance.result = task_result
 
             self.session.add(instance)
-            self.session.commit()
+            await self.session.commit()

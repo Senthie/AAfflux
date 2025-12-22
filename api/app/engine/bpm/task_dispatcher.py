@@ -13,7 +13,8 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
-from sqlmodel import Session, select
+from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.models.bpm import Task, TaskStatus
 
@@ -21,7 +22,7 @@ from app.models.bpm import Task, TaskStatus
 class TaskDispatcher:
     """任务分发器 - 负责任务分配和通知"""
 
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self.session = session
 
     async def assign_task(self, task_id: UUID, assignee_id: UUID) -> None:
@@ -31,7 +32,10 @@ class TaskDispatcher:
         :param {UUID} assignee_id: 任务处理人的id
         return {*}
         """
-        task = self.session.get(Task, task_id)
+        statement = select(Task).where(Task.id == task_id)
+        result = await self.session.execute(statement)
+        task = result.scalar_one_or_none()
+
         if not task:
             raise ValueError('Task not found')
 
@@ -39,7 +43,7 @@ class TaskDispatcher:
         task.status = TaskStatus.ASSIGNED
 
         self.session.add(task)
-        self.session.commit()
+        await self.session.commit()
 
         # TODO: 发送通知
         await self._notify_assignee(task, assignee_id)
@@ -51,7 +55,10 @@ class TaskDispatcher:
         :param {UUID} task_id 任务ID
         :param {UUID} user_id 用户ID
         """
-        task = self.session.get(Task, task_id)
+        statement = select(Task).where(Task.id == task_id)
+        result = await self.session.execute(statement)
+        task = result.scalar_one_or_none()
+
         if not task:
             raise ValueError('Task not found')
 
@@ -63,7 +70,7 @@ class TaskDispatcher:
         task.claimed_at = datetime.utcnow()
 
         self.session.add(task)
-        self.session.commit()
+        await self.session.commit()
 
     async def get_user_tasks(
         self, user_id: UUID, workspace_id: UUID, status: Optional[TaskStatus] = None
@@ -82,7 +89,8 @@ class TaskDispatcher:
         if status:
             statement = statement.where(Task.status == status)
 
-        tasks = self.session.exec(statement).all()
+        result = await self.session.execute(statement)
+        tasks = result.scalars().all()
         return list(tasks)
 
     async def _notify_assignee(self, task: Task, assignee_id: UUID):

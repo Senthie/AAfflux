@@ -9,9 +9,9 @@ from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlmodel import Session
+from sqlmodel.ext.asyncio.session import AsyncSession
 
-from app.core.database import get_session
+from app.api.dependencies import get_session
 from app.schemas.provider import (
     LLMCallRequest,
     LLMCallResponse,
@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/providers', tags=['LLM Providers'])
 
 
-def get_llm_provider_service(session: Session = Depends(get_session)) -> LLMProviderService:
+def get_llm_provider_service(session: AsyncSession = Depends(get_session)) -> LLMProviderService:
     """获取LLM提供商服务实例"""
     return LLMProviderService(session)
 
@@ -83,7 +83,7 @@ async def list_providers(
     返回当前工作空间的所有LLM提供商配置。
     """
     try:
-        providers = service.list_providers(
+        providers = await service.list_providers(
             workspace_id=context['workspace_id'], skip=skip, limit=limit
         )
 
@@ -111,7 +111,7 @@ async def get_provider(
     根据ID获取特定的LLM提供商配置。
     """
     try:
-        return service.get_provider(provider_id=provider_id, workspace_id=context['workspace_id'])
+        return await service.get_provider(provider_id=provider_id, workspace_id=context['workspace_id'])
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from None
     except Exception as e:

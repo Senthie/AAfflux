@@ -12,7 +12,8 @@ Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 from typing import Optional
 from uuid import UUID
 
-from sqlmodel import Session
+from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.engine.bpm import ProcessExecutor
 from app.models.bpm import ProcessInstance
@@ -21,7 +22,7 @@ from app.models.bpm import ProcessInstance
 class ProcessService:
     """流程服务 - 业务逻辑层"""
 
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self.session = session
         self.executor = ProcessExecutor(session)
 
@@ -54,7 +55,7 @@ class ProcessService:
         if business_type:
             instance.business_type = business_type
             self.session.add(instance)
-            self.session.commit()
+            await self.session.commit()
 
         return instance
 
@@ -67,17 +68,20 @@ class ProcessService:
         param {str} reason
         return {*}
         """
-        instance = self.session.get(ProcessInstance, instance_id)
+        statement = select(ProcessInstance).where(ProcessInstance.id == instance_id)
+        result = await self.session.execute(statement)
+        instance = result.scalar_one_or_none()
+
         if not instance:
             raise ValueError('Process instance not found')
 
-        from app.bpm.models import ProcessStatus
+        from app.models.bpm import ProcessStatus
 
         instance.status = ProcessStatus.CANCELLED
         instance.error_message = reason
 
         self.session.add(instance)
-        self.session.commit()
+        await self.session.commit()
 
     async def get_process_instance(self, instance_id: UUID) -> Optional[ProcessInstance]:
         """
@@ -86,5 +90,6 @@ class ProcessService:
         param {UUID} instance_id
         return {*}
         """
-
-        return self.session.get(ProcessInstance, instance_id)
+        statement = select(ProcessInstance).where(ProcessInstance.id == instance_id)
+        result = await self.session.execute(statement)
+        return result.scalar_one_or_none()

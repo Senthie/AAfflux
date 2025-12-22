@@ -12,7 +12,8 @@ Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 from typing import List, Optional
 from uuid import UUID
 
-from sqlmodel import Session
+from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.engine.bpm import TaskDispatcher
 from app.models.bpm import Task, TaskStatus
@@ -21,7 +22,7 @@ from app.models.bpm import Task, TaskStatus
 class TaskService:
     """任务服务"""
 
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self.session = session
         self.dispatcher = TaskDispatcher(session)
 
@@ -58,4 +59,6 @@ class TaskService:
 
     async def get_task(self, task_id: UUID) -> Optional[Task]:
         """获取任务详情"""
-        return self.session.get(Task, task_id)
+        statement = select(Task).where(Task.id == task_id)
+        result = await self.session.execute(statement)
+        return result.scalar_one_or_none()

@@ -1,9 +1,9 @@
 """
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-04 09:50:20
-LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-08 03:30:14
-FilePath: /api/app/api/v1/bpm_processes.py
+LastEditors: kk123047 3254834740@qq.com
+LastEditTime: 2025-12-22 12:28:44
+FilePath: : AAfflux: api: app: api: v1: bpm_processes.py
 Description: 流程 API
 
 Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
@@ -12,8 +12,9 @@ Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session
+from sqlmodel.ext.asyncio.session import AsyncSession
 
+from app.api.dependencies import get_session, get_current_user
 from app.schemas.bpm_process_schemas import (
     ProcessInstanceCreate,
     ProcessInstanceResponse,
@@ -23,21 +24,10 @@ from app.services.bpm_process_service import ProcessService
 router = APIRouter()
 
 
-# TODO: 实现依赖注入
-def get_session():
-    """获取数据库会话（待实现）"""
-    pass
-
-
-def get_current_user():
-    """获取当前用户（待实现）"""
-    pass
-
-
 @router.post('/start', response_model=ProcessInstanceResponse)
 async def start_process(
     request: ProcessInstanceCreate,
-    session: Session = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user=Depends(get_current_user),
 ):
     """启动流程实例"""
@@ -58,7 +48,7 @@ async def start_process(
 @router.get('/{instance_id}', response_model=ProcessInstanceResponse)
 async def get_process_instance(
     instance_id: UUID,
-    session: Session = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
 ):
     """
     description: 获取流程实例详情
@@ -79,7 +69,7 @@ async def get_process_instance(
 async def cancel_process(
     instance_id: UUID,
     reason: str,
-    session: Session = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     current_user=Depends(get_current_user),
 ):
     """

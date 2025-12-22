@@ -12,7 +12,8 @@ Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 from typing import Optional
 from uuid import UUID
 
-from sqlmodel import Session
+from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.models.bpm import Approval, ApprovalAction, Task
 
@@ -20,7 +21,7 @@ from app.models.bpm import Approval, ApprovalAction, Task
 class ApprovalService:
     """审批服务"""
 
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self.session = session
 
     async def approve_task(
@@ -69,7 +70,10 @@ class ApprovalService:
         workspace_id: UUID,
     ) -> Approval:
         """创建审批记录"""
-        task = self.session.get(Task, task_id)
+        statement = select(Task).where(Task.id == task_id)
+        result = await self.session.execute(statement)
+        task = result.scalar_one_or_none()
+
         if not task:
             raise ValueError('Task not found')
 
@@ -84,7 +88,7 @@ class ApprovalService:
         )
 
         self.session.add(approval)
-        self.session.commit()
-        self.session.refresh(approval)
+        await self.session.commit()
+        await self.session.refresh(approval)
 
         return approval
