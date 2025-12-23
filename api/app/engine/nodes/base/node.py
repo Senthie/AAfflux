@@ -13,11 +13,13 @@ Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from abc import ABC, abstractmethod
+from collections.abc import Mapping
 from datetime import datetime
 from typing import Any, Dict, Optional, Type
 from uuid import UUID
 
 from app.engine.execution_context import ExecutionContext
+from app.engine.nodes.base.emum import ErrorStrategy, NodeExecutionTypeEnum, RetryConfig
 from app.models.workflow.workflow import Node, NodeExecutionResult
 
 
@@ -43,9 +45,47 @@ class BaseNode(ABC):
     Each node type should implement this interface to define how it executes.
     """
 
+    execution_type: NodeExecutionTypeEnum = NodeExecutionTypeEnum.EXECUTABLE
+
     def __init__(self):
         """Initialize the node executor."""
         self._initialized = True
+
+    @classmethod
+    @abstractmethod
+    def version(cls) -> str:
+        """`node_version` returns the version of current node type."""
+        # NOTE(QuantumGhost): This should be in sync with `NODE_TYPE_CLASSES_MAPPING`.
+        #
+        # If you have introduced a new node type, please add it to `NODE_TYPE_CLASSES_MAPPING`
+        # in `api/core/workflow/nodes/__init__.py`.
+        raise NotImplementedError('subclasses of BaseNode must implement `version` method.')
+
+    @abstractmethod
+    def init_node_data(self, data: Mapping[str, Any]) -> None: ...
+
+    # Abstract methods that subclasses must implement to provide access
+    # to BaseNodeData properties in a type-safe way
+
+    @abstractmethod
+    def _get_error_strategy(self) -> ErrorStrategy | None:
+        """Get the error strategy for this node."""
+        ...
+
+    @abstractmethod
+    def _get_retry_config(self) -> RetryConfig:
+        """Get the retry configuration for this node."""
+        ...
+
+    @abstractmethod
+    def _get_title(self) -> str:
+        """Get the node title."""
+        ...
+
+    @abstractmethod
+    def _get_description(self) -> str | None:
+        """Get the node description."""
+        ...
 
     @abstractmethod
     async def execute(self, node: Node, context: ExecutionContext) -> Dict[str, Any]:
