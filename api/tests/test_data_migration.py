@@ -122,7 +122,7 @@ class TestDataMigration:
                 {
                     'id': 'node1',
                     'type': 'llm',
-                    'config': {'model': 'gpt-3.5-turbo', 'prompt': 'Hello'},
+                    'config': {'model': 'llama2', 'prompt': 'Hello'},
                     'position': {'x': 100, 'y': 100},
                 }
             ],

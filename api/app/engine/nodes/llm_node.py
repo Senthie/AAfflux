@@ -2,7 +2,7 @@
 LLM Node Executor for calling Large Language Models.
 
 This module implements the LLM node executor that handles calls to various
-LLM providers like OpenAI, Anthropic, etc.
+LLM providers. Default provider is Ollama for local model inference.
 """
 
 from typing import Any, Dict, List
@@ -16,7 +16,7 @@ from app.models.workflow.workflow import Node
 
 @register_node_executor('LLM')
 class LLMNodeExecutor(BaseNode):
-    """Executor for LLM nodes that call language models."""
+    """Executor for LLM nodes that call language models. Default provider is Ollama."""
 
     def __init__(self):
         """Initialize the LLM node executor."""
@@ -41,46 +41,49 @@ class LLMNodeExecutor(BaseNode):
         inputs = context.get_node_input(node, [])
 
         try:
-            # Extract configuration
-            provider = config.get('provider', 'openai')
-            model = config.get('model', 'gpt-3.5-turbo')
+            # Extract configuration - default to Ollama
+            provider = config.get('provider', 'ollama')
+            model = config.get('model', 'llama2')
             prompt_template = config.get('prompt', '')
+            system_prompt = config.get('system_prompt', '')
             temperature = config.get('temperature', 0.7)
             max_tokens = config.get('max_tokens', 1000)
-            api_key = config.get('api_key', '')
+            api_key = config.get('api_key', 'ollama')
+            base_url = config.get('base_url', 'http://localhost:11434')
+            timeout = config.get('timeout', 120)
 
             # Render prompt template with inputs
             prompt = self._render_prompt(prompt_template, inputs)
 
             # Call LLM based on provider
-            if provider.lower() == 'openai':
-                response = await self._call_openai(
+            if provider.lower() == 'ollama':
+                response = await self._call_ollama(
+                    base_url=base_url,
                     api_key=api_key,
                     model=model,
                     prompt=prompt,
+                    system_prompt=system_prompt,
                     temperature=temperature,
                     max_tokens=max_tokens,
-                )
-            elif provider.lower() == 'anthropic':
-                response = await self._call_anthropic(
-                    api_key=api_key,
-                    model=model,
-                    prompt=prompt,
-                    temperature=temperature,
-                    max_tokens=max_tokens,
+                    timeout=timeout,
                 )
             else:
                 raise NodeExecutionError(
-                    f'Unsupported LLM provider: {provider}', node.id, {'provider': provider}
+                    f'Unsupported LLM provider: {provider}. Use "ollama" provider.',
+                    node.id,
+                    {'provider': provider},
                 )
 
             return {
                 'response': response,
                 'model': model,
                 'provider': provider,
+                'base_url': base_url,
                 'prompt_used': prompt,
             }
 
+        except NodeExecutionError:
+            raise
         except Exception as e:
             raise NodeExecutionError(
                 f'LLM execution failed: {str(e)}', node.id, {'config': config, 'inputs': inputs}
@@ -95,16 +98,20 @@ class LLMNodeExecutor(BaseNode):
         Returns:
             True if configuration is valid, False otherwise
         """
-        required_fields = ['provider', 'model', 'prompt', 'api_key']
+        # Required fields - model and prompt are required
+        if 'model' not in config or not config['model']:
+            return False
+        if 'prompt' not in config:
+            return False
 
-        # Check required fields
-        for field in required_fields:
-            if field not in config or not config[field]:
-                return False
+        # Validate provider - only ollama is supported
+        provider = config.get('provider', 'ollama')
+        if provider.lower() != 'ollama':
+            return False
 
-        # Validate provider
-        supported_providers = ['openai', 'anthropic']
-        if config['provider'].lower() not in supported_providers:
+        # Validate base_url format
+        base_url = config.get('base_url', 'http://localhost:11434')
+        if not base_url.startswith(('http://', 'https://')):
             return False
 
         # Validate temperature
@@ -138,6 +145,7 @@ class LLMNodeExecutor(BaseNode):
             'response': {'type': 'string', 'description': 'LLM response text'},
             'model': {'type': 'string', 'description': 'Model used for generation'},
             'provider': {'type': 'string', 'description': 'LLM provider used'},
+            'base_url': {'type': 'string', 'description': 'Ollama API base URL'},
             'prompt_used': {'type': 'string', 'description': 'Final prompt sent to LLM'},
         }
 
@@ -163,17 +171,28 @@ class LLMNodeExecutor(BaseNode):
 
         return prompt
 
-    async def _call_openai(
-        self, api_key: str, model: str, prompt: str, temperature: float, max_tokens: int
+    async def _call_ollama(
+        self,
+        base_url: str,
+        api_key: str,
+        model: str,
+        prompt: str,
+        system_prompt: str,
+        temperature: float,
+        max_tokens: int,
+        timeout: int,
     ) -> str:
-        """Call OpenAI API.
+        """Call Ollama API using OpenAI-compatible endpoint.
 
         Args:
-            api_key: OpenAI API key
+            base_url: Ollama API base URL (e.g., http://localhost:11434)
+            api_key: API key (usually 'ollama')
             model: Model name
-            prompt: Prompt text
+            prompt: User prompt
+            system_prompt: System prompt
             temperature: Sampling temperature
             max_tokens: Maximum tokens to generate
+            timeout: Request timeout in seconds
 
         Returns:
             Generated text response
@@ -181,58 +200,33 @@ class LLMNodeExecutor(BaseNode):
         Raises:
             Exception: If API call fails
         """
-        url = 'https://api.openai.com/v1/chat/completions'
-        headers = {'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'}
+        # Build URL for OpenAI-compatible endpoint
+        base_url = base_url.rstrip('/')
+        if base_url.endswith('/v1'):
+            url = f'{base_url}/chat/completions'
+        else:
+            url = f'{base_url}/v1/chat/completions'
+
+        headers = {
+            'Authorization': f'Bearer {api_key}',
+            'Content-Type': 'application/json',
+        }
+
+        messages = []
+        if system_prompt:
+            messages.append({'role': 'system', 'content': system_prompt})
+        messages.append({'role': 'user', 'content': prompt})
 
         data = {
             'model': model,
-            'messages': [{'role': 'user', 'content': prompt}],
+            'messages': messages,
             'temperature': temperature,
             'max_tokens': max_tokens,
         }
 
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        async with httpx.AsyncClient(timeout=timeout) as client:
             response = await client.post(url, headers=headers, json=data)
             response.raise_for_status()
 
             result = response.json()
             return result['choices'][0]['message']['content']
-
-    async def _call_anthropic(
-        self, api_key: str, model: str, prompt: str, temperature: float, max_tokens: int
-    ) -> str:
-        """Call Anthropic API.
-
-        Args:
-            api_key: Anthropic API key
-            model: Model name
-            prompt: Prompt text
-            temperature: Sampling temperature
-            max_tokens: Maximum tokens to generate
-
-        Returns:
-            Generated text response
-
-        Raises:
-            Exception: If API call fails
-        """
-        url = 'https://api.anthropic.com/v1/messages'
-        headers = {
-            'x-api-key': api_key,
-            'Content-Type': 'application/json',
-            'anthropic-version': '2023-06-01',
-        }
-
-        data = {
-            'model': model,
-            'max_tokens': max_tokens,
-            'temperature': temperature,
-            'messages': [{'role': 'user', 'content': prompt}],
-        }
-
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post(url, headers=headers, json=data)
-            response.raise_for_status()
-
-            result = response.json()
-            return result['content'][0]['text']
