@@ -33,11 +33,11 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
             # 记录请求信息
             process_time = time.time() - start_time
             logger.info(
-                "Request completed",
+                'Request completed',
                 method=request.method,
                 url=str(request.url),
                 status_code=response.status_code,
-                process_time=f"{process_time:.3f}s"
+                process_time=f'{process_time:.3f}s',
             )
 
             return response
@@ -46,23 +46,23 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
             # 记录异常信息
             process_time = time.time() - start_time
             logger.error(
-                "Unhandled exception in middleware",
+                'Unhandled exception in middleware',
                 method=request.method,
                 url=str(request.url),
                 error=str(exc),
                 error_type=type(exc).__name__,
-                process_time=f"{process_time:.3f}s",
-                traceback=traceback.format_exc()
+                process_time=f'{process_time:.3f}s',
+                traceback=traceback.format_exc(),
             )
 
             # 返回统一的错误响应
             return JSONResponse(
                 status_code=500,
                 content=error_response(
-                    message="服务器内部错误",
-                    error_code="INTERNAL_SERVER_ERROR",
-                    path=str(request.url)
-                )
+                    message='服务器内部错误',
+                    error_code='INTERNAL_SERVER_ERROR',
+                    path=str(request.url),
+                ),
             )
 
 
@@ -74,11 +74,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
 
         # 添加安全头
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["X-Frame-Options"] = "DENY"
-        response.headers["X-XSS-Protection"] = "1; mode=block"
-        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Content-Security-Policy"] = "default-src 'self'"
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'DENY'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        response.headers['Content-Security-Policy'] = "default-src 'self'"
 
         return response
 
@@ -94,38 +94,36 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """检查速率限制"""
-        client_ip = request.client.host if request.client else "unknown"
+        client_ip = request.client.host if request.client else 'unknown'
         current_time = time.time()
 
         # 清理过期的记录
         self.clients = {
-            ip: timestamps for ip, timestamps in self.clients.items()
+            ip: timestamps
+            for ip, timestamps in self.clients.items()
             if any(t > current_time - self.period for t in timestamps)
         }
 
         # 检查当前客户端的请求次数
         if client_ip in self.clients:
             # 过滤出时间窗口内的请求
-            recent_calls = [
-                t for t in self.clients[client_ip]
-                if t > current_time - self.period
-            ]
+            recent_calls = [t for t in self.clients[client_ip] if t > current_time - self.period]
 
             if len(recent_calls) >= self.calls:
                 logger.warning(
-                    "Rate limit exceeded",
+                    'Rate limit exceeded',
                     client_ip=client_ip,
                     calls=len(recent_calls),
-                    limit=self.calls
+                    limit=self.calls,
                 )
 
                 return JSONResponse(
                     status_code=429,
                     content=error_response(
-                        message="请求过于频繁，请稍后再试",
-                        error_code="RATE_LIMIT_EXCEEDED",
-                        path=str(request.url)
-                    )
+                        message='请求过于频繁，请稍后再试',
+                        error_code='RATE_LIMIT_EXCEEDED',
+                        path=str(request.url),
+                    ),
                 )
 
             self.clients[client_ip] = recent_calls + [current_time]
@@ -144,26 +142,26 @@ class RequestSizeMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """检查请求大小"""
-        content_length = request.headers.get("content-length")
+        content_length = request.headers.get('content-length')
 
         if content_length:
             try:
                 size = int(content_length)
                 if size > self.max_size:
                     logger.warning(
-                        "Request size too large",
+                        'Request size too large',
                         size=size,
                         max_size=self.max_size,
-                        url=str(request.url)
+                        url=str(request.url),
                     )
 
                     return JSONResponse(
                         status_code=413,
                         content=error_response(
-                            message="请求体过大",
-                            error_code="REQUEST_TOO_LARGE",
-                            path=str(request.url)
-                        )
+                            message='请求体过大',
+                            error_code='REQUEST_TOO_LARGE',
+                            path=str(request.url),
+                        ),
                     )
             except ValueError:
                 pass

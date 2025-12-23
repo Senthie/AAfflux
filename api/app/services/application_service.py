@@ -18,7 +18,7 @@ from app.schemas.application import (
     ApplicationCreate,
     ApplicationUpdate,
     ApplicationQuery,
-    APIKeyCreate
+    APIKeyCreate,
 )
 from app.utils.api_key import APIKeyManager
 
@@ -30,11 +30,7 @@ class ApplicationService:
         self.session = session
         self.api_key_manager = APIKeyManager()
 
-    async def create_application(
-        self,
-        data: ApplicationCreate,
-        user_id: UUID
-    ) -> Application:
+    async def create_application(self, data: ApplicationCreate, user_id: UUID) -> Application:
         """创建应用"""
         application = Application(
             name=data.name,
@@ -43,7 +39,7 @@ class ApplicationService:
             config=data.config,
             is_published=False,
             created_by=user_id,
-            updated_by=user_id
+            updated_by=user_id,
         )
 
         self.session.add(application)
@@ -51,7 +47,7 @@ class ApplicationService:
         await self.session.refresh(application)
 
         # 生成API端点
-        application.api_endpoint = f"/api/v1/runtime/apps/{application.id}/execute"
+        application.api_endpoint = f'/api/v1/runtime/apps/{application.id}/execute'
         self.session.add(application)
         await self.session.commit()
         await self.session.refresh(application)
@@ -61,19 +57,13 @@ class ApplicationService:
     async def get_application(self, application_id: UUID) -> Optional[Application]:
         """获取单个应用"""
         statement = select(Application).where(
-            and_(
-                Application.id == application_id,
-                Application.is_deleted is not True
-            )
+            and_(Application.id == application_id, Application.is_deleted is not True)
         )
         result = await self.session.execute(statement)
         return result.scalar_one_or_none()
 
     async def update_application(
-        self,
-        application_id: UUID,
-        data: ApplicationUpdate,
-        user_id: UUID
+        self, application_id: UUID, data: ApplicationUpdate, user_id: UUID
     ) -> Optional[Application]:
         """更新应用"""
         application = await self.get_application(application_id)
@@ -108,9 +98,7 @@ class ApplicationService:
         return True
 
     async def list_applications(
-        self,
-        query: ApplicationQuery,
-        user_id: Optional[UUID] = None
+        self, query: ApplicationQuery, user_id: Optional[UUID] = None
     ) -> Tuple[List[Application], int]:
         """分页查询应用列表"""
         statement = select(Application).where(Application.is_deleted is not True)
@@ -118,7 +106,7 @@ class ApplicationService:
         # 构建查询条件
         conditions = []
         if query.name:
-            conditions.append(Application.name.ilike(f"%{query.name}%"))
+            conditions.append(Application.name.ilike(f'%{query.name}%'))
         if query.is_published is not None:
             conditions.append(Application.is_published == query.is_published)
         if query.workflow_id:
@@ -130,8 +118,8 @@ class ApplicationService:
             statement = statement.where(and_(*conditions))
 
         # 获取总数
-        count_statement = select(func.count()).select_from(Application).where(
-            Application.is_deleted is not True
+        count_statement = (
+            select(func.count()).select_from(Application).where(Application.is_deleted is not True)
         )
         if conditions:
             count_statement = count_statement.where(and_(*conditions))
@@ -148,10 +136,7 @@ class ApplicationService:
         return applications, total
 
     async def publish_application(
-        self,
-        application_id: UUID,
-        is_published: bool,
-        user_id: UUID
+        self, application_id: UUID, is_published: bool, user_id: UUID
     ) -> Optional[Application]:
         """发布/取消发布应用"""
         application = await self.get_application(application_id)
@@ -168,10 +153,7 @@ class ApplicationService:
         return application
 
     async def create_api_key(
-        self,
-        application_id: UUID,
-        data: APIKeyCreate,
-        user_id: UUID
+        self, application_id: UUID, data: APIKeyCreate, user_id: UUID
     ) -> Optional[dict]:
         """为应用创建API密钥"""
         application = await self.get_application(application_id)
@@ -181,19 +163,22 @@ class ApplicationService:
         # 生成API密钥
         key_data = self.api_key_manager.create_api_key(
             name=data.name,
-            prefix=f"app_{application_id.hex[:8]}",
-            expires_in_days=data.expires_in_days
+            prefix=f'app_{application_id.hex[:8]}',
+            expires_in_days=data.expires_in_days,
         )
 
         # 创建API密钥记录
         api_key = APIKey(
             application_id=application_id,
             name=data.name,
-            key_prefix=key_data["api_key"].split('_')[0] + "_" + key_data["api_key"].split('_')[1][:8] + "...",
-            hashed_key=key_data["hashed_key"],
-            salt=key_data["salt"],
-            expires_at=key_data["expires_at"],
-            created_by=user_id
+            key_prefix=key_data['api_key'].split('_')[0]
+            + '_'
+            + key_data['api_key'].split('_')[1][:8]
+            + '...',
+            hashed_key=key_data['hashed_key'],
+            salt=key_data['salt'],
+            expires_at=key_data['expires_at'],
+            created_by=user_id,
         )
 
         self.session.add(api_key)
@@ -201,39 +186,33 @@ class ApplicationService:
         await self.session.refresh(api_key)
 
         return {
-            "id": api_key.id,
-            "name": api_key.name,
-            "api_key": key_data["api_key"],  # 完整密钥，只在创建时返回
-            "key_prefix": api_key.key_prefix,
-            "created_at": api_key.created_at,
-            "expires_at": api_key.expires_at,
-            "is_active": api_key.is_active
+            'id': api_key.id,
+            'name': api_key.name,
+            'api_key': key_data['api_key'],  # 完整密钥，只在创建时返回
+            'key_prefix': api_key.key_prefix,
+            'created_at': api_key.created_at,
+            'expires_at': api_key.expires_at,
+            'is_active': api_key.is_active,
         }
 
     async def list_api_keys(self, application_id: UUID) -> List[APIKey]:
         """获取应用的API密钥列表"""
-        statement = select(APIKey).where(
-            and_(
-                APIKey.application_id == application_id,
-                APIKey.is_deleted is False
-            )
-        ).order_by(APIKey.created_at.desc())
+        statement = (
+            select(APIKey)
+            .where(and_(APIKey.application_id == application_id, APIKey.is_deleted is False))
+            .order_by(APIKey.created_at.desc())
+        )
 
         result = await self.session.execute(statement)
         return list(result.scalars().all())
 
-    async def revoke_api_key(
-        self,
-        application_id: UUID,
-        api_key_id: UUID,
-        user_id: UUID
-    ) -> bool:
+    async def revoke_api_key(self, application_id: UUID, api_key_id: UUID, user_id: UUID) -> bool:
         """撤销API密钥"""
         statement = select(APIKey).where(
             and_(
                 APIKey.id == api_key_id,
                 APIKey.application_id == application_id,
-                APIKey.is_deleted is False
+                APIKey.is_deleted is False,
             )
         )
         result = await self.session.execute(statement)
@@ -256,13 +235,15 @@ class ApplicationService:
         if '_' not in api_key_str:
             return None
 
-        prefix_part = api_key_str.split('_')[0] + "_" + api_key_str.split('_')[1][:8] + "..."
+        prefix_part = api_key_str.split('_')[0] + '_' + api_key_str.split('_')[1][:8] + '...'
 
         statement = select(APIKey).where(
             and_(
-                APIKey.key_prefix.like(f"{prefix_part.split('_')[0]}_{prefix_part.split('_')[1][:8]}%"),
+                APIKey.key_prefix.like(
+                    f'{prefix_part.split("_")[0]}_{prefix_part.split("_")[1][:8]}%'
+                ),
                 APIKey.is_active is True,
-                APIKey.is_deleted is False
+                APIKey.is_deleted is False,
             )
         )
 
@@ -276,7 +257,7 @@ class ApplicationService:
                 api_key.salt,
                 api_key.created_at,
                 (api_key.expires_at - api_key.created_at).days if api_key.expires_at else None,
-                api_key.is_active
+                api_key.is_active,
             ):
                 # 更新最后使用时间
                 api_key.last_used_at = datetime.utcnow()

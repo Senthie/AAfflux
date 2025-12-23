@@ -18,16 +18,18 @@ logger = get_logger(__name__)
 
 class MigrationStatus(Enum):
     """迁移状态"""
-    PENDING = "pending"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    ROLLED_BACK = "rolled_back"
+
+    PENDING = 'pending'
+    RUNNING = 'running'
+    COMPLETED = 'completed'
+    FAILED = 'failed'
+    ROLLED_BACK = 'rolled_back'
 
 
 @dataclass
 class MigrationRecord:
     """迁移记录"""
+
     version: str
     name: str
     description: str
@@ -51,22 +53,24 @@ class DataMigrator:
         name: str,
         description: str,
         migration_func: Callable,
-        rollback_func: Optional[Callable] = None
+        rollback_func: Optional[Callable] = None,
     ):
         """注册迁移"""
         self.migrations[version] = migration_func
         if rollback_func:
             self.rollbacks[version] = rollback_func
 
-        logger.info(f"Registered migration {version}: {name}")
+        logger.info(f'Registered migration {version}: {name}')
 
     def get_pending_migrations(self, current_version: str) -> List[str]:
         """获取待执行的迁移"""
         # 这里应该根据版本号排序，确定需要执行的迁移
         # 简化实现，实际应该有更复杂的版本比较逻辑
         all_versions = sorted(self.migrations.keys())
-        current_index = all_versions.index(current_version) if current_version in all_versions else -1
-        return all_versions[current_index + 1:]
+        current_index = (
+            all_versions.index(current_version) if current_version in all_versions else -1
+        )
+        return all_versions[current_index + 1 :]
 
     def execute_migration(self, version: str) -> MigrationRecord:
         """执行单个迁移
@@ -75,36 +79,38 @@ class DataMigrator:
         实际执行需要用户确认
         """
         if version not in self.migrations:
-            raise ValueError(f"Migration {version} not found")
+            raise ValueError(f'Migration {version} not found')
 
         migration_func = self.migrations[version]
         record = MigrationRecord(
             version=version,
             name=migration_func.__name__,
-            description=migration_func.__doc__ or "",
-            status=MigrationStatus.PENDING
+            description=migration_func.__doc__ or '',
+            status=MigrationStatus.PENDING,
         )
 
         try:
-            logger.info(f"Starting migration {version}")
+            logger.info(f'Starting migration {version}')
             start_time = datetime.utcnow()
             record.status = MigrationStatus.RUNNING
 
             # 注意：这里不会实际执行迁移函数
             # 只是记录迁移计划
-            logger.warning(f"Migration {version} planned but not executed - requires manual confirmation")
+            logger.warning(
+                f'Migration {version} planned but not executed - requires manual confirmation'
+            )
 
             end_time = datetime.utcnow()
             record.executed_at = end_time
             record.execution_time_ms = int((end_time - start_time).total_seconds() * 1000)
             record.status = MigrationStatus.COMPLETED
 
-            logger.info(f"Migration {version} completed successfully")
+            logger.info(f'Migration {version} completed successfully')
 
         except Exception as e:
             record.status = MigrationStatus.FAILED
             record.error_message = str(e)
-            logger.error(f"Migration {version} failed: {e}")
+            logger.error(f'Migration {version} failed: {e}')
             raise
 
         self.migration_records.append(record)
@@ -116,35 +122,37 @@ class DataMigrator:
         注意：这个方法不会直接执行，只是提供回滚框架
         """
         if version not in self.rollbacks:
-            raise ValueError(f"Rollback for {version} not available")
+            raise ValueError(f'Rollback for {version} not available')
 
         rollback_func = self.rollbacks[version]
         record = MigrationRecord(
             version=version,
-            name=f"rollback_{rollback_func.__name__}",
-            description=f"Rollback: {rollback_func.__doc__ or ''}",
-            status=MigrationStatus.PENDING
+            name=f'rollback_{rollback_func.__name__}',
+            description=f'Rollback: {rollback_func.__doc__ or ""}',
+            status=MigrationStatus.PENDING,
         )
 
         try:
-            logger.info(f"Starting rollback for {version}")
+            logger.info(f'Starting rollback for {version}')
             start_time = datetime.utcnow()
             record.status = MigrationStatus.RUNNING
 
             # 注意：这里不会实际执行回滚函数
-            logger.warning(f"Rollback {version} planned but not executed - requires manual confirmation")
+            logger.warning(
+                f'Rollback {version} planned but not executed - requires manual confirmation'
+            )
 
             end_time = datetime.utcnow()
             record.executed_at = end_time
             record.execution_time_ms = int((end_time - start_time).total_seconds() * 1000)
             record.status = MigrationStatus.ROLLED_BACK
 
-            logger.info(f"Rollback {version} completed successfully")
+            logger.info(f'Rollback {version} completed successfully')
 
         except Exception as e:
             record.status = MigrationStatus.FAILED
             record.error_message = str(e)
-            logger.error(f"Rollback {version} failed: {e}")
+            logger.error(f'Rollback {version} failed: {e}')
             raise
 
         self.migration_records.append(record)
@@ -155,7 +163,7 @@ class SchemaVersionManager:
     """数据格式版本管理器"""
 
     def __init__(self):
-        self.current_version = "1.0.0"
+        self.current_version = '1.0.0'
         self.version_history: List[Dict[str, Any]] = []
 
     def get_current_version(self) -> str:
@@ -165,16 +173,16 @@ class SchemaVersionManager:
     def update_version(self, new_version: str, changes: List[str]):
         """更新版本"""
         version_record = {
-            "version": new_version,
-            "previous_version": self.current_version,
-            "changes": changes,
-            "updated_at": datetime.utcnow().isoformat()
+            'version': new_version,
+            'previous_version': self.current_version,
+            'changes': changes,
+            'updated_at': datetime.utcnow().isoformat(),
         }
 
         self.version_history.append(version_record)
         self.current_version = new_version
 
-        logger.info(f"Schema version updated to {new_version}")
+        logger.info(f'Schema version updated to {new_version}')
 
     def get_version_history(self) -> List[Dict[str, Any]]:
         """获取版本历史"""
@@ -237,7 +245,7 @@ class DataTransformer:
             'running': 'RUNNING',
             'success': 'SUCCESS',
             'failed': 'FAILED',
-            'pending': 'PENDING'
+            'pending': 'PENDING',
         }
 
         if 'status' in transformed:
@@ -251,26 +259,29 @@ class DataTransformer:
 migrator = DataMigrator()
 version_manager = SchemaVersionManager()
 
+
 # 注册示例迁移（不会实际执行）
 def example_migration_v1_to_v2():
     """示例迁移：从v1.0.0升级到v1.1.0"""
-    logger.info("This is an example migration that would update data structures")
+    logger.info('This is an example migration that would update data structures')
     # 实际的迁移逻辑会在这里
     pass
 
+
 def example_rollback_v2_to_v1():
     """示例回滚：从v1.1.0回滚到v1.0.0"""
-    logger.info("This is an example rollback that would revert data structures")
+    logger.info('This is an example rollback that would revert data structures')
     # 实际的回滚逻辑会在这里
     pass
 
+
 # 注册迁移
 migrator.register_migration(
-    version="1.1.0",
-    name="Add metadata fields",
-    description="Add metadata fields to workflow and execution records",
+    version='1.1.0',
+    name='Add metadata fields',
+    description='Add metadata fields to workflow and execution records',
     migration_func=example_migration_v1_to_v2,
-    rollback_func=example_rollback_v2_to_v1
+    rollback_func=example_rollback_v2_to_v1,
 )
 
 
@@ -279,9 +290,9 @@ def get_migration_plan(target_version: str) -> List[str]:
     current_version = version_manager.get_current_version()
     pending_migrations = migrator.get_pending_migrations(current_version)
 
-    logger.info(f"Current version: {current_version}")
-    logger.info(f"Target version: {target_version}")
-    logger.info(f"Pending migrations: {pending_migrations}")
+    logger.info(f'Current version: {current_version}')
+    logger.info(f'Target version: {target_version}')
+    logger.info(f'Pending migrations: {pending_migrations}')
 
     return pending_migrations
 
@@ -289,9 +300,9 @@ def get_migration_plan(target_version: str) -> List[str]:
 def validate_migration_safety(version: str) -> Dict[str, Any]:
     """验证迁移安全性"""
     return {
-        "version": version,
-        "is_safe": True,  # 实际实现会有更复杂的安全检查
-        "warnings": [],
-        "estimated_time_minutes": 5,
-        "backup_required": True
+        'version': version,
+        'is_safe': True,  # 实际实现会有更复杂的安全检查
+        'warnings': [],
+        'estimated_time_minutes': 5,
+        'backup_required': True,
     }

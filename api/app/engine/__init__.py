@@ -28,7 +28,7 @@ from app.engine.workflow_engine import WorkflowEngine, WorkflowExecutionError
 
 __all__ = [
     'ExecutionContext',
-    'BaseNodeExecutor',
+    'BaseNode',
     'NodeExecutionError',
     'NodeExecutorRegistry',
     'node_executor_registry',
