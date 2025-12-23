@@ -18,7 +18,7 @@ class APIKeyGenerator:
     """API密钥生成器"""
 
     @staticmethod
-    def generate_api_key(prefix: str = "ak") -> str:
+    def generate_api_key(prefix: str = 'ak') -> str:
         """生成API密钥
 
         Args:
@@ -32,7 +32,7 @@ class APIKeyGenerator:
         # 转换为十六进制字符串
         key_suffix = random_bytes.hex()
         # 添加前缀
-        return f"{prefix}_{key_suffix}"
+        return f'{prefix}_{key_suffix}'
 
     @staticmethod
     def generate_secret_key() -> str:
@@ -62,7 +62,7 @@ class APIKeyGenerator:
             'sha256',
             api_key.encode('utf-8'),
             salt.encode('utf-8'),
-            100000  # 迭代次数
+            100000,  # 迭代次数
         )
 
         return hashed.hex(), salt
@@ -151,10 +151,7 @@ class APIKeyManager:
         self.validator = APIKeyValidator()
 
     def create_api_key(
-        self,
-        name: str,
-        prefix: str = "ak",
-        expires_in_days: Optional[int] = None
+        self, name: str, prefix: str = 'ak', expires_in_days: Optional[int] = None
     ) -> dict:
         """创建API密钥
 
@@ -178,13 +175,13 @@ class APIKeyManager:
             expires_at = datetime.utcnow() + timedelta(days=expires_in_days)
 
         return {
-            "api_key": api_key,  # 只在创建时返回，不存储
-            "hashed_key": hashed_key,  # 存储到数据库
-            "salt": salt,  # 存储到数据库
-            "name": name,
-            "created_at": datetime.utcnow(),
-            "expires_at": expires_at,
-            "is_active": True
+            'api_key': api_key,  # 只在创建时返回，不存储
+            'hashed_key': hashed_key,  # 存储到数据库
+            'salt': salt,  # 存储到数据库
+            'name': name,
+            'created_at': datetime.utcnow(),
+            'expires_at': expires_at,
+            'is_active': True,
         }
 
     def verify_api_key(
@@ -194,7 +191,7 @@ class APIKeyManager:
         salt: str,
         created_at: datetime,
         expires_in_days: Optional[int] = None,
-        is_active: bool = True
+        is_active: bool = True,
     ) -> bool:
         """验证API密钥
 

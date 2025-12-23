@@ -2,7 +2,7 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-22 10:32:49
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-05 17:57:08
+LastEditTime: 2026-01-08 12:31:27
 FilePath: /api/app/api/errors.py
 Description:统一错误处理器
 """
@@ -24,9 +24,7 @@ logger = get_logger(__name__)
 class BusinessException(Exception):
     """业务异常"""
 
-    def __init__(
-        self, message: str, error_code: str = 'BUSINESS_ERROR', details: dict | None = None
-    ):
+    def __init__(self, message: str, error_code: str = 'BUSINESS_ERROR', details: dict = None):
         self.message = message
         self.error_code = error_code
         self.details = details

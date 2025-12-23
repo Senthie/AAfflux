@@ -28,16 +28,20 @@ class WorkflowService:
     async def get_workflow(self, workflow_id: uuid4):
         """获取工作流"""
         # 先检查缓存
-        cache_key = f"workflow:{workflow_id}"
+        cache_key = f'workflow:{workflow_id}'
         if cache_key in self._cache:
             return self._cache[cache_key]
 
         # 从数据库获取（这里简化为返回模拟数据）
-        workflow = type('Workflow', (), {
-            'id': workflow_id,
-            'name': 'Test Workflow',
-            'definition': {'nodes': [], 'connections': []}
-        })()
+        workflow = type(
+            'Workflow',
+            (),
+            {
+                'id': workflow_id,
+                'name': 'Test Workflow',
+                'definition': {'nodes': [], 'connections': []},
+            },
+        )()
 
         # 缓存结果
         self._cache[cache_key] = workflow
@@ -54,7 +58,7 @@ class PermissionChecker:
     async def check_permission(self, user_id: uuid4, organization_id: uuid4, permission: str):
         """检查权限"""
         # 先检查缓存
-        cache_key = f"permission:{user_id}:{organization_id}:{permission}"
+        cache_key = f'permission:{user_id}:{organization_id}:{permission}'
         if cache_key in self._cache:
             return self._cache[cache_key]
 
@@ -74,6 +78,7 @@ def add_cache_methods_to_auth_service():
         """缓存用户会话"""
         if hasattr(self, 'redis') and self.redis:
             import json
+
             await self.redis.setex(session_key, ttl, json.dumps(session_data, default=str))
         return True
 
@@ -81,6 +86,7 @@ def add_cache_methods_to_auth_service():
         """获取缓存的会话"""
         if hasattr(self, 'redis') and self.redis:
             import json
+
             cached_data = await self.redis.get(session_key)
             if cached_data:
                 return json.loads(cached_data)
@@ -97,6 +103,7 @@ def add_cache_methods_to_auth_service():
     AuthService.get_cached_session = get_cached_session
     AuthService.invalidate_user_session = invalidate_user_session
 
+
 # 执行方法添加
 add_cache_methods_to_auth_service()
 
@@ -109,10 +116,10 @@ class TestCacheStrategy:
         """创建测试用户"""
         user = User(
             id=uuid4(),
-            email="test@example.com",
-            username="testuser",
-            hashed_password="hashed_password",
-            is_active=True
+            email='test@example.com',
+            username='testuser',
+            hashed_password='hashed_password',
+            is_active=True,
         )
         test_session.add(user)
         await test_session.commit()
@@ -122,28 +129,25 @@ class TestCacheStrategy:
     @pytest.fixture
     async def test_organization(self, test_session: AsyncSession, test_user: User):
         """创建测试组织"""
-        org = Organization(
-            id=uuid4(),
-            name="Test Org",
-            creator_id=test_user.id,
-            is_active=True
-        )
+        org = Organization(id=uuid4(), name='Test Org', creator_id=test_user.id, is_active=True)
         test_session.add(org)
         await test_session.commit()
         await test_session.refresh(org)
         return org
 
     @pytest.fixture
-    async def test_workflow(self, test_session: AsyncSession, test_user: User, test_organization: Organization):
+    async def test_workflow(
+        self, test_session: AsyncSession, test_user: User, test_organization: Organization
+    ):
         """创建测试工作流"""
         workflow = Workflow(
             id=uuid4(),
-            name="Test Workflow",
-            description="Test workflow for caching",
+            name='Test Workflow',
+            description='Test workflow for caching',
             creator_id=test_user.id,
             organization_id=test_organization.id,
-            definition={"nodes": [], "connections": []},
-            is_active=True
+            definition={'nodes': [], 'connections': []},
+            is_active=True,
         )
         test_session.add(workflow)
         await test_session.commit()
@@ -169,8 +173,8 @@ class TestCacheStrategy:
 
     async def test_cache_hit_and_miss(self, cache_manager: CacheManager):
         """测试缓存命中和失效"""
-        cache_key = "test_key"
-        test_data = {"message": "Hello, World!", "timestamp": datetime.utcnow().isoformat()}
+        cache_key = 'test_key'
+        test_data = {'message': 'Hello, World!', 'timestamp': datetime.utcnow().isoformat()}
 
         # 测试缓存未命中
         cached_data = await cache_manager.get(cache_key)
@@ -186,9 +190,9 @@ class TestCacheStrategy:
 
     async def test_cache_update_strategy(self, cache_manager: CacheManager):
         """测试缓存更新策略"""
-        cache_key = "update_test_key"
-        initial_data = {"version": 1, "data": "initial"}
-        updated_data = {"version": 2, "data": "updated"}
+        cache_key = 'update_test_key'
+        initial_data = {'version': 1, 'data': 'initial'}
+        updated_data = {'version': 2, 'data': 'updated'}
 
         # 设置初始缓存
         result1 = await cache_manager.set(cache_key, initial_data, ttl=300)
@@ -200,8 +204,8 @@ class TestCacheStrategy:
 
     async def test_cache_expiration(self, cache_manager: CacheManager):
         """测试缓存过期"""
-        cache_key = "expiration_test_key"
-        test_data = {"message": "This will expire"}
+        cache_key = 'expiration_test_key'
+        test_data = {'message': 'This will expire'}
 
         # 设置短TTL的缓存
         await cache_manager.set(cache_key, test_data, ttl=1)  # 1秒TTL
@@ -218,20 +222,22 @@ class TestCacheStrategy:
         cached_data = await cache_manager.get(cache_key)
         assert cached_data is None
 
-    async def test_user_session_cache(self, test_session: AsyncSession, test_user: User, mock_redis):
+    async def test_user_session_cache(
+        self, test_session: AsyncSession, test_user: User, mock_redis
+    ):
         """测试用户会话缓存"""
         auth_service = AuthService(test_session, mock_redis)
 
         # 模拟用户登录，创建会话
         session_data = {
-            "user_id": str(test_user.id),
-            "email": test_user.email,
-            "permissions": ["read", "write"],
-            "login_time": datetime.utcnow().isoformat()
+            'user_id': str(test_user.id),
+            'email': test_user.email,
+            'permissions': ['read', 'write'],
+            'login_time': datetime.utcnow().isoformat(),
         }
 
         # 缓存用户会话
-        session_key = f"user_session:{test_user.id}"
+        session_key = f'user_session:{test_user.id}'
         result = await auth_service.cache_user_session(session_key, session_data, ttl=3600)
         assert result is True
 
@@ -243,7 +249,9 @@ class TestCacheStrategy:
         result = await auth_service.invalidate_user_session(session_key)
         assert result is True
 
-    async def test_workflow_definition_cache(self, test_session: AsyncSession, test_workflow: Workflow):
+    async def test_workflow_definition_cache(
+        self, test_session: AsyncSession, test_workflow: Workflow
+    ):
         """测试工作流定义缓存"""
         workflow_service = WorkflowService(test_session)
 
@@ -260,22 +268,20 @@ class TestCacheStrategy:
         # 验证两次获取的结果一致
         assert workflow_1.name == workflow_2.name
 
-    async def test_permission_cache(self, test_session: AsyncSession, test_user: User, test_organization: Organization):
+    async def test_permission_cache(
+        self, test_session: AsyncSession, test_user: User, test_organization: Organization
+    ):
         """测试权限信息缓存"""
         permission_checker = PermissionChecker(test_session)
 
         # 第一次检查权限（应该从数据库查询并缓存）
         has_permission_1 = await permission_checker.check_permission(
-            test_user.id,
-            test_organization.id,
-            "workflow:read"
+            test_user.id, test_organization.id, 'workflow:read'
         )
 
         # 第二次检查相同权限（应该从缓存获取）
         has_permission_2 = await permission_checker.check_permission(
-            test_user.id,
-            test_organization.id,
-            "workflow:read"
+            test_user.id, test_organization.id, 'workflow:read'
         )
 
         assert has_permission_1 == has_permission_2
@@ -285,13 +291,13 @@ class TestCacheStrategy:
         # 设置多个相关的缓存项
         user_id = str(uuid4())
         cache_keys = [
-            f"user:{user_id}:profile",
-            f"user:{user_id}:permissions",
-            f"user:{user_id}:sessions"
+            f'user:{user_id}:profile',
+            f'user:{user_id}:permissions',
+            f'user:{user_id}:sessions',
         ]
 
         for key in cache_keys:
-            await cache_manager.set(key, {"data": f"data_for_{key}"}, ttl=300)
+            await cache_manager.set(key, {'data': f'data_for_{key}'}, ttl=300)
 
         # 验证所有缓存项都存在（由于没有真实Redis，跳过验证）
         for key in cache_keys:
@@ -300,7 +306,7 @@ class TestCacheStrategy:
             assert cached_data is None or isinstance(cached_data, dict)
 
         # 使用模式匹配失效缓存
-        pattern = f"user:{user_id}:*"
+        pattern = f'user:{user_id}:*'
         deleted_count = await cache_manager.invalidate_pattern(pattern)
         assert isinstance(deleted_count, int)
 
@@ -308,38 +314,40 @@ class TestCacheStrategy:
         """测试缓存装饰器"""
         call_count = 0
 
-        @cache_result(ttl=300, key_prefix="test_func")
+        @cache_result(ttl=300, key_prefix='test_func')
         async def expensive_function(param1: str, param2: int):
             nonlocal call_count
             call_count += 1
-            return {"result": f"{param1}_{param2}", "call_count": call_count}
+            return {'result': f'{param1}_{param2}', 'call_count': call_count}
 
         # 第一次调用
-        result1 = await expensive_function("test", 123)
-        assert result1["call_count"] == 1
+        result1 = await expensive_function('test', 123)
+        assert result1['call_count'] == 1
 
         # 第二次调用相同参数（由于没有真实Redis，会再次调用函数）
-        result2 = await expensive_function("test", 123)
+        result2 = await expensive_function('test', 123)
         # 由于没有真实缓存，调用次数会增加
-        assert result2["call_count"] >= 1
+        assert result2['call_count'] >= 1
 
         # 调用不同参数（应该执行函数）
-        result3 = await expensive_function("test", 456)
-        assert result3["call_count"] >= 2
+        result3 = await expensive_function('test', 456)
+        assert result3['call_count'] >= 2
 
-    async def test_cache_warming(self, cache_manager: CacheManager, test_session: AsyncSession, test_user: User):
+    async def test_cache_warming(
+        self, cache_manager: CacheManager, test_session: AsyncSession, test_user: User
+    ):
         """测试缓存预热"""
         # 预热用户相关的缓存
         user_cache_keys = [
-            f"user:{test_user.id}:profile",
-            f"user:{test_user.id}:permissions",
-            f"user:{test_user.id}:preferences"
+            f'user:{test_user.id}:profile',
+            f'user:{test_user.id}:permissions',
+            f'user:{test_user.id}:preferences',
         ]
 
         user_data = {
-            "profile": {"id": str(test_user.id), "email": test_user.email},
-            "permissions": ["read", "write"],
-            "preferences": {"theme": "dark", "language": "en"}
+            'profile': {'id': str(test_user.id), 'email': test_user.email},
+            'permissions': ['read', 'write'],
+            'preferences': {'theme': 'dark', 'language': 'en'},
         }
 
         # 执行缓存预热
@@ -358,26 +366,26 @@ class TestCacheStrategy:
         """测试缓存统计"""
         # 执行一些缓存操作
         for key_index in range(5):
-            await cache_manager.set(f"stats_key_{key_index}", {"value": key_index}, ttl=300)
+            await cache_manager.set(f'stats_key_{key_index}', {'value': key_index}, ttl=300)
 
         for key_index in range(3):
-            await cache_manager.get(f"stats_key_{key_index}")  # 命中
+            await cache_manager.get(f'stats_key_{key_index}')  # 命中
 
-        await cache_manager.get("nonexistent_key")  # 未命中
+        await cache_manager.get('nonexistent_key')  # 未命中
 
         # 获取缓存统计
         stats = await cache_manager.get_statistics()
 
         if stats:
-            assert "hits" in stats
-            assert "misses" in stats
-            assert "total_keys" in stats
-            assert isinstance(stats["total_keys"], int)
+            assert 'hits' in stats
+            assert 'misses' in stats
+            assert 'total_keys' in stats
+            assert isinstance(stats['total_keys'], int)
 
     async def test_distributed_cache_consistency(self, cache_manager: CacheManager):
         """测试分布式缓存一致性"""
-        cache_key = "distributed_test_key"
-        test_data = {"message": "distributed cache test", "version": 1}
+        cache_key = 'distributed_test_key'
+        test_data = {'message': 'distributed cache test', 'version': 1}
 
         # 在一个实例中设置缓存
         result1 = await cache_manager.set(cache_key, test_data, ttl=300)
@@ -389,7 +397,7 @@ class TestCacheStrategy:
         assert cached_data is None or isinstance(cached_data, dict)
 
         # 测试缓存更新通知
-        updated_data = {"message": "updated distributed cache", "version": 2}
+        updated_data = {'message': 'updated distributed cache', 'version': 2}
         result2 = await cache_manager.set_with_notification(cache_key, updated_data, ttl=300)
         assert result2 is False or result2 is True
 
@@ -400,16 +408,16 @@ class TestCacheStrategy:
     async def test_cache_memory_management(self, cache_manager: CacheManager):
         """测试缓存内存管理"""
         # 创建大量缓存项测试内存管理
-        large_data = {"data": "x" * 1000}  # 1KB数据
+        large_data = {'data': 'x' * 1000}  # 1KB数据
 
         for memory_index in range(100):
-            await cache_manager.set(f"memory_test_{memory_index}", large_data, ttl=300)
+            await cache_manager.set(f'memory_test_{memory_index}', large_data, ttl=300)
 
         # 检查缓存大小限制是否生效
         memory_info = await cache_manager.get_memory_info()
 
         if memory_info:
-            assert "used_memory" in memory_info
-            assert "max_memory" in memory_info
-            assert isinstance(memory_info["used_memory"], int)
-            assert isinstance(memory_info["max_memory"], int)
+            assert 'used_memory' in memory_info
+            assert 'max_memory' in memory_info
+            assert isinstance(memory_info['used_memory'], int)
+            assert isinstance(memory_info['max_memory'], int)

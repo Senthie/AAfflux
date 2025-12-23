@@ -111,7 +111,9 @@ async def get_provider(
     根据ID获取特定的LLM提供商配置。
     """
     try:
-        return await service.get_provider(provider_id=provider_id, workspace_id=context['workspace_id'])
+        return await service.get_provider(
+            provider_id=provider_id, workspace_id=context['workspace_id']
+        )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from None
     except Exception as e:
