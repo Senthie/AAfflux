@@ -3,18 +3,19 @@
 只对数据库进行CRUD操作,不进行迁移
 """
 
-import pytest
 import asyncio
 from datetime import datetime
-from uuid import uuid4
-from sqlalchemy.ext.asyncio import AsyncSession
 from unittest.mock import AsyncMock
+from uuid import uuid4
 
-from app.utils.cache import CacheManager, cache_result
-from app.services.auth_service import AuthService
+import pytest
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.auth.user import User
 from app.models.tenant.organization import Organization
 from app.models.workflow.workflow import Workflow
+from app.services.auth_service import AuthService
+from app.utils.cache import CacheManager, cache_result
 
 
 # 创建缺失的服务类
@@ -114,12 +115,12 @@ class TestCacheStrategy:
     @pytest.fixture
     async def test_user(self, test_session: AsyncSession):
         """创建测试用户"""
+        unique_id = uuid4()
         user = User(
-            id=uuid4(),
-            email='test@example.com',
-            username='testuser',
-            hashed_password='hashed_password',
-            is_active=True,
+            id=unique_id,
+            name='testuser',
+            email=f'test_{unique_id}@example.com',
+            password_hash='hashed_password',
         )
         test_session.add(user)
         await test_session.commit()
