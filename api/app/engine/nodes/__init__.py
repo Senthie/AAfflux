@@ -10,11 +10,13 @@ from app.engine.nodes.code_node import CodeNodeExecutor
 from app.engine.nodes.condition_node import ConditionNodeExecutor
 from app.engine.nodes.http_node import HTTPNodeExecutor
 from app.engine.nodes.llm_node import LLMNodeExecutor
+from app.engine.nodes.ollama_node import OllamaNodeExecutor
 from app.engine.nodes.transform_node import TransformNodeExecutor
 
 # Export the node executors for external use
 __all__ = [
     'LLMNodeExecutor',
+    'OllamaNodeExecutor',
     'ConditionNodeExecutor',
     'CodeNodeExecutor',
     'HTTPNodeExecutor',
