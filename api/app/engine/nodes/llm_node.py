@@ -1,26 +1,38 @@
 """
-LLM Node Executor for calling Large Language Models.
+Author: Senthie seemoon2077@gmail.com
+Date: 2025-12-23 11:45:54
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2025-12-23 14:57:34
+FilePath: /api/app/engine/nodes/llm_node.py
+Description: LLM Node Executor for calling Large Language Models.
 
 This module implements the LLM node executor that handles calls to various
 LLM providers. Default provider is Ollama for local model inference.
+
+Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from typing import Any, Dict, List
 
 import httpx
 
+from app.engine.emum import NodeTypeEnum
 from app.engine.execution_context import ExecutionContext
-from app.engine.node_executor import BaseNode, NodeExecutionError, register_node_executor
+from app.engine.nodes.base.node import BaseNode, NodeExecutionError, register_node_executor
 from app.models.workflow.workflow import Node
 
 
-@register_node_executor('LLM')
+@register_node_executor(NodeTypeEnum.LLM)
 class LLMNodeExecutor(BaseNode):
     """Executor for LLM nodes that call language models. Default provider is Ollama."""
 
     def __init__(self):
         """Initialize the LLM node executor."""
         super().__init__()
+
+    @classmethod
+    def version(cls) -> str:
+        return '1'
 
     async def execute(self, node: Node, context: ExecutionContext) -> Dict[str, Any]:
         """Execute LLM node by calling the configured language model.
