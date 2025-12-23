@@ -6,13 +6,16 @@ Python code snippets within a restricted environment.
 """
 
 import ast
+from collections.abc import Mapping
 import json
 import math
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from app.engine.execution_context import ExecutionContext
-from app.engine.node_executor import BaseNode, NodeExecutionError, register_node_executor
+from app.engine.nodes.base.emum import ErrorStrategy
+from app.engine.nodes.base.entities import RetryConfig
+from app.engine.nodes.base.node import BaseNode, NodeExecutionError, register_node_executor
 from app.models.workflow.workflow import Node
 
 
@@ -48,6 +51,25 @@ class CodeNodeExecutor(BaseNode):
         'math': math,
         're': re,
     }
+
+    @classmethod
+    def version(cls) -> str:
+        return '1'
+
+    def init_node_data(self, data: Mapping[str, Any]) -> None:
+        pass
+
+    def _get_error_strategy(self) -> Optional[ErrorStrategy]:
+        return None
+
+    def _get_retry_config(self) -> RetryConfig:
+        return RetryConfig()
+
+    def _get_title(self) -> str:
+        return 'Code'
+
+    def _get_description(self) -> Optional[str]:
+        return None
 
     # Restricted AST node types that are not allowed
     RESTRICTED_NODES = {
