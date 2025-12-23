@@ -17,7 +17,7 @@ import pytest
 
 from app.engine.execution_context import ExecutionContext
 from app.engine.node_executor import (
-    BaseNodeExecutor,
+    BaseNode,
     NodeExecutorRegistry,
     node_executor_registry,
     register_node_executor,
@@ -251,7 +251,7 @@ class TestNodeExecutorRegistry:
 
         # Create a test executor
         @register_node_executor('TEST_NODE')
-        class TestNodeExecutor(BaseNodeExecutor):
+        class TestNodeExecutor(BaseNode):
             def __init__(self):
                 super().__init__()
 
@@ -282,7 +282,7 @@ class TestNodeExecutorRegistry:
         """Test node configuration validation."""
 
         # Create a test executor with validation
-        class ValidatingExecutor(BaseNodeExecutor):
+        class ValidatingExecutor(BaseNode):
             def __init__(self):
                 super().__init__()
 

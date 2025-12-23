@@ -12,12 +12,12 @@ import re
 from typing import Any, Dict, List
 
 from app.engine.execution_context import ExecutionContext
-from app.engine.node_executor import BaseNodeExecutor, NodeExecutionError, register_node_executor
+from app.engine.node_executor import BaseNode, NodeExecutionError, register_node_executor
 from app.models.workflow.workflow import Node
 
 
 @register_node_executor('CODE')
-class CodeNodeExecutor(BaseNodeExecutor):
+class CodeNodeExecutor(BaseNode):
     """Executor for code nodes that execute Python code safely."""
 
     # Safe built-in functions allowed in code execution
