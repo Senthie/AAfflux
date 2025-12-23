@@ -141,7 +141,7 @@ async def test_add_node(test_session):
     node_data = NodeCreateRequest(
         type='LLM',
         name='LLM Node',
-        config={'model': 'gpt-4', 'prompt': 'Hello'},
+        config={'model': 'llama2', 'prompt': 'Hello'},
         position={'x': 100, 'y': 200},
     )
     node = await service.add_node(workflow.id, node_data)
@@ -150,7 +150,7 @@ async def test_add_node(test_session):
     assert node.workflow_id == workflow.id
     assert node.type == 'LLM'
     assert node.name == 'LLM Node'
-    assert node.config['model'] == 'gpt-4'
+    assert node.config['model'] == 'llama2'
 
 
 @pytest.mark.asyncio
@@ -187,7 +187,7 @@ async def test_list_nodes(test_session):
         node_data = NodeCreateRequest(
             type='LLM',
             name=f'Node {i}',
-            config={'model': 'gpt-4', 'prompt': f'Prompt {i}'},
+            config={'model': 'llama2', 'prompt': f'Prompt {i}'},
         )
         await service.add_node(workflow.id, node_data)
 
@@ -209,7 +209,7 @@ async def test_update_node(test_session):
     node_data = NodeCreateRequest(
         type='LLM',
         name='Original Node',
-        config={'model': 'gpt-4', 'prompt': 'Original'},
+        config={'model': 'llama2', 'prompt': 'Original'},
     )
     node = await service.add_node(workflow.id, node_data)
 
@@ -217,7 +217,7 @@ async def test_update_node(test_session):
     from app.schemas.workflow import NodeUpdateRequest
 
     update_data = NodeUpdateRequest(
-        name='Updated Node', config={'model': 'gpt-4', 'prompt': 'Updated'}
+        name='Updated Node', config={'model': 'llama2', 'prompt': 'Updated'}
     )
     updated = await service.update_node(node.id, update_data)
 
@@ -235,7 +235,7 @@ async def test_delete_node(test_session):
     workflow = await service.create_workflow(workflow_data, uuid4(), uuid4())
 
     node_data = NodeCreateRequest(
-        type='LLM', name='To Delete', config={'model': 'gpt-4', 'prompt': 'Test'}
+        type='LLM', name='To Delete', config={'model': 'llama2', 'prompt': 'Test'}
     )
     node = await service.add_node(workflow.id, node_data)
 
@@ -258,12 +258,12 @@ async def test_connect_nodes(test_session):
 
     # Add two nodes
     node1_data = NodeCreateRequest(
-        type='LLM', name='Node 1', config={'model': 'gpt-4', 'prompt': 'Test'}
+        type='LLM', name='Node 1', config={'model': 'llama2', 'prompt': 'Test'}
     )
     node1 = await service.add_node(workflow.id, node1_data)
 
     node2_data = NodeCreateRequest(
-        type='LLM', name='Node 2', config={'model': 'gpt-4', 'prompt': 'Test'}
+        type='LLM', name='Node 2', config={'model': 'llama2', 'prompt': 'Test'}
     )
     node2 = await service.add_node(workflow.id, node2_data)
 
@@ -293,12 +293,12 @@ async def test_connect_nodes_creates_cycle(test_session):
 
     # Add two nodes
     node1_data = NodeCreateRequest(
-        type='LLM', name='Node 1', config={'model': 'gpt-4', 'prompt': 'Test'}
+        type='LLM', name='Node 1', config={'model': 'llama2', 'prompt': 'Test'}
     )
     node1 = await service.add_node(workflow.id, node1_data)
 
     node2_data = NodeCreateRequest(
-        type='LLM', name='Node 2', config={'model': 'gpt-4', 'prompt': 'Test'}
+        type='LLM', name='Node 2', config={'model': 'llama2', 'prompt': 'Test'}
     )
     node2 = await service.add_node(workflow.id, node2_data)
 
@@ -336,7 +336,7 @@ async def test_list_connections(test_session):
     nodes = []
     for i in range(3):
         node_data = NodeCreateRequest(
-            type='LLM', name=f'Node {i}', config={'model': 'gpt-4', 'prompt': 'Test'}
+            type='LLM', name=f'Node {i}', config={'model': 'llama2', 'prompt': 'Test'}
         )
         node = await service.add_node(workflow.id, node_data)
         nodes.append(node)
@@ -368,12 +368,12 @@ async def test_delete_connection(test_session):
 
     # Add two nodes
     node1_data = NodeCreateRequest(
-        type='LLM', name='Node 1', config={'model': 'gpt-4', 'prompt': 'Test'}
+        type='LLM', name='Node 1', config={'model': 'llama2', 'prompt': 'Test'}
     )
     node1 = await service.add_node(workflow.id, node1_data)
 
     node2_data = NodeCreateRequest(
-        type='LLM', name='Node 2', config={'model': 'gpt-4', 'prompt': 'Test'}
+        type='LLM', name='Node 2', config={'model': 'llama2', 'prompt': 'Test'}
     )
     node2 = await service.add_node(workflow.id, node2_data)
 
@@ -405,7 +405,7 @@ async def test_validate_workflow(test_session):
 
     # Add a valid node
     node_data = NodeCreateRequest(
-        type='LLM', name='Node 1', config={'model': 'gpt-4', 'prompt': 'Test'}
+        type='LLM', name='Node 1', config={'model': 'llama2', 'prompt': 'Test'}
     )
     await service.add_node(workflow.id, node_data)
 

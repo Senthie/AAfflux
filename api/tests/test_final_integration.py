@@ -80,7 +80,7 @@ class TestFinalIntegration:
                     {
                         'id': 'llm_node',
                         'type': 'llm',
-                        'config': {'model': 'gpt-3.5-turbo', 'prompt': 'Process: {{input}}'},
+                        'config': {'model': 'llama2', 'prompt': 'Process: {{input}}'},
                     },
                 ],
                 'connections': [

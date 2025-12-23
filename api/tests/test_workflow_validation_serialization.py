@@ -30,7 +30,7 @@ from app.utils.dag import (
 
 # Create a minimal LLMNodeExecutor for testing validation logic
 class TestLLMNodeExecutor:
-    """Test version of LLM node executor for validation testing."""
+    """Test version of LLM node executor for validation testing (Ollama-based)."""
 
     def validate_config(self, config: Dict[str, Any]) -> bool:
         """Validate LLM node configuration.
@@ -41,16 +41,20 @@ class TestLLMNodeExecutor:
         Returns:
             True if configuration is valid, False otherwise
         """
-        required_fields = ['provider', 'model', 'prompt', 'api_key']
+        # Required fields - model and prompt are required
+        if 'model' not in config or not config['model']:
+            return False
+        if 'prompt' not in config or not config['prompt']:
+            return False
 
-        # Check required fields
-        for field in required_fields:
-            if field not in config or not config[field]:
-                return False
+        # Validate provider - only ollama is supported
+        provider = config.get('provider', 'ollama')
+        if provider.lower() != 'ollama':
+            return False
 
-        # Validate provider
-        supported_providers = ['openai', 'anthropic']
-        if config['provider'].lower() not in supported_providers:
+        # Validate base_url format
+        base_url = config.get('base_url', 'http://localhost:11434')
+        if not base_url.startswith(('http://', 'https://')):
             return False
 
         # Validate temperature
@@ -215,7 +219,7 @@ class TestWorkflowValidator:
             type='LLM',
             name='Test LLM Node',
             config={
-                'model': 'gpt-4',
+                'model': 'llama2',
                 'prompt': 'Test prompt',
                 'temperature': 0.7,
                 'max_tokens': 100,
@@ -235,7 +239,7 @@ class TestWorkflowValidator:
             type='LLM',
             name='Test LLM Node',
             config={
-                'model': 'gpt-4',
+                'model': 'llama2',
                 # Missing 'prompt'
             },
         )
@@ -254,7 +258,7 @@ class TestWorkflowValidator:
             type='LLM',
             name='Test LLM Node',
             config={
-                'model': 'gpt-4',
+                'model': 'llama2',
                 'prompt': 'Test prompt',
                 'temperature': 3.0,  # Invalid: > 2
             },
@@ -276,13 +280,13 @@ class TestWorkflowValidator:
             workflow_id=sample_workflow.id,
             type='LLM',
             name='Node A',
-            config={'model': 'gpt-4', 'prompt': 'test'},
+            config={'model': 'llama2', 'prompt': 'test'},
         )
         node_b = Node(
             workflow_id=sample_workflow.id,
             type='LLM',
             name='Node B',
-            config={'model': 'gpt-4', 'prompt': 'test'},
+            config={'model': 'llama2', 'prompt': 'test'},
         )
         test_session.add(node_a)
         test_session.add(node_b)
@@ -332,7 +336,7 @@ class TestWorkflowSerializer:
             workflow_id=sample_workflow.id,
             type='LLM',
             name='Test Node',
-            config={'model': 'gpt-4', 'prompt': 'test'},
+            config={'model': 'llama2', 'prompt': 'test'},
             position={'x': 100, 'y': 200},
         )
         test_session.add(node)
@@ -375,7 +379,7 @@ class TestWorkflowSerializer:
                     'id': str(uuid4()),
                     'type': 'LLM',
                     'name': 'Node 1',
-                    'config': {'model': 'gpt-4', 'prompt': 'test'},
+                    'config': {'model': 'llama2', 'prompt': 'test'},
                     'position': {'x': 0, 'y': 0},
                 }
             ],
@@ -449,14 +453,14 @@ class TestWorkflowSerializer:
             workflow_id=sample_workflow.id,
             type='LLM',
             name='Node A',
-            config={'model': 'gpt-4', 'prompt': 'test'},
+            config={'model': 'llama2', 'prompt': 'test'},
             position={'x': 0, 'y': 0},
         )
         node_b = Node(
             workflow_id=sample_workflow.id,
             type='LLM',
             name='Node B',
-            config={'model': 'gpt-4', 'prompt': 'test'},
+            config={'model': 'llama2', 'prompt': 'test'},
             position={'x': 100, 'y': 0},
         )
         test_session.add(node_a)
@@ -499,12 +503,11 @@ class TestWorkflowSerializer:
 
 
 class TestLLMNodeProperties:
-    """Property-based tests for LLM node configuration."""
+    """Property-based tests for LLM node configuration (Ollama-based)."""
 
     # Feature: low-code-platform-backend, Property 53: LLM 节点配置完整性
     @settings(max_examples=100)
     @given(
-        provider=st.sampled_from(['openai', 'anthropic']),
         model=st.text(
             min_size=1,
             max_size=50,
@@ -513,16 +516,13 @@ class TestLLMNodeProperties:
         prompt=st.text(min_size=1, max_size=1000),
         temperature=st.floats(min_value=0.0, max_value=2.0, allow_nan=False, allow_infinity=False),
         max_tokens=st.integers(min_value=1, max_value=10000),
-        api_key=st.text(min_size=1, max_size=100),
     )
     def test_llm_node_configuration_completeness_property(
         self,
-        provider: str,
         model: str,
         prompt: str,
         temperature: float,
         max_tokens: int,
-        api_key: str,
     ):
         """
         Property 53: LLM Node Configuration Completeness
@@ -536,21 +536,21 @@ class TestLLMNodeProperties:
         # Create LLM node executor
         executor = TestLLMNodeExecutor()
 
-        # Create a complete configuration with all required fields
+        # Create a complete configuration with all required fields (Ollama-based)
         complete_config = {
-            'provider': provider,
+            'provider': 'ollama',
             'model': model,
             'prompt': prompt,
             'temperature': temperature,
             'max_tokens': max_tokens,
-            'api_key': api_key,
+            'base_url': 'http://localhost:11434',
         }
 
         # Test that complete configuration is valid
         assert executor.validate_config(complete_config) is True
 
-        # Test that missing any required field makes configuration invalid
-        required_fields = ['provider', 'model', 'prompt', 'api_key']
+        # Test that missing required fields makes configuration invalid
+        required_fields = ['model', 'prompt']
 
         for field in required_fields:
             incomplete_config = complete_config.copy()
@@ -579,7 +579,12 @@ class TestLLMNodeProperties:
         invalid_tokens_config['max_tokens'] = -1  # Negative
         assert executor.validate_config(invalid_tokens_config) is False
 
-        # Test unsupported provider
+        # Test unsupported provider (only ollama is supported now)
         invalid_provider_config = complete_config.copy()
-        invalid_provider_config['provider'] = 'unsupported_provider'
+        invalid_provider_config['provider'] = 'openai'
         assert executor.validate_config(invalid_provider_config) is False
+
+        # Test invalid base_url format
+        invalid_url_config = complete_config.copy()
+        invalid_url_config['base_url'] = 'invalid-url'
+        assert executor.validate_config(invalid_url_config) is False
