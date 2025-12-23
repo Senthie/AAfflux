@@ -28,12 +28,12 @@ class TestFinalIntegration:
     @pytest.fixture
     async def test_user(self, test_session: AsyncSession):
         """创建测试用户"""
+        unique_id = uuid4()
         user = User(
-            id=uuid4(),
-            email='integration@example.com',
-            username='integrationuser',
-            hashed_password='$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj3QJflLxQjm',  # "secret"
-            is_active=True,
+            id=unique_id,
+            name='integrationuser',
+            email=f'integration_{unique_id}@example.com',
+            password_hash='$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj3QJflLxQjm',  # "secret"
         )
         test_session.add(user)
         await test_session.commit()
@@ -278,20 +278,20 @@ class TestFinalIntegration:
     async def test_multi_tenant_isolation(self, client: TestClient, test_session: AsyncSession):
         """测试多租户隔离"""
         # 创建两个不同的用户和组织
+        unique_id1 = uuid4()
+        unique_id2 = uuid4()
         user1 = User(
-            id=uuid4(),
-            email='tenant1@example.com',
-            username='tenant1user',
-            hashed_password='$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj3QJflLxQjm',
-            is_active=True,
+            id=unique_id1,
+            name='tenant1user',
+            email=f'tenant1_{unique_id1}@example.com',
+            password_hash='$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj3QJflLxQjm',
         )
 
         user2 = User(
-            id=uuid4(),
-            email='tenant2@example.com',
-            username='tenant2user',
-            hashed_password='$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj3QJflLxQjm',
-            is_active=True,
+            id=unique_id2,
+            name='tenant2user',
+            email=f'tenant2_{unique_id2}@example.com',
+            password_hash='$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj3QJflLxQjm',
         )
 
         test_session.add_all([user1, user2])

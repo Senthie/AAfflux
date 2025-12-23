@@ -21,12 +21,12 @@ class TestDataMigration:
     @pytest.fixture
     async def test_user(self, test_session: AsyncSession):
         """创建测试用户"""
+        unique_id = uuid4()
         user = User(
-            id=uuid4(),
-            email='test@example.com',
-            username='testuser',
-            hashed_password='hashed_password',
-            is_active=True,
+            id=unique_id,
+            name='testuser',
+            email=f'test_{unique_id}@example.com',
+            password_hash='hashed_password',
         )
         test_session.add(user)
         await test_session.commit()
