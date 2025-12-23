@@ -10,12 +10,12 @@ from typing import Any, Dict, List
 import httpx
 
 from app.engine.execution_context import ExecutionContext
-from app.engine.node_executor import BaseNodeExecutor, NodeExecutionError, register_node_executor
+from app.engine.node_executor import BaseNode, NodeExecutionError, register_node_executor
 from app.models.workflow.workflow import Node
 
 
 @register_node_executor('HTTP')
-class HTTPNodeExecutor(BaseNodeExecutor):
+class HTTPNodeExecutor(BaseNode):
     """Executor for HTTP nodes that make HTTP requests."""
 
     # Supported HTTP methods

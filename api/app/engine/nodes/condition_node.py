@@ -10,12 +10,12 @@ import operator
 from typing import Any, Dict, List
 
 from app.engine.execution_context import ExecutionContext
-from app.engine.node_executor import BaseNodeExecutor, NodeExecutionError, register_node_executor
+from app.engine.node_executor import BaseNode, NodeExecutionError, register_node_executor
 from app.models.workflow.workflow import Node
 
 
 @register_node_executor('CONDITION')
-class ConditionNodeExecutor(BaseNodeExecutor):
+class ConditionNodeExecutor(BaseNode):
     """Executor for condition nodes that perform conditional branching."""
 
     # Safe operators for expression evaluation

@@ -10,12 +10,12 @@ from typing import Any, Dict, List
 import httpx
 
 from app.engine.execution_context import ExecutionContext
-from app.engine.node_executor import BaseNodeExecutor, NodeExecutionError, register_node_executor
+from app.engine.node_executor import BaseNode, NodeExecutionError, register_node_executor
 from app.models.workflow.workflow import Node
 
 
 @register_node_executor('LLM')
-class LLMNodeExecutor(BaseNodeExecutor):
+class LLMNodeExecutor(BaseNode):
     """Executor for LLM nodes that call language models."""
 
     def __init__(self):

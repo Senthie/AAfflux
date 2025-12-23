@@ -37,7 +37,7 @@ class NodeExecutionError(Exception):
         self.error_details = error_details or {}
 
 
-class BaseNodeExecutor(ABC):
+class BaseNode(ABC):
     """Base class for all node executors.
 
     Each node type should implement this interface to define how it executes.
@@ -172,22 +172,22 @@ class NodeExecutorRegistry:
 
     def __init__(self):
         """Initialize the registry."""
-        self._executors: Dict[str, Type[BaseNodeExecutor]] = {}
-        self._instances: Dict[str, BaseNodeExecutor] = {}
+        self._executors: Dict[str, Type[BaseNode]] = {}
+        self._instances: Dict[str, BaseNode] = {}
 
-    def register(self, node_type: str, executor_class: Type[BaseNodeExecutor]) -> None:
+    def register(self, node_type: str, executor_class: Type[BaseNode]) -> None:
         """Register a node executor for a specific node type.
 
         Args:
             node_type: The node type identifier (e.g., "LLM", "CONDITION")
             executor_class: The executor class for this node type
         """
-        if not issubclass(executor_class, BaseNodeExecutor):
+        if not issubclass(executor_class, BaseNode):
             raise ValueError('Executor class must inherit from BaseNodeExecutor')
 
         self._executors[node_type] = executor_class
 
-    def get_executor(self, node_type: str) -> BaseNodeExecutor:
+    def get_executor(self, node_type: str) -> BaseNode:
         """Get an executor instance for a node type.
 
         Args:
@@ -261,7 +261,7 @@ def register_node_executor(node_type: str):
         Decorator function
     """
 
-    def decorator(executor_class: Type[BaseNodeExecutor]):
+    def decorator(executor_class: Type[BaseNode]):
         # 内层函数：接收要注册的类
         node_executor_registry.register(node_type, executor_class)
         return executor_class  # 返回原类，保持类定义不变
@@ -271,7 +271,7 @@ def register_node_executor(node_type: str):
 
 # Basic node executors for common types
 @register_node_executor('START')
-class StartNodeExecutor(BaseNodeExecutor):
+class StartNodeExecutor(BaseNode):
     """Executor for START nodes that pass through initial inputs."""
 
     def __init__(self):
@@ -303,7 +303,7 @@ class StartNodeExecutor(BaseNodeExecutor):
 
 
 @register_node_executor('END')
-class EndNodeExecutor(BaseNodeExecutor):
+class EndNodeExecutor(BaseNode):
     """Executor for END nodes that collect final outputs."""
 
     def __init__(self):
@@ -337,7 +337,7 @@ class EndNodeExecutor(BaseNodeExecutor):
 
 
 @register_node_executor('PASSTHROUGH')
-class PassthroughNodeExecutor(BaseNodeExecutor):
+class PassthroughNodeExecutor(BaseNode):
     """
     Executor for PASSTHROUGH nodes that pass inputs to outputs unchanged.
     用于将输入原样传递给输出的直通节点执行器。

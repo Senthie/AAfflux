@@ -12,12 +12,12 @@ from typing import Any, Dict, List, Union
 import jsonpath_ng
 
 from app.engine.execution_context import ExecutionContext
-from app.engine.node_executor import BaseNodeExecutor, NodeExecutionError, register_node_executor
+from app.engine.node_executor import BaseNode, NodeExecutionError, register_node_executor
 from app.models.workflow.workflow import Node
 
 
 @register_node_executor('TRANSFORM')
-class TransformNodeExecutor(BaseNodeExecutor):
+class TransformNodeExecutor(BaseNode):
     """
     Executor for transform nodes that manipulate and transform data.
     用于处理和转换数据的转换节点的执行器。
