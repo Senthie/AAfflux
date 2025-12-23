@@ -19,7 +19,8 @@ from typing import Any, Dict, Optional, Type
 from uuid import UUID
 
 from app.engine.execution_context import ExecutionContext
-from app.engine.nodes.base.emum import ErrorStrategy, NodeExecutionTypeEnum, RetryConfig
+from app.engine.nodes.base.emum import ErrorStrategy, NodeExecutionTypeEnum
+from app.engine.nodes.base.entities import RetryConfig
 from app.models.workflow.workflow import Node, NodeExecutionResult
 
 
@@ -318,6 +319,27 @@ class StartNodeExecutor(BaseNode):
         """Initialize the start node executor."""
         super().__init__()
 
+    @classmethod
+    def version(cls) -> str:
+        return '1'
+
+    def init_node_data(self, data: Mapping[str, Any]) -> None:
+        pass
+
+    def _get_error_strategy(self) -> Optional['ErrorStrategy']:
+        return None
+
+    def _get_retry_config(self) -> 'RetryConfig':
+        from app.engine.nodes.base.entities import RetryConfig
+
+        return RetryConfig()
+
+    def _get_title(self) -> str:
+        return 'Start'
+
+    def _get_description(self) -> Optional[str]:
+        return None
+
     async def execute(self, node: Node, context: ExecutionContext) -> Dict[str, Any]:
         """Execute start node by returning initial inputs.
 
@@ -349,6 +371,27 @@ class EndNodeExecutor(BaseNode):
     def __init__(self):
         """Initialize the end node executor."""
         super().__init__()
+
+    @classmethod
+    def version(cls) -> str:
+        return '1'
+
+    def init_node_data(self, data: Mapping[str, Any]) -> None:
+        pass
+
+    def _get_error_strategy(self) -> Optional['ErrorStrategy']:
+        return None
+
+    def _get_retry_config(self) -> 'RetryConfig':
+        from app.engine.nodes.base.entities import RetryConfig
+
+        return RetryConfig()
+
+    def _get_title(self) -> str:
+        return 'End'
+
+    def _get_description(self) -> Optional[str]:
+        return None
 
     async def execute(self, node: Node, context: ExecutionContext) -> Dict[str, Any]:
         """Execute end node by collecting inputs as final outputs.
@@ -386,6 +429,27 @@ class PassthroughNodeExecutor(BaseNode):
     def __init__(self):
         """Initialize the passthrough node executor."""
         super().__init__()
+
+    @classmethod
+    def version(cls) -> str:
+        return '1'
+
+    def init_node_data(self, data: Mapping[str, Any]) -> None:
+        pass
+
+    def _get_error_strategy(self) -> Optional['ErrorStrategy']:
+        return None
+
+    def _get_retry_config(self) -> 'RetryConfig':
+        from app.engine.nodes.base.entities import RetryConfig
+
+        return RetryConfig()
+
+    def _get_title(self) -> str:
+        return 'Passthrough'
+
+    def _get_description(self) -> Optional[str]:
+        return None
 
     async def execute(self, node: Node, context: ExecutionContext) -> Dict[str, Any]:
         """Execute passthrough node by returning inputs unchanged.

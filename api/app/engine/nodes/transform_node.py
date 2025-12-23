@@ -5,14 +5,17 @@ This module implements the transform node executor that can extract,
 transform, and manipulate data using JSON paths and various operations.
 """
 
+from collections.abc import Mapping
 import json
 import re
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 import jsonpath_ng
 
 from app.engine.execution_context import ExecutionContext
-from app.engine.node_executor import BaseNode, NodeExecutionError, register_node_executor
+from app.engine.nodes.base.emum import ErrorStrategy
+from app.engine.nodes.base.entities import RetryConfig
+from app.engine.nodes.base.node import BaseNode, NodeExecutionError, register_node_executor
 from app.models.workflow.workflow import Node
 
 
@@ -40,6 +43,25 @@ class TransformNodeExecutor(BaseNode):
     def __init__(self):
         """Initialize the transform node executor."""
         super().__init__()
+
+    @classmethod
+    def version(cls) -> str:
+        return '1'
+
+    def init_node_data(self, data: Mapping[str, Any]) -> None:
+        pass
+
+    def _get_error_strategy(self) -> Optional[ErrorStrategy]:
+        return None
+
+    def _get_retry_config(self) -> RetryConfig:
+        return RetryConfig()
+
+    def _get_title(self) -> str:
+        return 'Transform'
+
+    def _get_description(self) -> Optional[str]:
+        return None
 
     async def execute(self, node: Node, context: ExecutionContext) -> Dict[str, Any]:
         """

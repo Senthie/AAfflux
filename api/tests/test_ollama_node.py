@@ -9,7 +9,7 @@ from uuid import uuid4
 
 import pytest
 
-from app.engine.node_executor import NodeExecutionError
+from app.engine.nodes.base.node import NodeExecutionError
 from app.engine.nodes.ollama_node import OllamaNodeExecutor
 
 # ============== 配置 ==============
