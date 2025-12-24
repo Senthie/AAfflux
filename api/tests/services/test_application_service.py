@@ -47,7 +47,11 @@ class TestApplicationService:
     @pytest.fixture
     async def test_organization(self, test_session: AsyncSession, test_user: User):
         """创建测试组织"""
-        org = Organization(id=uuid4(), name='Test Org', creator_id=test_user.id, is_active=True)
+        org = Organization(
+            id=uuid4(),
+            name='Test Org',
+            created_by=test_user.id,
+        )
         test_session.add(org)
         await test_session.commit()
         await test_session.refresh(org)
@@ -62,10 +66,8 @@ class TestApplicationService:
             id=uuid4(),
             name='Test Workflow',
             description='Test workflow for application',
-            creator_id=test_user.id,
-            organization_id=test_organization.id,
-            definition={'nodes': [], 'connections': []},
-            is_active=True,
+            created_by=test_user.id,
+            workspace_id=uuid4(),
         )
         test_session.add(workflow)
         await test_session.commit()
@@ -142,7 +144,6 @@ class TestApplicationService:
 
         update_data = ApplicationUpdate(
             name='Updated App',
-            description='Updated description',
             config={'timeout': 30, 'retry': 3},
         )
 

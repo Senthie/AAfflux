@@ -1,24 +1,26 @@
 """
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-22 10:26:13
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-22 15:04:43
-FilePath: : AAfflux: api: app: services: application_service.py
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2025-12-24 15:54:10
+FilePath: /api/app/services/application_service.py
 Description:应用crud、发布、api密钥管理
 """
 
 from datetime import datetime
-from typing import Optional, List, Tuple
+from typing import List, Optional, Tuple
 from uuid import UUID
-from sqlmodel import select, func, and_
+
+from sqlmodel import and_, func, select
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from app.models.application.application import Application
 from app.models.auth.api_key import APIKey
 from app.schemas.application import (
-    ApplicationCreate,
-    ApplicationUpdate,
-    ApplicationQuery,
     APIKeyCreate,
+    ApplicationCreate,
+    ApplicationQuery,
+    ApplicationUpdate,
 )
 from app.utils.api_key import APIKeyManager
 
@@ -30,16 +32,19 @@ class ApplicationService:
         self.session = session
         self.api_key_manager = APIKeyManager()
 
-    async def create_application(self, data: ApplicationCreate, user_id: UUID) -> Application:
+    async def create_application(
+        self, data: ApplicationCreate, user_id: UUID, workspace_id: UUID = None
+    ) -> Application:
         """创建应用"""
         application = Application(
             name=data.name,
-            description=data.description,
             workflow_id=data.workflow_id,
             config=data.config,
             is_published=False,
             created_by=user_id,
             updated_by=user_id,
+            workspace_id=workspace_id
+            or data.workflow_id,  # 使用提供的 workspace_id 或默认使用 workflow_id
         )
 
         self.session.add(application)
@@ -168,6 +173,8 @@ class ApplicationService:
         )
 
         # 创建API密钥记录
+        # 将 salt 和 hashed_key 合并存储
+        combined_hash = f'{key_data["salt"]}:{key_data["hashed_key"]}'
         api_key = APIKey(
             application_id=application_id,
             name=data.name,
@@ -175,10 +182,7 @@ class ApplicationService:
             + '_'
             + key_data['api_key'].split('_')[1][:8]
             + '...',
-            hashed_key=key_data['hashed_key'],
-            salt=key_data['salt'],
-            expires_at=key_data['expires_at'],
-            created_by=user_id,
+            key_hash=combined_hash,
         )
 
         self.session.add(api_key)
@@ -191,7 +195,7 @@ class ApplicationService:
             'api_key': key_data['api_key'],  # 完整密钥，只在创建时返回
             'key_prefix': api_key.key_prefix,
             'created_at': api_key.created_at,
-            'expires_at': api_key.expires_at,
+            'expires_at': key_data.get('expires_at'),  # 从 key_data 获取
             'is_active': api_key.is_active,
         }
 
@@ -199,7 +203,7 @@ class ApplicationService:
         """获取应用的API密钥列表"""
         statement = (
             select(APIKey)
-            .where(and_(APIKey.application_id == application_id, APIKey.is_deleted is False))
+            .where(APIKey.application_id == application_id)
             .order_by(APIKey.created_at.desc())
         )
 
@@ -212,7 +216,6 @@ class ApplicationService:
             and_(
                 APIKey.id == api_key_id,
                 APIKey.application_id == application_id,
-                APIKey.is_deleted is False,
             )
         )
         result = await self.session.execute(statement)
@@ -222,8 +225,6 @@ class ApplicationService:
             return False
 
         api_key.is_active = False
-        api_key.updated_by = user_id
-        api_key.updated_at = datetime.utcnow()
 
         self.session.add(api_key)
         await self.session.commit()
@@ -235,15 +236,18 @@ class ApplicationService:
         if '_' not in api_key_str:
             return None
 
-        prefix_part = api_key_str.split('_')[0] + '_' + api_key_str.split('_')[1][:8] + '...'
+        parts = api_key_str.split('_')
+        if len(parts) < 3:
+            return None
+
+        # 构建前缀模式：app_<8字符>
+        # key_prefix 格式是 "app_12345678..."
+        prefix_pattern = f'{parts[0]}_{parts[1]}%'
 
         statement = select(APIKey).where(
             and_(
-                APIKey.key_prefix.like(
-                    f'{prefix_part.split("_")[0]}_{prefix_part.split("_")[1][:8]}%'
-                ),
-                APIKey.is_active is True,
-                APIKey.is_deleted is False,
+                APIKey.key_prefix.like(prefix_pattern),
+                APIKey.is_active == True,
             )
         )
 
@@ -251,12 +255,18 @@ class ApplicationService:
         api_keys = list(result.scalars().all())
 
         for api_key in api_keys:
+            # 从 key_hash 中提取 salt 和 hashed_key
+            if ':' in api_key.key_hash:
+                salt, hashed_key = api_key.key_hash.split(':', 1)
+            else:
+                continue
+
             if self.api_key_manager.verify_api_key(
                 api_key_str,
-                api_key.hashed_key,
-                api_key.salt,
+                hashed_key,
+                salt,
                 api_key.created_at,
-                (api_key.expires_at - api_key.created_at).days if api_key.expires_at else None,
+                None,  # 不检查过期
                 api_key.is_active,
             ):
                 # 更新最后使用时间

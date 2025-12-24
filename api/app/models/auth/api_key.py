@@ -5,9 +5,11 @@
 """
 
 from datetime import datetime
-from uuid import UUID
 from typing import Optional
+from uuid import UUID
+
 from sqlmodel import Field
+
 from app.models.base import BaseModel, TimestampMixin
 
 
@@ -20,7 +22,6 @@ class APIKey(BaseModel, TimestampMixin, table=True):
     Attributes:
     已经继承
         id: 密钥记录唯一标识符（UUID）
-        created_by: 创建者用户ID（逻辑外键）
         created_at: 创建时间
 
         application_id: 应用ID（逻辑外键）

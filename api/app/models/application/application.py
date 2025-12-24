@@ -15,7 +15,7 @@ from uuid import UUID
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Column, Field
 
-from app.models.base import AuditMixin, BaseModel, TimestampMixin, WorkspaceMixin, SoftDeleteMixin
+from app.models.base import AuditMixin, BaseModel, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
 
 
 class Application(
@@ -50,7 +50,17 @@ class Application(
 
     name: str = Field(max_length=255)
     workflow_id: UUID = Field(index=True)  # Logical FK to workflows
-    api_key_hash: str = Field(max_length=255)
-    endpoint: str = Field(max_length=500)
+    api_key_hash: str = Field(default='', max_length=255)
+    endpoint: str = Field(default='', max_length=500)
     is_published: bool = Field(default=False)
     config: dict = Field(default_factory=dict, sa_column=Column(JSONB))
+
+    @property
+    def api_endpoint(self) -> str:
+        """返回 API 端点路径"""
+        return self.endpoint
+
+    @api_endpoint.setter
+    def api_endpoint(self, value: str):
+        """设置 API 端点路径"""
+        self.endpoint = value

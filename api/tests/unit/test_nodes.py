@@ -208,6 +208,7 @@ class TestAgentNode:
             'title': 'Test Agent',
             'agent_strategy_provider_name': 'ollama',
             'agent_strategy_name': 'chat',
+            'agent_strategy_label': 'Noe',
         }
         agent.init_node_data(data)
         assert agent._node_data.title == 'Test Agent'
@@ -231,6 +232,7 @@ class TestAgentNode:
                 'title': 'Agent',
                 'agent_strategy_provider_name': 'ollama',
                 'agent_strategy_name': 'chat',
+                'agent_strategy_label': 'Noe',
             },
         )
         result = await agent.execute(node, context)
@@ -389,6 +391,7 @@ class TestRealOllamaIntegration:
                 'title': 'Math Agent',
                 'agent_strategy_provider_name': 'ollama',
                 'agent_strategy_name': 'math_chat',
+                'agent_strategy_label': 'Noe',
                 'system_prompt': '你是一个数学助手，请简洁回答问题。',
                 'user_prompt': '{question}',
                 'temperature': 0.1,

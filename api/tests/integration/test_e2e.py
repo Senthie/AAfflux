@@ -18,6 +18,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.main import app
 from app.models.auth.user import User
 from app.models.tenant.organization import Organization
+from app.schemas.application import ApplicationCreate
+from app.schemas.workflow import WorkflowCreateRequest, WorkflowUpdateRequest
 from app.services.application_service import ApplicationService
 from app.services.auth_service import AuthService
 from app.services.workflow_service import WorkflowService
@@ -50,7 +52,9 @@ class TestEndToEndIntegration:
     async def test_organization(self, test_session: AsyncSession, test_user: User):
         """创建测试组织"""
         org = Organization(
-            id=uuid4(), name='Integration Test Org', creator_id=test_user.id, is_active=True
+            id=uuid4(),
+            name='Integration Test Org',
+            created_by=test_user.id,
         )
         test_session.add(org)
         await test_session.commit()
@@ -69,17 +73,17 @@ class TestEndToEndIntegration:
     ):
         """测试数据库CRUD操作"""
         workflow_service = WorkflowService(test_session)
+        workspace_id = uuid4()
 
         # Create
-        workflow_data = {
-            'name': 'CRUD Test Workflow',
-            'description': 'Test workflow for CRUD operations',
-            'creator_id': test_user.id,
-            'organization_id': test_organization.id,
-            'definition': {'nodes': [], 'connections': []},
-        }
+        workflow_data = WorkflowCreateRequest(
+            name='CRUD Test Workflow',
+            description='Test workflow for CRUD operations',
+        )
 
-        created_workflow = await workflow_service.create_workflow(workflow_data)
+        created_workflow = await workflow_service.create_workflow(
+            workflow_data, workspace_id, test_user.id
+        )
         assert created_workflow is not None
 
         # Read
@@ -87,13 +91,17 @@ class TestEndToEndIntegration:
         assert retrieved_workflow is not None
 
         # Update
-        update_data = {'name': 'Updated CRUD Test Workflow'}
+        update_data = WorkflowUpdateRequest(name='Updated CRUD Test Workflow')
         updated_workflow = await workflow_service.update_workflow(created_workflow.id, update_data)
         assert updated_workflow.name == 'Updated CRUD Test Workflow'
 
         # Delete
-        delete_success = await workflow_service.delete_workflow(created_workflow.id)
-        assert delete_success is True
+        await workflow_service.delete_workflow(created_workflow.id)
+        # Verify deletion by checking it raises error
+        from app.services.workflow_service import WorkflowNotFoundError
+
+        with pytest.raises(WorkflowNotFoundError):
+            await workflow_service.get_workflow(created_workflow.id)
 
     async def test_system_health_check(self, client: TestClient, test_session: AsyncSession):
         """测试系统健康检查"""
@@ -125,8 +133,8 @@ class TestEndToEndIntegration:
         test_session.add_all([user1, user2])
         await test_session.commit()
 
-        org1 = Organization(id=uuid4(), name='Tenant 1 Org', creator_id=user1.id, is_active=True)
-        org2 = Organization(id=uuid4(), name='Tenant 2 Org', creator_id=user2.id, is_active=True)
+        org1 = Organization(id=uuid4(), name='Tenant 1 Org', created_by=user1.id)
+        org2 = Organization(id=uuid4(), name='Tenant 2 Org', created_by=user2.id)
 
         test_session.add_all([org1, org2])
         await test_session.commit()
@@ -142,7 +150,6 @@ class TestEndToEndIntegration:
         workflow_data = {
             'name': 'Tenant 1 Workflow',
             'description': 'Workflow for tenant 1',
-            'definition': {'nodes': [], 'connections': []},
         }
 
         workflow_response = client.post('/api/v1/workflows', json=workflow_data, headers=headers1)
@@ -159,25 +166,22 @@ class TestEndToEndIntegration:
         """测试跨服务数据一致性"""
         workflow_service = WorkflowService(test_session)
         application_service = ApplicationService(test_session)
+        workspace_id = uuid4()
 
-        workflow_data = {
-            'name': 'Consistency Test Workflow',
-            'description': 'Test workflow for consistency',
-            'creator_id': test_user.id,
-            'organization_id': test_organization.id,
-            'definition': {'nodes': [], 'connections': []},
-        }
+        workflow_data = WorkflowCreateRequest(
+            name='Consistency Test Workflow',
+            description='Test workflow for consistency',
+        )
 
-        workflow = await workflow_service.create_workflow(workflow_data)
+        workflow = await workflow_service.create_workflow(workflow_data, workspace_id, test_user.id)
 
-        app_data = {
-            'name': 'Consistency Test App',
-            'description': 'Test application for consistency',
-            'workflow_id': workflow.id,
-            'creator_id': test_user.id,
-        }
+        app_data = ApplicationCreate(
+            name='Consistency Test App',
+            description='Test application for consistency',
+            workflow_id=workflow.id,
+        )
 
-        application = await application_service.create_application(app_data)
+        application = await application_service.create_application(app_data, test_user.id)
         assert application.workflow_id == workflow.id
 
     def test_api_documentation_completeness(self, client: TestClient):
