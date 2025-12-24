@@ -2,8 +2,8 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-23 14:52:34
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-23 14:52:56
-FilePath: /api/app/engine/emum.py
+LastEditTime: 2025-12-24 14:52:20
+FilePath: /api/app/engine/nodes/base/emum.py
 Description: node 类的相关的节点类型
 
 Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
@@ -13,6 +13,10 @@ from enum import StrEnum
 
 
 class NodeTypeEnum(StrEnum):
+    """
+    节点类型，每个节点都应该，只应该存在一个唯一的节点类型
+    """
+
     ROOT = 'root'
     DIRECTORY = 'directory'
     FILE = 'file'

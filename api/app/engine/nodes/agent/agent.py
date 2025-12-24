@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-23 15:27:46
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-23 18:18:39
+LastEditTime: 2025-12-24 14:45:21
 FilePath: /api/app/engine/nodes/agent/agent.py
 Description: Agent Node - LLM代理节点
 
@@ -26,7 +26,7 @@ from app.models.workflow import Node
 from .entities import AgentNodeData
 
 
-@register_node_executor(NodeTypeEnum.LLM)
+@register_node_executor(NodeTypeEnum.AGENT)
 class AgentNode(BaseNode):
     """
     Agent节点 - 用于调用LLM模型
@@ -84,14 +84,13 @@ class AgentNode(BaseNode):
             return prompt
 
         schema_instruction = f"""
+            请按照以下JSON格式输出你的回答:
+            ```json
+            {output_schema}
+            ```
 
-请按照以下JSON格式输出你的回答:
-```json
-{output_schema}
-```
-
-确保输出是有效的JSON格式。
-"""
+            确保输出是有效的JSON格式。
+            """
         return prompt + schema_instruction
 
     def _extract_output(

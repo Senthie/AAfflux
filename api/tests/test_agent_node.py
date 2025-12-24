@@ -16,7 +16,13 @@ from app.engine.nodes.provider.ollama_node import (
     OllamaNode,
     OllamaNodeData,
 )
-from app.models.workflow.workflow import ExecutionRecord, Node, Workflow
+from app.engine.topological_sorter import TopologicalSorter
+from app.models.workflow.workflow import Connection, ExecutionRecord, Node, Workflow
+
+# ============ Ollama 配置 ============
+OLLAMA_API_KEY = 'ollama'
+OLLAMA_BASE_URL = 'http://14.12.0.172:11434'
+OLLAMA_MODEL_ID = 'deepseek-r1:14b'
 
 # ============ Fixtures ============
 
@@ -663,3 +669,343 @@ class TestOllamaAgentIntegration:
 
             # 验证chat被调用了两次
             assert mock_chat.call_count == 2
+
+
+# ============ Real Ollama Integration Tests ============
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+class TestRealOllamaAgentIntegration:
+    """
+    使用真实 Ollama 服务的集成测试。
+    运行: pytest -m integration tests/test_agent_node.py -v
+    """
+
+    async def test_real_ollama_simple_chat(self, workflow, execution_record):
+        """测试真实 Ollama 简单对话"""
+        context = ExecutionContext(workflow, execution_record, {'question': '1+1等于几？'})
+
+        # 1. 初始化 OllamaNode
+        ollama_node = OllamaNode()
+        ollama_config_node = Node(
+            id=uuid4(),
+            workflow_id=workflow.id,
+            type='OLLAMA',
+            name='Real Ollama Provider',
+            config={
+                'title': 'Ollama',
+                'base_url': OLLAMA_BASE_URL,
+                'api_key': OLLAMA_API_KEY,
+                'model': OLLAMA_MODEL_ID,
+                'timeout': 120,
+            },
+        )
+        # 2. 执行 AgentNode
+        agent = AgentNode()
+        agent_node = Node(
+            id=uuid4(),
+            workflow_id=workflow.id,
+            type='LLM',
+            name='Math Agent',
+            config={
+                'title': 'Math Agent',
+                'agent_strategy_provider_name': 'ollama',
+                'agent_strategy_name': 'math_chat',
+                'agent_strategy_label': 'Math Chat',
+                'system_prompt': '你是一个数学助手，请简洁回答问题。',
+                'user_prompt': '{question}',
+                'temperature': 0.1,
+                'max_tokens': 500,
+            },
+        )
+        conn1 = Connection(
+            id=uuid4(),
+            workflow_id=workflow.id,
+            source_node_id=ollama_config_node.id,
+            target_node_id=agent_node.id,
+            source_output='output',
+            target_input='input',
+        )
+        sorter = TopologicalSorter([ollama_config_node, agent_node], [conn1])
+        sorted_nodes = sorter.sort()
+
+        # 验证拓扑排序结果
+        assert len(sorted_nodes) == 2
+        assert sorted_nodes[0].id == ollama_config_node.id  # OllamaNode 应该先执行
+        assert sorted_nodes[1].id == agent_node.id  # AgentNode 依赖 OllamaNode
+
+        # 3. 按拓扑顺序执行节点
+        # 先执行 OllamaNode，初始化 provider 并存储到 context
+        ollama_result = await ollama_node.execute(ollama_config_node, context)
+        assert ollama_result['status'] == 'initialized'
+        assert ollama_result['model'] == OLLAMA_MODEL_ID
+
+        # 设置 AgentNode 的 provider_key，使其能找到 OllamaNode 实例
+        agent_node.config['provider_key'] = ollama_result['provider_key']
+
+        # 4. 执行 AgentNode
+        result = await agent.execute(agent_node, context)
+
+        # 验证结果
+        assert 'error' not in result, f'执行出错: {result.get("error")}'
+        assert result['content'], '响应内容不应为空'
+        assert result['model'] == OLLAMA_MODEL_ID
+        # 检查响应中包含 "2"
+        assert '2' in result['content'], f'响应应包含答案2: {result["content"]}'
+
+        print('\n[Real Ollama] 问题: 1+1等于几？')
+        print(f'[Real Ollama] 回答: {result["content"][:200]}...')
+
+    async def test_real_ollama_with_system_prompt(self, workflow, execution_record):
+        """测试真实 Ollama 带系统提示词"""
+        context = ExecutionContext(workflow, execution_record, {'topic': 'Python'})
+
+        # 初始化 OllamaNode
+        ollama_node = OllamaNode()
+        ollama_config_node = Node(
+            id=uuid4(),
+            workflow_id=workflow.id,
+            type='OLLAMA',
+            name='Real Ollama Provider',
+            config={
+                'title': 'Ollama',
+                'base_url': OLLAMA_BASE_URL,
+                'api_key': OLLAMA_API_KEY,
+                'model': OLLAMA_MODEL_ID,
+                'timeout': 120,
+            },
+        )
+
+        await ollama_node.execute(ollama_config_node, context)
+
+        # 执行 AgentNode
+        agent = AgentNode()
+        agent_node = Node(
+            id=uuid4(),
+            workflow_id=workflow.id,
+            type='LLM',
+            name='Expert Agent',
+            config={
+                'title': 'Expert Agent',
+                'agent_strategy_provider_name': 'ollama',
+                'agent_strategy_name': 'expert_chat',
+                'agent_strategy_label': 'Expert Chat',
+                'system_prompt': '你是一个编程专家，用一句话简洁回答。',
+                'user_prompt': '用一句话介绍{topic}',
+                'temperature': 0.3,
+                'max_tokens': 200,
+            },
+        )
+
+        result = await agent.execute(agent_node, context)
+
+        assert 'error' not in result, f'执行出错: {result.get("error")}'
+        assert result['content'], '响应内容不应为空'
+
+        print('\n[Real Ollama] 问题: 用一句话介绍Python')
+        print(f'[Real Ollama] 回答: {result["content"][:300]}...')
+
+    async def test_real_ollama_structured_output(self, workflow, execution_record):
+        """测试真实 Ollama 结构化输出"""
+        context = ExecutionContext(workflow, execution_record, {'number': '15'})
+
+        # 初始化 OllamaNode
+        ollama_node = OllamaNode()
+        ollama_config_node = Node(
+            id=uuid4(),
+            workflow_id=workflow.id,
+            type='OLLAMA',
+            name='Real Ollama Provider',
+            config={
+                'title': 'Ollama',
+                'base_url': OLLAMA_BASE_URL,
+                'api_key': OLLAMA_API_KEY,
+                'model': OLLAMA_MODEL_ID,
+                'timeout': 120,
+            },
+        )
+
+        await ollama_node.execute(ollama_config_node, context)
+
+        # 执行 AgentNode 带结构化输出
+        agent = AgentNode()
+        agent_node = Node(
+            id=uuid4(),
+            workflow_id=workflow.id,
+            type='LLM',
+            name='Structured Agent',
+            config={
+                'title': 'Structured Agent',
+                'agent_strategy_provider_name': 'ollama',
+                'agent_strategy_name': 'structured_chat',
+                'agent_strategy_label': 'Structured Chat',
+                'system_prompt': '你是一个数学助手，必须按照指定的JSON格式输出。',
+                'user_prompt': '判断{number}是奇数还是偶数',
+                'output_schema': {'number': 'number', 'is_odd': 'boolean', 'reason': 'string'},
+                'temperature': 0.1,
+                'max_tokens': 500,
+            },
+        )
+
+        result = await agent.execute(agent_node, context)
+
+        assert 'error' not in result, f'执行出错: {result.get("error")}'
+        assert result['content'], '响应内容不应为空'
+        assert 'extracted' in result
+
+        print('\n[Real Ollama] 问题: 判断15是奇数还是偶数')
+        print(f'[Real Ollama] 原始回答: {result["content"][:300]}...')
+        print(f'[Real Ollama] 提取结果: {result["extracted"]}')
+
+    async def test_real_ollama_multi_turn_conversation(self, workflow, execution_record):
+        """测试真实 Ollama 多轮对话"""
+        context = ExecutionContext(workflow, execution_record, {})
+
+        # 初始化 OllamaNode
+        ollama_node = OllamaNode()
+        ollama_config_node = Node(
+            id=uuid4(),
+            workflow_id=workflow.id,
+            type='OLLAMA',
+            name='Real Ollama Provider',
+            config={
+                'title': 'Ollama',
+                'base_url': OLLAMA_BASE_URL,
+                'api_key': OLLAMA_API_KEY,
+                'model': OLLAMA_MODEL_ID,
+                'timeout': 120,
+            },
+        )
+
+        await ollama_node.execute(ollama_config_node, context)
+
+        agent = AgentNode()
+
+        # 第一轮对话
+        context.update_global_variable('user_input', '我叫小明')
+        node1 = Node(
+            id=uuid4(),
+            workflow_id=workflow.id,
+            type='LLM',
+            name='Chat Agent',
+            config={
+                'title': 'Chat Agent',
+                'agent_strategy_provider_name': 'ollama',
+                'agent_strategy_name': 'multi_turn',
+                'agent_strategy_label': 'Multi Turn Chat',
+                'system_prompt': '你是一个友好的助手，记住用户告诉你的信息。',
+                'user_prompt': '我叫小明',
+                'temperature': 0.3,
+                'max_tokens': 200,
+            },
+        )
+
+        result1 = await agent.execute(node1, context)
+        assert 'error' not in result1, f'第一轮出错: {result1.get("error")}'
+
+        print('\n[Real Ollama] 第一轮 - 用户: 我叫小明')
+        print(f'[Real Ollama] 第一轮 - 助手: {result1["content"][:200]}...')
+
+        # 第二轮对话 - 测试记忆
+        node2 = Node(
+            id=uuid4(),
+            workflow_id=workflow.id,
+            type='LLM',
+            name='Chat Agent',
+            config={
+                'title': 'Chat Agent',
+                'agent_strategy_provider_name': 'ollama',
+                'agent_strategy_name': 'multi_turn',  # 使用相同的策略名以共享消息缓存
+                'agent_strategy_label': 'Multi Turn Chat',
+                'user_prompt': '我叫什么名字？',
+                'temperature': 0.3,
+                'max_tokens': 200,
+            },
+        )
+
+        result2 = await agent.execute(node2, context)
+        assert 'error' not in result2, f'第二轮出错: {result2.get("error")}'
+
+        print('[Real Ollama] 第二轮 - 用户: 我叫什么名字？')
+        print(f'[Real Ollama] 第二轮 - 助手: {result2["content"][:200]}...')
+
+        # 验证消息缓存
+        cache = OllamaNode.get_message_cache_from_context(context, 'multi_turn')
+        messages = cache.get_messages()
+        assert len(messages) >= 4, f'应该有至少4条消息（2轮对话），实际: {len(messages)}'
+
+    async def test_real_ollama_workflow_chain(self, workflow, execution_record):
+        """测试真实 Ollama 工作流链式调用"""
+        context = ExecutionContext(workflow, execution_record, {'text': 'Hello World'})
+
+        # 初始化 OllamaNode
+        ollama_node = OllamaNode()
+        ollama_config_node = Node(
+            id=uuid4(),
+            workflow_id=workflow.id,
+            type='OLLAMA',
+            name='Real Ollama Provider',
+            config={
+                'title': 'Ollama',
+                'base_url': OLLAMA_BASE_URL,
+                'api_key': OLLAMA_API_KEY,
+                'model': OLLAMA_MODEL_ID,
+                'timeout': 120,
+            },
+        )
+
+        await ollama_node.execute(ollama_config_node, context)
+
+        # Agent 1: 翻译
+        agent1 = AgentNode()
+        node1 = Node(
+            id=uuid4(),
+            workflow_id=workflow.id,
+            type='LLM',
+            name='Translator',
+            config={
+                'title': 'Translator',
+                'agent_strategy_provider_name': 'ollama',
+                'agent_strategy_name': 'translator',
+                'agent_strategy_label': 'Translator',
+                'system_prompt': '你是一个翻译助手，只输出翻译结果，不要解释。',
+                'user_prompt': '将以下英文翻译成中文: {text}',
+                'temperature': 0.1,
+                'max_tokens': 200,
+            },
+        )
+
+        result1 = await agent1.execute(node1, context)
+        assert 'error' not in result1, f'翻译出错: {result1.get("error")}'
+
+        print('\n[Real Ollama] 翻译任务')
+        print('[Real Ollama] 输入: Hello World')
+        print(f'[Real Ollama] 翻译: {result1["content"][:100]}...')
+
+        # 将翻译结果传递给下一个 Agent
+        context.update_global_variable('translated', result1['content'])
+
+        # Agent 2: 分析
+        agent2 = AgentNode()
+        node2 = Node(
+            id=uuid4(),
+            workflow_id=workflow.id,
+            type='LLM',
+            name='Analyzer',
+            config={
+                'title': 'Analyzer',
+                'agent_strategy_provider_name': 'ollama',
+                'agent_strategy_name': 'analyzer',
+                'agent_strategy_label': 'Analyzer',
+                'system_prompt': '你是一个文本分析助手，简洁回答。',
+                'user_prompt': '这段中文"{translated}"表达了什么意思？用一句话回答。',
+                'temperature': 0.3,
+                'max_tokens': 200,
+            },
+        )
+
+        result2 = await agent2.execute(node2, context)
+        assert 'error' not in result2, f'分析出错: {result2.get("error")}'
+
+        print(f'[Real Ollama] 分析: {result2["content"][:200]}...')
