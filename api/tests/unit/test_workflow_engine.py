@@ -219,6 +219,27 @@ class TestNodeExecutorRegistry:
             def __init__(self):
                 super().__init__()
 
+            @classmethod
+            def version(cls) -> str:
+                return '1'
+
+            def init_node_data(self, data):
+                pass
+
+            def _get_error_strategy(self):
+                return None
+
+            def _get_retry_config(self):
+                from app.engine.nodes.base.entities import RetryConfig
+
+                return RetryConfig()
+
+            def _get_title(self) -> str:
+                return 'Test Node'
+
+            def _get_description(self):
+                return None
+
             async def execute(self, node, context):
                 return {'test': 'result'}
 

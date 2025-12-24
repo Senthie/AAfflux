@@ -7,10 +7,11 @@ FilePath: : AAfflux: api: app: utils: migration.py
 Description:数据格式版本管理和迁移逻辑
 """
 
-from typing import Dict, Any, List, Optional, Callable
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from dataclasses import dataclass
+from typing import Any, Callable, Dict, List, Optional
+
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -71,6 +72,62 @@ class DataMigrator:
             all_versions.index(current_version) if current_version in all_versions else -1
         )
         return all_versions[current_index + 1 :]
+
+    async def get_current_schema_version(self) -> str:
+        """获取当前 schema 版本"""
+        return '1.0.0'
+
+    def compare_versions(self, version1: str, version2: str) -> int:
+        """比较两个版本号
+
+        Returns:
+            -1 if version1 < version2
+            0 if version1 == version2
+            1 if version1 > version2
+        """
+        v1_parts = [int(x) for x in version1.split('.')]
+        v2_parts = [int(x) for x in version2.split('.')]
+
+        # 补齐版本号长度
+        max_len = max(len(v1_parts), len(v2_parts))
+        v1_parts.extend([0] * (max_len - len(v1_parts)))
+        v2_parts.extend([0] * (max_len - len(v2_parts)))
+
+        for v1, v2 in zip(v1_parts, v2_parts):
+            if v1 < v2:
+                return -1
+            elif v1 > v2:
+                return 1
+        return 0
+
+    async def migrate_workflow_definition(
+        self, definition: Dict[str, Any], from_version: str, to_version: str
+    ) -> Dict[str, Any]:
+        """迁移工作流定义从一个版本到另一个版本"""
+        migrated = definition.copy()
+        migrated['version'] = to_version
+
+        # 添加 metadata 字段（如果不存在）
+        if 'metadata' not in migrated:
+            migrated['metadata'] = {
+                'migrated_from': from_version,
+                'migrated_at': datetime.utcnow().isoformat(),
+            }
+
+        return migrated
+
+    async def validate_workflow_definition(self, definition: Dict[str, Any]) -> bool:
+        """验证工作流定义的有效性"""
+        # 检查必需字段
+        if 'nodes' not in definition:
+            return False
+
+        # 检查每个节点是否有必需字段
+        for node in definition.get('nodes', []):
+            if 'id' not in node or 'type' not in node:
+                return False
+
+        return True
 
     def execute_migration(self, version: str) -> MigrationRecord:
         """执行单个迁移
