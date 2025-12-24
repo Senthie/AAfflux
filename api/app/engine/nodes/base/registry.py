@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-24 16:42:24
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-24 16:45:26
+LastEditTime: 2025-12-24 17:05:14
 FilePath: /api/app/engine/nodes/base/registry.py
 Description: 注册节点
 
@@ -12,6 +12,7 @@ Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 from typing import Any, Dict, Type
 
 from .entities import BaseNode
+from .exc import NodeRegistrationError
 
 
 class NodeExecutorRegistry:
@@ -34,6 +35,13 @@ class NodeExecutorRegistry:
         """
         if not issubclass(executor_class, BaseNode):
             raise ValueError('Executor class must inherit from BaseNodeExecutor')
+
+        # 如果 node_type 已经存在，抛出异常
+        if node_type in self._executors:
+            existing_class = self._executors[node_type].__name__
+            raise NodeRegistrationError(
+                f'Node type "{node_type}" is already registered with executor: {existing_class}'
+            )
 
         self._executors[node_type] = executor_class
 

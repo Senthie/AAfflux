@@ -22,6 +22,7 @@ from app.engine.node_executor import (
     node_executor_registry,
     register_node_executor,
 )
+from app.engine.nodes.base.exc import NodeRegistrationError
 from app.engine.topological_sorter import TopologicalSorter
 from app.engine.workflow_engine import WorkflowEngine
 from app.models.workflow.workflow import Connection, ExecutionRecord, Node, Workflow
@@ -256,6 +257,54 @@ class TestNodeExecutorRegistry:
         """Test handling of unregistered node types."""
         with pytest.raises(ValueError, match='No executor registered for node type'):
             node_executor_registry.get_executor('NONEXISTENT_TYPE')
+
+    def test_duplicate_node_registration(self):
+        """Test that registering the same node type twice raises an error."""
+        from app.engine.nodes.base.registry import NodeExecutorRegistry
+
+        registry = NodeExecutorRegistry()
+
+        class DummyNode(BaseNode):
+            def __init__(self):
+                super().__init__()
+
+            @classmethod
+            def version(cls) -> str:
+                return '1'
+
+            def init_node_data(self, data):
+                pass
+
+            def _get_error_strategy(self):
+                return None
+
+            def _get_retry_config(self):
+                from app.engine.nodes.base import RetryConfig
+
+                return RetryConfig()
+
+            def _get_title(self) -> str:
+                return 'Dummy Node'
+
+            def _get_description(self):
+                return None
+
+            async def execute(self, node, context):
+                return {}
+
+            def validate_config(self, config):
+                return True
+
+        # 第一次注册应该成功
+        registry.register('DUPLICATE_TEST', DummyNode)
+        assert registry.is_registered('DUPLICATE_TEST')
+
+        # 第二次注册相同类型应该抛出异常
+        with pytest.raises(
+            NodeRegistrationError,
+            match=f'Node type "DUPLICATE_TEST" is already registered with executor: {DummyNode.__name__}',
+        ):
+            registry.register('DUPLICATE_TEST', DummyNode)
 
 
 class TestBuiltinExecutors:
