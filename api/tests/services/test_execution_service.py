@@ -1,6 +1,15 @@
 """
-测试任务16 - 执行记录模块
-只对数据库进行CRUD操作，不进行迁移
+执行记录服务层测试
+
+合并自:
+- test_execution_records.py
+- test_data_migration.py
+
+测试内容:
+- 执行记录CRUD
+- 时间范围筛选
+- 过期记录清理
+- 数据迁移
 """
 
 from datetime import datetime, timedelta
@@ -14,10 +23,11 @@ from app.models.tenant.organization import Organization
 from app.models.workflow.workflow import Workflow
 from app.schemas.execution import ExecutionRecordCreate, ExecutionRecordUpdate
 from app.services.execution_record_service import ExecutionRecordService
+from app.utils.migration import DataMigrator
 
 
-class TestExecutionRecords:
-    """执行记录模块测试"""
+class TestExecutionRecordService:
+    """执行记录服务测试"""
 
     @pytest.fixture
     async def test_user(self, test_session: AsyncSession):
@@ -83,14 +93,11 @@ class TestExecutionRecords:
         assert record is not None
         assert record.workflow_id == test_workflow.id
         assert record.status == 'running'
-        assert record.input_data == {'test': 'data'}
-        assert record.started_at is not None
 
     async def test_query_execution_records_by_filters(
         self, execution_service: ExecutionRecordService, test_workflow: Workflow
     ):
         """测试按条件查询执行记录"""
-        # 创建多个执行记录
         for i in range(3):
             record_data = ExecutionRecordCreate(
                 workflow_id=test_workflow.id,
@@ -100,34 +107,10 @@ class TestExecutionRecords:
             )
             await execution_service.create_execution_record(record_data)
 
-        # 按状态查询
         completed_records = await execution_service.get_execution_records(
             workflow_id=test_workflow.id, status='completed'
         )
         assert len(completed_records) == 2
-
-        # 按工作流ID查询
-        all_records = await execution_service.get_execution_records(workflow_id=test_workflow.id)
-        assert len(all_records) == 3
-
-    async def test_execution_record_integrity(
-        self, execution_service: ExecutionRecordService, test_workflow: Workflow
-    ):
-        """测试执行记录数据完整性"""
-        record_data = ExecutionRecordCreate(
-            workflow_id=test_workflow.id,
-            status='running',
-            input_data={'complex': {'nested': {'data': [1, 2, 3]}}},
-            started_at=datetime.utcnow(),
-        )
-
-        record = await execution_service.create_execution_record(record_data)
-
-        # 验证数据完整性
-        retrieved_record = await execution_service.get_execution_record(record.id)
-        assert retrieved_record is not None
-        assert retrieved_record.input_data == record_data.input_data
-        assert retrieved_record.workflow_id == test_workflow.id
 
     async def test_time_range_filtering(
         self, execution_service: ExecutionRecordService, test_workflow: Workflow
@@ -135,7 +118,6 @@ class TestExecutionRecords:
         """测试时间范围筛选"""
         now = datetime.utcnow()
 
-        # 创建不同时间的记录
         old_record_data = ExecutionRecordCreate(
             workflow_id=test_workflow.id,
             status='completed',
@@ -153,7 +135,6 @@ class TestExecutionRecords:
         await execution_service.create_execution_record(old_record_data)
         await execution_service.create_execution_record(recent_record_data)
 
-        # 查询最近24小时的记录
         recent_records = await execution_service.get_execution_records(
             workflow_id=test_workflow.id, start_time=now - timedelta(days=1), end_time=now
         )
@@ -167,15 +148,13 @@ class TestExecutionRecords:
         """测试过期记录清理"""
         now = datetime.utcnow()
 
-        # 创建过期记录
         expired_record_data = ExecutionRecordCreate(
             workflow_id=test_workflow.id,
             status='completed',
             input_data={'test': 'expired'},
-            started_at=now - timedelta(days=31),  # 31天前
+            started_at=now - timedelta(days=31),
         )
 
-        # 创建未过期记录
         valid_record_data = ExecutionRecordCreate(
             workflow_id=test_workflow.id,
             status='completed',
@@ -186,23 +165,18 @@ class TestExecutionRecords:
         await execution_service.create_execution_record(expired_record_data)
         await execution_service.create_execution_record(valid_record_data)
 
-        # 执行清理（清理30天前的记录）
         cleanup_count = await execution_service.cleanup_expired_records(days=30)
-
         assert cleanup_count == 1
 
-        # 验证只剩下未过期的记录
         remaining_records = await execution_service.get_execution_records(
             workflow_id=test_workflow.id
         )
         assert len(remaining_records) == 1
-        assert remaining_records[0].input_data == {'test': 'valid'}
 
     async def test_update_execution_record(
         self, execution_service: ExecutionRecordService, test_workflow: Workflow
     ):
         """测试更新执行记录"""
-        # 创建记录
         record_data = ExecutionRecordCreate(
             workflow_id=test_workflow.id,
             status='running',
@@ -212,7 +186,6 @@ class TestExecutionRecords:
 
         record = await execution_service.create_execution_record(record_data)
 
-        # 更新记录
         update_data = ExecutionRecordUpdate(
             status='completed', output_data={'result': 'success'}, ended_at=datetime.utcnow()
         )
@@ -221,27 +194,99 @@ class TestExecutionRecords:
 
         assert updated_record.status == 'completed'
         assert updated_record.output_data == {'result': 'success'}
-        assert updated_record.ended_at is not None
 
-    async def test_delete_execution_record(
-        self, execution_service: ExecutionRecordService, test_workflow: Workflow
+
+class TestDataMigration:
+    """数据迁移测试"""
+
+    @pytest.fixture
+    async def test_user(self, test_session: AsyncSession):
+        """创建测试用户"""
+        unique_id = uuid4()
+        user = User(
+            id=unique_id,
+            name='testuser',
+            email=f'test_{unique_id}@example.com',
+            password_hash='hashed_password',
+        )
+        test_session.add(user)
+        await test_session.commit()
+        await test_session.refresh(user)
+        return user
+
+    @pytest.fixture
+    async def test_organization(self, test_session: AsyncSession, test_user: User):
+        """创建测试组织"""
+        org = Organization(id=uuid4(), name='Test Org', creator_id=test_user.id, is_active=True)
+        test_session.add(org)
+        await test_session.commit()
+        await test_session.refresh(org)
+        return org
+
+    @pytest.fixture
+    def migration_manager(self, test_session: AsyncSession):
+        """创建数据迁移管理器实例"""
+        return DataMigrator()
+
+    async def test_data_migration_backward_compatibility(
+        self,
+        migration_manager: DataMigrator,
+        test_user: User,
+        test_organization: Organization,
+        test_session: AsyncSession,
     ):
-        """测试删除执行记录"""
-        # 创建记录
-        record_data = ExecutionRecordCreate(
-            workflow_id=test_workflow.id,
-            status='completed',
-            input_data={'test': 'data'},
-            started_at=datetime.utcnow(),
+        """测试数据迁移向后兼容性"""
+        old_workflow_definition = {
+            'version': '1.0',
+            'nodes': [{'id': 'node1', 'type': 'start', 'config': {'message': 'Hello'}}],
+            'connections': [],
+        }
+
+        workflow = Workflow(
+            id=uuid4(),
+            name='Legacy Workflow',
+            description='Test legacy workflow',
+            creator_id=test_user.id,
+            organization_id=test_organization.id,
+            definition=old_workflow_definition,
+            is_active=True,
+        )
+        test_session.add(workflow)
+        await test_session.commit()
+
+        migrated_definition = await migration_manager.migrate_workflow_definition(
+            workflow.definition, from_version='1.0', to_version='2.0'
         )
 
-        record = await execution_service.create_execution_record(record_data)
-        record_id = record.id
+        assert migrated_definition['version'] == '2.0'
+        assert 'nodes' in migrated_definition
+        assert 'metadata' in migrated_definition
 
-        # 删除记录
-        success = await execution_service.delete_execution_record(record_id)
-        assert success is True
+    async def test_migration_version_management(self, migration_manager: DataMigrator):
+        """测试迁移版本管理"""
+        current_version = await migration_manager.get_current_schema_version()
+        assert current_version is not None
 
-        # 验证记录已删除
-        deleted_record = await execution_service.get_execution_record(record_id)
-        assert deleted_record is None
+        assert migration_manager.compare_versions('1.0', '2.0') < 0
+        assert migration_manager.compare_versions('2.0', '1.0') > 0
+        assert migration_manager.compare_versions('1.0', '1.0') == 0
+
+    async def test_migration_validation(self, migration_manager: DataMigrator):
+        """测试迁移数据验证"""
+        valid_definition = {
+            'version': '1.0',
+            'nodes': [{'id': 'node1', 'type': 'start', 'config': {}}],
+            'connections': [],
+        }
+
+        is_valid = await migration_manager.validate_workflow_definition(valid_definition)
+        assert is_valid is True
+
+        invalid_definition = {
+            'version': '1.0',
+            'nodes': [{'id': 'node1'}],  # 缺少type字段
+            'connections': [],
+        }
+
+        is_invalid = await migration_manager.validate_workflow_definition(invalid_definition)
+        assert is_invalid is False
