@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-10 15:58:38
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-10 16:14:27
+LastEditTime: 2025-12-24 12:25:46
 FilePath: /api/app/engine/execution_context.py
 Description:Execution context management for workflow execution.
 
@@ -65,6 +65,10 @@ class ExecutionContext:
         # Execution metadata
         self.start_time = datetime.utcnow()
         self.current_node: Optional[Node] = None
+
+        # workflow connect
+        # TOOD: 正常情况下是根据 workflow id 获取，但是目前还没设计
+        self.connections = []
 
     def set_node_output(self, node_id: UUID, outputs: Dict[str, Any]) -> None:
         """

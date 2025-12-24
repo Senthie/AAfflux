@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-23 17:54:48
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-23 18:18:24
+LastEditTime: 2025-12-24 11:53:23
 FilePath: /api/app/engine/nodes/provider/ollama_node.py
 Description: Ollama Provider Node - 继承BaseNode的Ollama供应商节点
 
@@ -252,13 +252,10 @@ class OllamaNode(BaseNode):
         self.init_node_data(config)
 
         # 生成唯一的provider key
-        provider_key = f'{self.PROVIDER_KEY_PREFIX}{node.id}'
+        provider_key = f'{config.get("title", NodeTypeEnum.OLLAMA)}-{node.id}'
 
         # 将自身实例存储到context中
         context.update_global_variable(provider_key, self)
-
-        # 同时存储一个默认的provider引用（方便AgentNode获取）
-        context.update_global_variable('default_ollama_provider', self)
 
         return {
             'provider_key': provider_key,
