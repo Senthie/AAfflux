@@ -93,7 +93,7 @@ class DataMigrator:
         v1_parts.extend([0] * (max_len - len(v1_parts)))
         v2_parts.extend([0] * (max_len - len(v2_parts)))
 
-        for v1, v2 in zip(v1_parts, v2_parts):
+        for v1, v2 in zip(v1_parts, v2_parts, strict=True):
             if v1 < v2:
                 return -1
             elif v1 > v2:

@@ -407,7 +407,7 @@ class TestRealOllamaIntegration:
             target_input='input',
         )
         sorter = TopologicalSorter([ollama_config_node, agent_node], [conn])
-        sorted_nodes = sorter.sort()
+        sorter.sort()  # Execute sort but result not needed
 
         ollama_result = await ollama_node.execute(ollama_config_node, context)
         assert ollama_result['status'] == 'initialized'

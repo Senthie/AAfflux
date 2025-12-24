@@ -112,7 +112,7 @@ class TestPureLogic:
             500: 'INTERNAL_SERVER_ERROR',
         }
 
-        for status_code, error_code in error_mappings.items():
+        for status_code, _error_code in error_mappings.items():
             assert isinstance(status_code, int)
             assert status_code >= 400
 
@@ -236,7 +236,7 @@ class TestInvitationSecurity:
         assert is_valid is True
 
         user_id = uuid4()
-        for i in range(3):
+        for _i in range(3):
             rate_check = await security_manager.check_rate_limit(user_id)
             assert rate_check['allowed'] is True
             await security_manager.increment_rate_limit(user_id)

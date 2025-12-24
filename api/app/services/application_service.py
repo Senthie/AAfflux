@@ -247,7 +247,7 @@ class ApplicationService:
         statement = select(APIKey).where(
             and_(
                 APIKey.key_prefix.like(prefix_pattern),
-                APIKey.is_active == True,
+                APIKey.is_active.is_(True),
             )
         )
 
