@@ -230,7 +230,7 @@ class TestNodeExecutorRegistry:
                 return None
 
             def _get_retry_config(self):
-                from app.engine.nodes.base.entities import RetryConfig
+                from app.engine.nodes.base import RetryConfig
 
                 return RetryConfig()
 

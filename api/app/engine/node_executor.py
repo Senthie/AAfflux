@@ -1,11 +1,11 @@
 """
 Compatibility module for node executor.
 
-This module re-exports classes from app.engine.nodes.base.node
+This module re-exports classes from app.engine.nodes.base
 for backward compatibility.
 """
 
-from app.engine.nodes.base.node import (
+from app.engine.nodes.base import (
     BaseNode,
     EndNodeExecutor,
     NodeExecutionError,

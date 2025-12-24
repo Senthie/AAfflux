@@ -42,8 +42,6 @@ class StartNodeExecutor(BaseNode):
         return None
 
     def _get_retry_config(self) -> 'RetryConfig':
-        from app.engine.nodes.base.entities import RetryConfig
-
         return RetryConfig()
 
     def _get_title(self) -> str:
@@ -95,8 +93,6 @@ class EndNodeExecutor(BaseNode):
         return None
 
     def _get_retry_config(self) -> 'RetryConfig':
-        from app.engine.nodes.base.entities import RetryConfig
-
         return RetryConfig()
 
     def _get_title(self) -> str:
@@ -153,8 +149,6 @@ class PassthroughNodeExecutor(BaseNode):
         return None
 
     def _get_retry_config(self) -> 'RetryConfig':
-        from app.engine.nodes.base.entities import RetryConfig
-
         return RetryConfig()
 
     def _get_title(self) -> str:

@@ -9,7 +9,7 @@ Description: Agent 的实体类
 Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
-from app.engine.nodes.base.entities import BaseNodeData
+from app.engine.nodes.base import BaseNodeData
 
 
 class AgentNodeData(BaseNodeData):

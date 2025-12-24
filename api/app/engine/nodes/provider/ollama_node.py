@@ -18,13 +18,15 @@ import httpx
 from pydantic import BaseModel, Field
 
 from app.engine.execution_context import ExecutionContext
-from app.engine.nodes.base.emum import (
+from app.engine.nodes.base import (
+    BaseNode,
+    BaseNodeData,
     ErrorStrategy,
     NodeExecutionTypeEnum,
     NodeTypeEnum,
+    RetryConfig,
+    register_node_executor,
 )
-from app.engine.nodes.base.entities import BaseNodeData, RetryConfig
-from app.engine.nodes.base.node import BaseNode, register_node_executor
 from app.models.workflow import Node
 
 # ============ 数据模型 ============
