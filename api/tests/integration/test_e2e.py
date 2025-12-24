@@ -21,8 +21,8 @@ from app.models.tenant.organization import Organization
 from app.schemas.application import ApplicationCreate
 from app.schemas.workflow import WorkflowCreateRequest, WorkflowUpdateRequest
 from app.services.application_service import ApplicationService
-from app.services.auth_service import AuthService
 from app.services.workflow_service import WorkflowService
+from app.utils.token import generate_access_token
 
 
 class TestEndToEndIntegration:
@@ -64,9 +64,7 @@ class TestEndToEndIntegration:
     @pytest.fixture
     async def auth_token(self, test_session: AsyncSession, test_user: User):
         """生成认证令牌"""
-        auth_service = AuthService(test_session)
-        token_data = await auth_service.create_access_token(test_user.id)
-        return token_data['access_token']
+        return generate_access_token(test_user.id)
 
     async def test_database_crud_operations(
         self, test_session: AsyncSession, test_user: User, test_organization: Organization
@@ -139,12 +137,11 @@ class TestEndToEndIntegration:
         test_session.add_all([org1, org2])
         await test_session.commit()
 
-        auth_service = AuthService(test_session)
-        token1_data = await auth_service.create_access_token(user1.id)
-        token2_data = await auth_service.create_access_token(user2.id)
+        token1 = generate_access_token(user1.id)
+        token2 = generate_access_token(user2.id)
 
-        headers1 = {'Authorization': f'Bearer {token1_data["access_token"]}'}
-        headers2 = {'Authorization': f'Bearer {token2_data["access_token"]}'}
+        headers1 = {'Authorization': f'Bearer {token1}'}
+        headers2 = {'Authorization': f'Bearer {token2}'}
 
         # 用户1创建工作流
         workflow_data = {

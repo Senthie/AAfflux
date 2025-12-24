@@ -62,7 +62,7 @@ class ApplicationService:
     async def get_application(self, application_id: UUID) -> Optional[Application]:
         """获取单个应用"""
         statement = select(Application).where(
-            and_(Application.id == application_id, Application.is_deleted is not True)
+            and_(Application.id == application_id, Application.is_deleted.is_not(True))
         )
         result = await self.session.execute(statement)
         return result.scalar_one_or_none()
@@ -93,6 +93,12 @@ class ApplicationService:
         if not application:
             return False
 
+        # 撤销所有关联的 API 密钥
+        api_keys = await self.list_api_keys(application_id)
+        for api_key in api_keys:
+            api_key.is_active = False
+            self.session.add(api_key)
+
         application.is_deleted = True
         application.deleted_at = datetime.utcnow()
         application.updated_by = user_id
@@ -106,7 +112,7 @@ class ApplicationService:
         self, query: ApplicationQuery, user_id: Optional[UUID] = None
     ) -> Tuple[List[Application], int]:
         """分页查询应用列表"""
-        statement = select(Application).where(Application.is_deleted is not True)
+        statement = select(Application).where(Application.is_deleted.is_not(True))
 
         # 构建查询条件
         conditions = []
@@ -124,7 +130,7 @@ class ApplicationService:
 
         # 获取总数
         count_statement = (
-            select(func.count()).select_from(Application).where(Application.is_deleted is not True)
+            select(func.count()).select_from(Application).where(Application.is_deleted.is_not(True))
         )
         if conditions:
             count_statement = count_statement.where(and_(*conditions))

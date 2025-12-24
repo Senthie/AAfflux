@@ -1,9 +1,9 @@
 """
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-02 08:55:33
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-09 16:31:13
-FilePath: : AAfflux: api: app: services: auth_service.py
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2025-12-24 16:09:51
+FilePath: /api/app/services/auth_service.py
 Description: Authentication service for user registration, login, and token management
 
 Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
