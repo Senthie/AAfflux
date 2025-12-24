@@ -13,13 +13,14 @@ from collections.abc import Mapping
 from typing import Any, Dict
 
 from app.engine.execution_context import ExecutionContext
-from app.engine.nodes.base.emum import (
+from app.engine.nodes.base import (
+    BaseNode,
     ErrorStrategy,
     NodeExecutionTypeEnum,
     NodeTypeEnum,
+    RetryConfig,
+    register_node_executor,
 )
-from app.engine.nodes.base.entities import RetryConfig
-from app.engine.nodes.base.node import BaseNode, register_node_executor
 from app.engine.nodes.provider.ollama_node import OllamaNode
 from app.models.workflow import Node
 

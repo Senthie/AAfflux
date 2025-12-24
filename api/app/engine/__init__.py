@@ -16,7 +16,7 @@ Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from app.engine.execution_context import ExecutionContext
-from app.engine.nodes.base.node import (
+from app.engine.nodes.base import (
     BaseNode,
     NodeExecutionError,
     NodeExecutorRegistry,
