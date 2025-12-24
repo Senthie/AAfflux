@@ -7,11 +7,11 @@ FilePath: : AAfflux: api: app: utils: api_key.py
 Description:api密钥生成和验证
 """
 
-import secrets
+from datetime import datetime, timedelta
 import hashlib
 import hmac
+import secrets
 from typing import Optional, Tuple
-from datetime import datetime, timedelta
 
 
 class APIKeyGenerator:
@@ -108,10 +108,16 @@ class APIKeyValidator:
         if '_' not in api_key:
             return False
 
-        prefix, key_part = api_key.split('_', 1)
+        # 密钥格式: prefix_suffix 或 prefix_subprefix_suffix
+        # 最后一部分是64个十六进制字符的密钥
+        parts = api_key.rsplit('_', 1)
+        if len(parts) != 2:
+            return False
 
-        # 检查前缀长度
-        if len(prefix) < 2 or len(prefix) > 10:
+        prefix, key_part = parts
+
+        # 检查前缀长度（至少2个字符）
+        if len(prefix) < 2:
             return False
 
         # 检查密钥部分长度（64个十六进制字符）
