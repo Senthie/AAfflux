@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-23 17:54:48
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-24 11:53:23
+LastEditTime: 2025-12-29 12:20:29
 FilePath: /api/app/engine/nodes/provider/ollama_node.py
 Description: Ollama Provider Node - 继承BaseNode的Ollama供应商节点
 
@@ -101,7 +101,7 @@ class OllamaNode(BaseNode):
     执行后将自身实例存储到ExecutionContext中，供AgentNode调用
     """
 
-    execution_type = NodeExecutionTypeEnum.EXECUTABLE
+    execution_type = NodeExecutionTypeEnum.MODEL_PROVIDE
     _node_data: OllamaNodeData
     _client: httpx.AsyncClient | None = None
 
@@ -250,15 +250,14 @@ class OllamaNode(BaseNode):
 
         主要功能：初始化provider并存储到context中供其他节点使用
         """
-        config = node.config
-        self.init_node_data(config)
+        self.init_node_data(node.config)
 
         # 生成唯一的provider key
-        provider_key = f'{config.get("title", NodeTypeEnum.OLLAMA)}-{node.id}'
+        provider_key = f'{self._node_data.title}'
 
         # 将自身实例存储到context中
         context.update_global_variable(provider_key, self)
-
+        context.set_node_output(node, {'provider_key': provider_key})
         return {
             'provider_key': provider_key,
             'model': self._node_data.model,
@@ -270,7 +269,7 @@ class OllamaNode(BaseNode):
 
     @staticmethod
     def get_provider_from_context(
-        context: ExecutionContext, provider_key: str | None = None
+        context: ExecutionContext, node_title: str | None = None
     ) -> 'OllamaNode | None':
         """
         从context中获取OllamaNode实例
@@ -282,8 +281,8 @@ class OllamaNode(BaseNode):
         Returns:
             OllamaNode实例或None
         """
-        if provider_key:
-            provider = context.get_global_variable(provider_key)
+        if node_title:
+            provider = context.get_global_variable(node_title)
         else:
             provider = context.get_global_variable('default_ollama_provider')
 
