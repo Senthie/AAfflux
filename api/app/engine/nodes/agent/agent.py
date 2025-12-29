@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-23 15:27:46
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-24 15:16:59
+LastEditTime: 2025-12-29 12:30:05
 FilePath: /api/app/engine/nodes/agent/agent.py
 Description: Agent Node - LLM代理节点
 
@@ -23,6 +23,7 @@ from app.engine.nodes.base import (
 )
 from app.engine.nodes.provider.ollama_node import OllamaNode
 from app.models.workflow import Node
+from app.utils.json_path import JsonPathUtil
 
 from .entities import AgentNodeData
 
@@ -50,7 +51,7 @@ class AgentNode(BaseNode):
 
     def init_node_data(self, data: Mapping[str, Any]):
         """数据初始化"""
-        self._node_data = AgentNodeData.model_validate(data)
+        self._node_data: AgentNodeData = AgentNodeData.model_validate(data)
 
     def _get_error_strategy(self) -> ErrorStrategy | None:
         return self._node_data.error_strategy if self._node_data else None
@@ -103,23 +104,68 @@ class AgentNode(BaseNode):
             result['raw_content'] = content
         return result
 
+    def _find_provider_from_connections(
+        self, node: Node, context: ExecutionContext
+    ) -> OllamaNode | None:
+        """
+        从连接关系中查找 provider 节点
+
+        Args:
+            node: 当前节点
+            context: 执行上下文
+
+        Returns:
+            OllamaNode 实例或 None
+        """
+        # 1. 从 context 获取节点连接关系
+        connections = context.get_connections()
+        if not connections:
+            return None
+
+        # 2. 查询当前 node 的入边 (target_node_id == node.id 的连接)
+        incoming_connections = [conn for conn in connections if conn.target_node_id == node.id]
+
+        if not incoming_connections:
+            return None
+
+        # 3. 遍历入边，查找 provider 节点
+        for conn in incoming_connections:
+            source_node_id = conn.source_node_id
+
+            # 从 node_outputs 中获取源节点的输出
+            node_outputs = context.node_outputs.get('outputs', {})
+
+            for _, node_data in node_outputs.items():
+                node_info = node_data.get('node', {})
+                outputs = node_data.get('outputs', {})
+
+                # 检查是否是源节点且包含 provider_key
+                if node_info.get('id') == str(source_node_id) and 'provider_key' in outputs:
+                    provider_key = outputs['provider_key']
+                    provider = context.get_global_variable(provider_key)
+
+                    return provider
+
+        return None
+
     async def execute(self, node: Node, context: ExecutionContext) -> Dict[str, Any]:
         """执行Agent节点"""
         config = node.config
-        inputs = context.get_node_input(node, [])
-
         # 初始化节点数据
         self.init_node_data(config)
 
-        # 从context获取模型供应商的请求实例
-        provider_key = config.get('provider_key')  # 可指定特定的provider
-        provider = OllamaNode.get_provider_from_context(context, provider_key)
+        # 从连接关系中查找 provider
+        provider = self._find_provider_from_connections(node, context)
+
+        # 如果仍未找到，尝试获取默认 provider
+        if not provider:
+            provider = OllamaNode.get_provider_from_context(context, None)
 
         if not provider:
             return {
                 'content': '',
                 'extracted': {},
-                'error': '未找到Ollama Provider，请确保OllamaNode已在工作流中执行',
+                'error': '未找到Ollama Provider，请确保OllamaNode已在工作流中执行并正确连接',
             }
 
         # 从context获取消息缓存实例
@@ -127,24 +173,32 @@ class AgentNode(BaseNode):
         max_messages = config.get('memory', {}).get('max_messages', 50)
         message_cache = OllamaNode.get_message_cache_from_context(context, cache_key, max_messages)
 
+        # 添加系统消息（如果配置了且缓存为空）
+        system_prompt = config.get('system_prompt')
+        if system_prompt and not message_cache.get_messages():
+            # 系统消息也支持表达式解析
+            if config.get('system_prompt_is_expr', False):
+                exprs = JsonPathUtil.get_exprs(system_prompt)
+                for expr in exprs:
+                    value = context.get_node_output(expr.expr)
+                    system_prompt = system_prompt.replace(expr, str(value), 1)
+            message_cache.add_system_message(system_prompt)
+
         # 获取结构化输出schema
         output_schema = self._get_structured_output_schema(config)
 
         # 获取提示词配置
-        system_prompt = config.get('system_prompt', '')
-        user_prompt_template = config.get('user_prompt', '{input}')
+        prompt = self._node_data.prompt
 
-        # 渲染用户提示词
-        user_prompt = user_prompt_template
-        for key, value in inputs.items():
-            user_prompt = user_prompt.replace(f'{{{key}}}', str(value))
+        # 判断提示词是否是表达式
+        if self._node_data.prompt_is_expr:
+            exprs = JsonPathUtil.get_exprs(prompt)
+            for expr in exprs:
+                value = context.get_node_output(expr.expr)
+                prompt = prompt.replace(expr, str(value), 1)
 
         # 将结构化输出字符串添加进提示词的最后
-        user_prompt = self._build_prompt_with_schema(user_prompt, output_schema)
-
-        # 构建消息
-        if system_prompt and not any(m.role == 'system' for m in message_cache.get_messages()):
-            message_cache.add_system_message(system_prompt)
+        user_prompt = self._build_prompt_with_schema(prompt, output_schema)
 
         message_cache.add_user_message(user_prompt)
 
@@ -166,16 +220,22 @@ class AgentNode(BaseNode):
             extraction_pattern = config.get('extraction_pattern')
             extracted_output = self._extract_output(content, extraction_pattern)
 
-            return {
+            # 设置节点输出到 context
+            result = {
                 'content': content,
                 'extracted': extracted_output,
                 'model': provider._node_data.model if provider._node_data else 'unknown',
                 'usage': response.get('usage', {}),
             }
+            context.set_node_output(node, result)
+
+            return result
 
         except Exception as e:
-            return {
+            error_result = {
                 'content': '',
                 'extracted': {},
                 'error': f'Agent执行失败: {str(e)}',
             }
+            context.set_node_output(node, error_result)
+            return error_result
