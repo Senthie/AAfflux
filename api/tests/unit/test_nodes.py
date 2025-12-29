@@ -20,6 +20,9 @@ import pytest
 
 from app.engine.execution_context import ExecutionContext
 from app.engine.nodes.agent.agent import AgentNode
+from app.engine.nodes.base import (
+    NodeExecutionTypeEnum,
+)
 from app.engine.nodes.code_node import CodeNodeExecutor
 from app.engine.nodes.condition_node import ConditionNodeExecutor
 from app.engine.nodes.ollama_node import OllamaNodeExecutor
@@ -209,6 +212,7 @@ class TestAgentNode:
             'agent_strategy_provider_name': 'ollama',
             'agent_strategy_name': 'chat',
             'agent_strategy_label': 'Noe',
+            'prompt': 'Hello, {{name}}!',
         }
         agent.init_node_data(data)
         assert agent._node_data.title == 'Test Agent'
@@ -232,7 +236,7 @@ class TestAgentNode:
                 'title': 'Agent',
                 'agent_strategy_provider_name': 'ollama',
                 'agent_strategy_name': 'chat',
-                'agent_strategy_label': 'Noe',
+                'agent_strategy_label': 'None',
             },
         )
         result = await agent.execute(node, context)
@@ -370,10 +374,10 @@ class TestRealOllamaIntegration:
         ollama_config_node = Node(
             id=uuid4(),
             workflow_id=workflow.id,
-            type='OLLAMA',
+            type=NodeExecutionTypeEnum.MODEL_PROVIDE.value,
             name='Real Ollama Provider',
             config={
-                'title': 'Ollama',
+                'title': 'Real Ollama Provider',
                 'base_url': OLLAMA_BASE_URL,
                 'api_key': OLLAMA_API_KEY,
                 'model': OLLAMA_MODEL_ID,
@@ -385,15 +389,14 @@ class TestRealOllamaIntegration:
         agent_node = Node(
             id=uuid4(),
             workflow_id=workflow.id,
-            type='LLM',
+            type=NodeExecutionTypeEnum.EXECUTABLE.value,
             name='Math Agent',
             config={
                 'title': 'Math Agent',
                 'agent_strategy_provider_name': 'ollama',
                 'agent_strategy_name': 'math_chat',
                 'agent_strategy_label': 'Noe',
-                'system_prompt': '你是一个数学助手，请简洁回答问题。',
-                'user_prompt': '{question}',
+                'prompt': '你是一个数学助手，请简洁回答问题。\n1+1=',
                 'temperature': 0.1,
             },
         )
@@ -406,13 +409,16 @@ class TestRealOllamaIntegration:
             source_output='output',
             target_input='input',
         )
+        context.set_connections([conn])
+
         sorter = TopologicalSorter([ollama_config_node, agent_node], [conn])
         sorter.sort()  # Execute sort but result not needed
+
+        context.set_adjacency_list(sorter._adjacency_list)
 
         ollama_result = await ollama_node.execute(ollama_config_node, context)
         assert ollama_result['status'] == 'initialized'
 
-        agent_node.config['provider_key'] = ollama_result['provider_key']
         result = await agent.execute(agent_node, context)
 
         assert 'error' not in result
