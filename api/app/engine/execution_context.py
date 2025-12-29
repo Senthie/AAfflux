@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-10 15:58:38
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-24 12:25:46
+LastEditTime: 2025-12-29 12:27:00
 FilePath: /api/app/engine/execution_context.py
 Description:Execution context management for workflow execution.
 
@@ -16,7 +16,15 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Set
 from uuid import UUID
 
-from app.models.workflow.workflow import ExecutionRecord, Node, NodeExecutionResult, Workflow
+from jsonpath_ng import parse
+
+from app.models.workflow.workflow import (
+    Connection,
+    ExecutionRecord,
+    Node,
+    NodeExecutionResult,
+    Workflow,
+)
 
 
 class ExecutionContext:
@@ -54,27 +62,28 @@ class ExecutionContext:
         self.initial_inputs = initial_inputs.copy()
 
         # Node execution state
-        self.node_outputs: Dict[UUID, Dict[str, Any]] = {}
+        self.node_outputs: Dict[UUID, Dict[str, Any]] = {'outputs': {}}
         self.node_results: Dict[UUID, NodeExecutionResult] = {}
         self.completed_nodes: Set[UUID] = set()
         self.failed_nodes: Set[UUID] = set()
 
         # Global variables available to all nodes
-        self.global_variables: Dict[str, Any] = initial_inputs.copy()
+        self.global_variables: Dict[str, Any] = {'init': initial_inputs.copy()}
 
-        # Execution metadata
+        # Execution metadata 执行元数据
         self.start_time = datetime.utcnow()
         self.current_node: Optional[Node] = None
 
         # workflow connect
-        # TOOD: 正常情况下是根据 workflow id 获取，但是目前还没设计
         self.connections = []
 
-    def set_node_output(self, node_id: UUID, outputs: Dict[str, Any]) -> None:
+        self.adjacency_list: Dict[UUID, List[UUID]] = []
+
+    def set_node_output(self, node: Node, outputs: Dict[str, Any]) -> None:
         """
         Set the output data for a node.
         Args:
-            node_id: ID of the node
+            node: 当前运行的node节点
             outputs: Output data from the node
 
         设置节点的输出数据。
@@ -82,26 +91,33 @@ class ExecutionContext:
             node_id：节点的ID
             outputs：节点的输出数据
         """
-        self.node_outputs[node_id] = outputs.copy()
+        # 获取node 的原始数据
+        node_title = node.name
 
-        # Update global variables with node outputs
-        # Use node name as prefix to avoid conflicts
-        node_result = self.node_results.get(node_id)
-        if node_result:
-            node_name = self._get_node_name(node_id)
-            for key, value in outputs.items():
-                self.global_variables[f'{node_name}.{key}'] = value
+        _node = {
+            'outputs': outputs,
+            'node': node.to_dict(),
+        }
+        # 以 output 为根节点，设置返回值
+        self.node_outputs['outputs'][node_title] = _node
 
-    def get_node_output(self, node_id: UUID) -> Dict[str, Any]:
+    def get_node_output(self, expr: str) -> Dict[str, Any] | str | int:
         """Get the output data for a node.
 
         Args:
-            node_id: ID of the node
+            expr: jsonpath 的语法格式
 
         Returns:
-            Output data from the node, or empty dict if not found
+            返回对应的json path 解析后的数据
+
+        example:
+
+
         """
-        return self.node_outputs.get(node_id, {})
+        jsonpath_expr = parse(expr)
+        for match in jsonpath_expr.find(expr):
+            return match.value
+        return None
 
     def get_node_input(self, node: Node, connections: List[Any]) -> Dict[str, Any]:
         """Get input data for a node based on its connections.
@@ -278,3 +294,35 @@ class ExecutionContext:
             'failed_nodes': [str(node_id) for node_id in self.failed_nodes],
             'execution_summary': self.get_execution_summary(),
         }
+
+    def get_connections(self) -> List[Connection]:
+        """Get the connections in the workflow.
+
+        Returns:
+            List of connections
+        """
+        return self.connections
+
+    def set_connections(self, connections: List[Connection]) -> None:
+        """Set the connections in the workflow.
+
+        Args:
+            connections: List of connections
+        """
+        self.connections = connections
+
+    def get_adjacency_list(self) -> Dict[UUID, List[UUID]]:
+        """Get the adjacency list of the workflow.
+
+        Returns:
+            Dictionary representing the adjacency list
+        """
+        return self.adjacency_list
+
+    def set_adjacency_list(self, adjacency_list: Dict[UUID, List[UUID]]) -> None:
+        """Set the adjacency list of the workflow.
+
+        Args:
+            adjacency_list: Dictionary representing the adjacency list
+        """
+        self.adjacency_list = adjacency_list
