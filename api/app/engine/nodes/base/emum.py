@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-23 14:52:34
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-24 14:52:20
+LastEditTime: 2025-12-29 11:01:14
 FilePath: /api/app/engine/nodes/base/emum.py
 Description: node 类的相关的节点类型
 
@@ -45,6 +45,8 @@ class NodeExecutionTypeEnum(StrEnum):
 
     # 可作为执行入口点的节点
     ROOT = 'root'  # Nodes that can serve as execution entry points
+
+    MODEL_PROVIDE = 'model-provide'  # Model provide nodes
 
 
 class ErrorStrategy(StrEnum):
