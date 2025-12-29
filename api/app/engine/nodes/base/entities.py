@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-23 15:29:15
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-24 16:51:15
+LastEditTime: 2025-12-29 11:59:10
 FilePath: /api/app/engine/nodes/base/entities.py
 Description: node 的简单的基类
 
