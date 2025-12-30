@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-24 16:24:52
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-29 11:55:34
+LastEditTime: 2025-12-29 17:10:56
 FilePath: /api/app/models/workflow/workflow.py
 Description:工作流模型 - 5张表。
     本模块定义了DAG工作流相关的数据模型：
@@ -82,23 +82,6 @@ class Node(BaseModel, SoftDeleteMixin, table=True):
     name: str = Field(max_length=255)
     config: dict = Field(default_factory=dict, sa_column=Column(JSONB))
     position: dict = Field(default_factory=dict, sa_column=Column(JSONB))  # {x, y}
-
-    def to_dict(self) -> dict:
-        """将节点转换为字典格式。
-
-        Returns:
-            dict: 包含节点所有属性的字典
-        """
-        return {
-            'id': str(self.id),
-            'workflow_id': str(self.workflow_id),
-            'type': self.type,
-            'name': self.name,
-            'config': self.config,
-            'position': self.position,
-            'is_deleted': self.is_deleted,
-            'deleted_at': self.deleted_at.isoformat() if self.deleted_at else None,
-        }
 
 
 class Connection(BaseModel, table=True):
