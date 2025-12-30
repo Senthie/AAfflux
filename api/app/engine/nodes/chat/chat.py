@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-29 14:51:19
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-29 17:53:22
+LastEditTime: 2025-12-30 09:51:42
 FilePath: /api/app/engine/nodes/chat/chat.py
 Description: chat 对话节点
 
@@ -10,7 +10,6 @@ Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from collections.abc import Mapping
-import datetime
 from typing import Any, Dict
 
 from app.engine.execution_context import ExecutionContext
@@ -22,10 +21,8 @@ from app.engine.nodes.base import (
     RetryConfig,
     register_node_executor,
 )
-from app.engine.nodes.base.emum import NodeExecutionResultStatusEnum
 from app.engine.nodes.chat.entities import ChatNodeData
 from app.models.workflow import Node
-from app.models.workflow.workflow import NodeExecutionResult
 
 
 @register_node_executor(NodeTypeEnum.CHAT)
@@ -64,22 +61,8 @@ class ChatNode(BaseNode):
         required_fields = ['agent_strategy_name']
         return all(field in config for field in required_fields)
 
-    def execute(self, node: Node, context: ExecutionContext):
+    def execute(self, node: Node, context: ExecutionContext) -> Dict[str, Any]:
         # 记录运行时间
-        start = datetime.datetime.now().timestamp() * 1000
         self.init_node_data(node.config)
 
-        end_time = datetime.datetime.now().timestamp() * 1000
-
-        node_execution_result = NodeExecutionResult.model_validate(
-            {
-                'execution_record_id': context.execution_record.id,
-                'node_id': node.id,
-                'status': NodeExecutionResultStatusEnum.SUCCESS,
-                'inputs': node.to_dict(),
-                'outputs': {'prompt': self._node_data.prompt},
-                'duration_ms': int(end_time - start),
-            }
-        )
-        context.set_node_result(node_execution_result)
         return {'prompt': self._node_data.prompt}

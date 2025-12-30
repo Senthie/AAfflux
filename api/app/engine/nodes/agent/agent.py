@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-23 15:27:46
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-29 12:30:05
+LastEditTime: 2025-12-30 10:08:58
 FilePath: /api/app/engine/nodes/agent/agent.py
 Description: Agent Node - LLM代理节点
 
@@ -144,7 +144,8 @@ class AgentNode(BaseNode):
                     provider_key = outputs['provider_key']
                     provider = context.get_global_variable(provider_key)
 
-                    return provider
+                    if isinstance(provider, OllamaNode):
+                        return provider
 
         return None
 
@@ -155,7 +156,7 @@ class AgentNode(BaseNode):
         self.init_node_data(config)
 
         # 从连接关系中查找 provider
-        provider = self._find_provider_from_connections(node, context)
+        provider: OllamaNode | None = self._find_provider_from_connections(node, context)
 
         # 如果仍未找到，尝试获取默认 provider
         if not provider:
