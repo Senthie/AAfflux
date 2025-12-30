@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-23 14:52:34
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-29 11:01:14
+LastEditTime: 2025-12-29 16:19:54
 FilePath: /api/app/engine/nodes/base/emum.py
 Description: node 类的相关的节点类型
 
@@ -23,6 +23,7 @@ class NodeTypeEnum(StrEnum):
     LLM = 'llm'
     AGENT = 'agent'
     OLLAMA = 'ollama'
+    CHAT = 'chat'
 
 
 class NodeExecutionTypeEnum(StrEnum):
@@ -56,3 +57,14 @@ class ErrorStrategy(StrEnum):
 
     FAIL_BRANCH = 'fail-branch'
     DEFAULT_VALUE = 'default-value'
+
+
+class NodeExecutionResultStatusEnum(StrEnum):
+    """
+    节点执行结果状态。
+    """
+
+    SUCCESS = 'success'
+    ERROR = 'error'
+    TIMEOUT = 'timeout'
+    UNKNOWN = 'unknown'
