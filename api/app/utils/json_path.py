@@ -44,6 +44,6 @@ class JsonPathUtil:
             expr_content = expr_content.strip()
 
             # 构建结果项
-            result.append({'index': match.start(), 'org_name': full_match, 'expr': expr_content})
+            result.append(Expr(index=match.start(), org_name=full_match, expr=expr_content))
 
         return result
