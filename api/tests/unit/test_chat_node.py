@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-29 17:20:58
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-30 08:55:45
+LastEditTime: 2025-12-30 11:02:18
 FilePath: /api/tests/unit/test_chat_node.py
 Description: 测试 chat node 是否如期运行
 
@@ -79,3 +79,5 @@ class TestChatNode:
         assert result is not None, 'ChatNode should return a result'
         assert isinstance(result, dict), 'ChatNode should return a dictionary'
         assert result.get('prompt') == '1 + 1 = ?', 'ChatNode should return the correct prompt'
+        result = executor.execute_with_result(chat_node, context, [])
+        assert result is not None, 'ChatNode should return a result'
