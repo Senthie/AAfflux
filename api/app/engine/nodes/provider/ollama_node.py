@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-23 17:54:48
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-29 12:20:29
+LastEditTime: 2025-12-30 14:32:25
 FilePath: /api/app/engine/nodes/provider/ollama_node.py
 Description: Ollama Provider Node - 继承BaseNode的Ollama供应商节点
 
@@ -110,7 +110,6 @@ class OllamaNode(BaseNode):
 
     def __init__(self):
         super().__init__()
-        self._node_data = None
         self._client = None
 
     @classmethod
@@ -257,7 +256,6 @@ class OllamaNode(BaseNode):
 
         # 将自身实例存储到context中
         context.update_global_variable(provider_key, self)
-        context.set_node_output(node, {'provider_key': provider_key})
         return {
             'provider_key': provider_key,
             'model': self._node_data.model,

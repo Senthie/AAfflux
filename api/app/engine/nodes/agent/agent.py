@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-23 15:27:46
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-30 10:08:58
+LastEditTime: 2025-12-30 14:38:15
 FilePath: /api/app/engine/nodes/agent/agent.py
 Description: Agent Node - LLM代理节点
 
@@ -136,11 +136,10 @@ class AgentNode(BaseNode):
             node_outputs = context.node_outputs.get('outputs', {})
 
             for _, node_data in node_outputs.items():
-                node_info = node_data.get('node', {})
                 outputs = node_data.get('outputs', {})
 
                 # 检查是否是源节点且包含 provider_key
-                if node_info.get('id') == str(source_node_id) and 'provider_key' in outputs:
+                if node_data.get('id') == str(source_node_id) and 'provider_key' in outputs:
                     provider_key = outputs['provider_key']
                     provider = context.get_global_variable(provider_key)
 
@@ -182,7 +181,7 @@ class AgentNode(BaseNode):
                 exprs = JsonPathUtil.get_exprs(system_prompt)
                 for expr in exprs:
                     value = context.get_node_output(expr.expr)
-                    system_prompt = system_prompt.replace(expr, str(value), 1)
+                    system_prompt = system_prompt.replace(expr.org_name, str(value), 1)
             message_cache.add_system_message(system_prompt)
 
         # 获取结构化输出schema
@@ -196,7 +195,7 @@ class AgentNode(BaseNode):
             exprs = JsonPathUtil.get_exprs(prompt)
             for expr in exprs:
                 value = context.get_node_output(expr.expr)
-                prompt = prompt.replace(expr, str(value), 1)
+                prompt = prompt.replace(expr.org_name, str(value), 1)
 
         # 将结构化输出字符串添加进提示词的最后
         user_prompt = self._build_prompt_with_schema(prompt, output_schema)
@@ -228,8 +227,6 @@ class AgentNode(BaseNode):
                 'model': provider._node_data.model if provider._node_data else 'unknown',
                 'usage': response.get('usage', {}),
             }
-            context.set_node_output(node, result)
-
             return result
 
         except Exception as e:
@@ -238,5 +235,4 @@ class AgentNode(BaseNode):
                 'extracted': {},
                 'error': f'Agent执行失败: {str(e)}',
             }
-            context.set_node_output(node, error_result)
             return error_result
