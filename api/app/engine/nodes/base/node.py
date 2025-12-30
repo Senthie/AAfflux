@@ -13,13 +13,15 @@ Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from collections.abc import Mapping
-from typing import Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
-from app.engine.execution_context import ExecutionContext
 from app.engine.nodes.base.emum import ErrorStrategy
 from app.engine.nodes.base.entities import BaseNode, RetryConfig
 from app.engine.nodes.base.registry import register_node_executor
 from app.models.workflow.workflow import Node
+
+if TYPE_CHECKING:
+    from app.engine.execution_context import ExecutionContext
 
 
 # Basic node executors for common types
@@ -50,7 +52,7 @@ class StartNodeExecutor(BaseNode):
     def _get_description(self) -> Optional[str]:
         return None
 
-    async def execute(self, node: Node, context: ExecutionContext) -> Dict[str, Any]:
+    async def execute(self, node: Node, context: 'ExecutionContext') -> Dict[str, Any]:
         """Execute start node by returning initial inputs.
 
         Args:
@@ -101,7 +103,7 @@ class EndNodeExecutor(BaseNode):
     def _get_description(self) -> Optional[str]:
         return None
 
-    async def execute(self, node: Node, context: ExecutionContext) -> Dict[str, Any]:
+    async def execute(self, node: Node, context: 'ExecutionContext') -> Dict[str, Any]:
         """Execute end node by collecting inputs as final outputs.
 
         Args:
@@ -157,7 +159,7 @@ class PassthroughNodeExecutor(BaseNode):
     def _get_description(self) -> Optional[str]:
         return None
 
-    async def execute(self, node: Node, context: ExecutionContext) -> Dict[str, Any]:
+    async def execute(self, node: Node, context: 'ExecutionContext') -> Dict[str, Any]:
         """Execute passthrough node by returning inputs unchanged.
 
         Args:
