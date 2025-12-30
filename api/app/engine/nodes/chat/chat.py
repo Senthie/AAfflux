@@ -1,0 +1,85 @@
+"""
+Author: Senthie seemoon2077@gmail.com
+Date: 2025-12-29 14:51:19
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2025-12-29 17:53:22
+FilePath: /api/app/engine/nodes/chat/chat.py
+Description: chat 对话节点
+
+Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
+"""
+
+from collections.abc import Mapping
+import datetime
+from typing import Any, Dict
+
+from app.engine.execution_context import ExecutionContext
+from app.engine.nodes.base import (
+    BaseNode,
+    ErrorStrategy,
+    NodeExecutionTypeEnum,
+    NodeTypeEnum,
+    RetryConfig,
+    register_node_executor,
+)
+from app.engine.nodes.base.emum import NodeExecutionResultStatusEnum
+from app.engine.nodes.chat.entities import ChatNodeData
+from app.models.workflow import Node
+from app.models.workflow.workflow import NodeExecutionResult
+
+
+@register_node_executor(NodeTypeEnum.CHAT)
+class ChatNode(BaseNode):
+    """
+    chat 对话节点
+    用于对话
+
+    """
+
+    execution_type = NodeExecutionTypeEnum.ROOT
+    _node_data: ChatNodeData
+
+    @classmethod
+    def version(cls) -> str:
+        """返回节点版本号"""
+        return '1'
+
+    def init_node_data(self, data: Mapping[str, Any]):
+        """数据初始化"""
+        self._node_data: ChatNodeData = ChatNodeData.model_validate(data)
+
+    def _get_error_strategy(self) -> ErrorStrategy | None:
+        return self._node_data.error_strategy if self._node_data else None
+
+    def _get_retry_config(self) -> RetryConfig:
+        return self._node_data.retry_config if self._node_data else RetryConfig()
+
+    def _get_title(self) -> str:
+        return self._node_data.title if self._node_data else 'Agent'
+
+    def _get_description(self) -> str | None:
+        return self._node_data.desc if self._node_data else None
+
+    def validate_config(self, config: Dict[str, Any]) -> bool:
+        required_fields = ['agent_strategy_name']
+        return all(field in config for field in required_fields)
+
+    def execute(self, node: Node, context: ExecutionContext):
+        # 记录运行时间
+        start = datetime.datetime.now().timestamp() * 1000
+        self.init_node_data(node.config)
+
+        end_time = datetime.datetime.now().timestamp() * 1000
+
+        node_execution_result = NodeExecutionResult.model_validate(
+            {
+                'execution_record_id': context.execution_record.id,
+                'node_id': node.id,
+                'status': NodeExecutionResultStatusEnum.SUCCESS,
+                'inputs': node.to_dict(),
+                'outputs': {'prompt': self._node_data.prompt},
+                'duration_ms': int(end_time - start),
+            }
+        )
+        context.set_node_result(node_execution_result)
+        return {'prompt': self._node_data.prompt}
