@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-29 14:51:19
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-30 09:51:42
+LastEditTime: 2025-12-30 12:23:04
 FilePath: /api/app/engine/nodes/chat/chat.py
 Description: chat 对话节点
 
@@ -61,8 +61,7 @@ class ChatNode(BaseNode):
         required_fields = ['agent_strategy_name']
         return all(field in config for field in required_fields)
 
-    def execute(self, node: Node, context: ExecutionContext) -> Dict[str, Any]:
+    async def execute(self, node: Node, context: ExecutionContext) -> Dict[str, Any]:
         # 记录运行时间
         self.init_node_data(node.config)
-
         return {'prompt': self._node_data.prompt}
