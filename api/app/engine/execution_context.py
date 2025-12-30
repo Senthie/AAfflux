@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-10 15:58:38
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-29 17:19:11
+LastEditTime: 2025-12-30 14:22:13
 FilePath: /api/app/engine/execution_context.py
 Description:Execution context management for workflow execution.
 
@@ -97,16 +97,16 @@ class ExecutionContext:
             # 获取node 的原始数据
             node_title = node.name
 
-            _node = {
-                'outputs': outputs,
-                'node': node.to_dict(),
-            }
+            _node = node.to_dict()
+
         else:
             node_title: str = node.get('name', 'unknown')
-            _node = {
-                'outputs': outputs,
-                'node': node,
-            }
+            _node = node
+
+        _node['outputs'] = outputs
+        # 对 node_title 将空格替换为下划线
+        node_title = node_title.replace(' ', '_')
+
         # 以 output 为根节点，设置返回值
         self.node_outputs['outputs'][node_title] = _node
 
@@ -120,11 +120,11 @@ class ExecutionContext:
             返回对应的json path 解析后的数据
 
         example:
-
-
         """
+        # 将空格替换为下划线
+        expr = expr.replace(' ', '_')
         jsonpath_expr = parse(expr)
-        for match in jsonpath_expr.find(expr):
+        for match in jsonpath_expr.find(self.node_outputs):
             return match.value
         return None
 
