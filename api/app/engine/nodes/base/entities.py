@@ -15,14 +15,16 @@ from collections.abc import Mapping
 from datetime import datetime
 from enum import StrEnum
 import json
-from typing import Any, Dict, Union
+from typing import TYPE_CHECKING, Any, Dict, Union
 
 from pydantic import BaseModel, model_validator
 
-from app.engine.execution_context import ExecutionContext
 from app.engine.nodes.base.emum import ErrorStrategy, NodeExecutionTypeEnum
 from app.engine.nodes.base.exc import DefaultValueTypeError, NodeExecutionError
 from app.models.workflow.workflow import Node, NodeExecutionResult
+
+if TYPE_CHECKING:
+    from app.engine.execution_context import ExecutionContext
 
 _NumberType = Union[int, float]
 
@@ -188,7 +190,7 @@ class BaseNode(ABC):
         ...
 
     @abstractmethod
-    async def execute(self, node: Node, context: ExecutionContext) -> Dict[str, Any]:
+    async def execute(self, node: Node, context: 'ExecutionContext') -> Dict[str, Any]:
         """Execute a node and return its outputs.
 
         Args:
@@ -232,7 +234,7 @@ class BaseNode(ABC):
         return {}
 
     async def execute_with_result(
-        self, node: Node, context: ExecutionContext, connections: list
+        self, node: Node, context: 'ExecutionContext', connections: list
     ) -> NodeExecutionResult:
         """Execute a node and create a NodeExecutionResult.
 
