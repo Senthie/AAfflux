@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-10 15:58:38
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-29 12:27:00
+LastEditTime: 2025-12-29 17:19:11
 FilePath: /api/app/engine/execution_context.py
 Description:Execution context management for workflow execution.
 
@@ -18,6 +18,7 @@ from uuid import UUID
 
 from jsonpath_ng import parse
 
+from app.engine.nodes.base.emum import NodeExecutionResultStatusEnum
 from app.models.workflow.workflow import (
     Connection,
     ExecutionRecord,
@@ -62,7 +63,7 @@ class ExecutionContext:
         self.initial_inputs = initial_inputs.copy()
 
         # Node execution state
-        self.node_outputs: Dict[UUID, Dict[str, Any]] = {'outputs': {}}
+        self.node_outputs: Dict[str, Dict[str, Dict[str, Any]]] = {'outputs': {}}
         self.node_results: Dict[UUID, NodeExecutionResult] = {}
         self.completed_nodes: Set[UUID] = set()
         self.failed_nodes: Set[UUID] = set()
@@ -77,9 +78,9 @@ class ExecutionContext:
         # workflow connect
         self.connections = []
 
-        self.adjacency_list: Dict[UUID, List[UUID]] = []
+        self.adjacency_list: Dict[UUID, List[UUID]] = {}
 
-    def set_node_output(self, node: Node, outputs: Dict[str, Any]) -> None:
+    def set_node_output(self, node: Node | dict, outputs: Dict[str, Any]) -> None:
         """
         Set the output data for a node.
         Args:
@@ -91,17 +92,25 @@ class ExecutionContext:
             node_id：节点的ID
             outputs：节点的输出数据
         """
-        # 获取node 的原始数据
-        node_title = node.name
+        # 判断 node 的类型
+        if isinstance(node, Node):
+            # 获取node 的原始数据
+            node_title = node.name
 
-        _node = {
-            'outputs': outputs,
-            'node': node.to_dict(),
-        }
+            _node = {
+                'outputs': outputs,
+                'node': node.to_dict(),
+            }
+        else:
+            node_title: str = node.get('name', 'unknown')
+            _node = {
+                'outputs': outputs,
+                'node': node,
+            }
         # 以 output 为根节点，设置返回值
         self.node_outputs['outputs'][node_title] = _node
 
-    def get_node_output(self, expr: str) -> Dict[str, Any] | str | int:
+    def get_node_output(self, expr: str) -> Dict[str, Any] | str | int | None:
         """Get the output data for a node.
 
         Args:
@@ -137,7 +146,11 @@ class ExecutionContext:
                 source_outputs = self.get_node_output(connection.source_node_id)
 
                 # Map source output to target input
-                if connection.source_output in source_outputs:
+                if (
+                    source_outputs
+                    and isinstance(source_outputs, dict)
+                    and connection.source_output in source_outputs
+                ):
                     inputs[connection.target_input] = source_outputs[connection.source_output]
 
         # If no connections, use global variables for root nodes
@@ -154,11 +167,12 @@ class ExecutionContext:
         """
         self.node_results[node_result.node_id] = node_result
 
-        if node_result.status == 'SUCCESS':
+        if node_result.status == NodeExecutionResultStatusEnum.SUCCESS:
             self.completed_nodes.add(node_result.node_id)
             # Set outputs if successful
             if node_result.outputs:
-                self.set_node_output(node_result.node_id, node_result.outputs)
+                # 使用 node_id 构建一个简单的 node 字典
+                self.set_node_output(node_result.inputs, node_result.outputs)
         elif node_result.status == 'FAILED':
             self.failed_nodes.add(node_result.node_id)
 
