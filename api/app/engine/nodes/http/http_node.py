@@ -18,15 +18,19 @@ from app.engine.nodes.base import (
     RetryConfig,
     register_node_executor,
 )
+from app.engine.nodes.base.emum import NodeExecutionTypeEnum, NodeTypeEnum
+from app.engine.nodes.http.entities import HttpNodeData
 from app.models.workflow.workflow import Node
 
 
-@register_node_executor('HTTP')
+@register_node_executor(NodeTypeEnum.HTTP)
 class HTTPNodeExecutor(BaseNode):
     """Executor for HTTP nodes that make HTTP requests."""
 
     # Supported HTTP methods
     SUPPORTED_METHODS = {'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'}
+    _node_data: HttpNodeData
+    execution_type = NodeExecutionTypeEnum.EXECUTABLE
 
     def __init__(self):
         """Initialize the HTTP node executor."""
@@ -37,7 +41,7 @@ class HTTPNodeExecutor(BaseNode):
         return '1'
 
     def init_node_data(self, data: Mapping[str, Any]) -> None:
-        pass
+        self._node_data = HttpNodeData.model_validate(data)
 
     def _get_error_strategy(self) -> Optional[ErrorStrategy]:
         return None
@@ -50,6 +54,22 @@ class HTTPNodeExecutor(BaseNode):
 
     def _get_description(self) -> Optional[str]:
         return None
+
+    def validate_config(self, config: Dict[str, Any]) -> bool:
+        """Validate the node configuration.
+
+        Args:
+            config: Node configuration dictionary
+
+        Returns:
+            True if configuration is valid, False otherwise
+        """
+        try:
+            # Try to validate the config using the HttpNodeData model
+            HttpNodeData.model_validate(config)
+            return True
+        except Exception:
+            return False
 
     async def execute(self, node: Node, context: ExecutionContext) -> Dict[str, Any]:
         """Execute HTTP node by making an HTTP request.
@@ -64,50 +84,33 @@ class HTTPNodeExecutor(BaseNode):
         Raises:
             NodeExecutionError: If HTTP request fails
         """
-        config = node.config
+        self.init_node_data(node.config)
 
         # Get inputs for this node
         inputs = context.get_node_input(node, [])
 
         try:
-            # Extract configuration
-            method = config.get('method', 'GET').upper()
-            url = config.get('url', '')
-            headers = config.get('headers', {})
-            params = config.get('params', {})
-            body = config.get('body', {})
-            timeout = config.get('timeout', 30)
-            follow_redirects = config.get('follow_redirects', True)
-
-            # Validate method
-            if method not in self.SUPPORTED_METHODS:
-                raise NodeExecutionError(
-                    f'Unsupported HTTP method: {method}',
-                    node.id,
-                    {'method': method, 'supported': list(self.SUPPORTED_METHODS)},
-                )
-
             # Render URL with inputs
-            url = self._render_template(url, inputs)
+            url = self._render_template(self._node_data.url, inputs)
 
             # Render headers with inputs
-            rendered_headers = self._render_dict_values(headers, inputs)
+            rendered_headers = self._render_dict_values(self._node_data.headers, inputs)
 
             # Render params with inputs
-            rendered_params = self._render_dict_values(params, inputs)
+            rendered_params = self._render_dict_values(self._node_data.params, inputs)
 
             # Render body with inputs
-            rendered_body = self._render_body(body, inputs)
+            rendered_body = self._render_body(self._node_data.body, inputs)
 
             # Make the HTTP request
             response_data = await self._make_request(
-                method=method,
+                method=self._node_data.method,
                 url=url,
                 headers=rendered_headers,
                 params=rendered_params,
                 body=rendered_body,
-                timeout=timeout,
-                follow_redirects=follow_redirects,
+                timeout=self._node_data.timeout,
+                follow_redirects=self._node_data.follow_redirects,
             )
 
             return {
@@ -115,57 +118,16 @@ class HTTPNodeExecutor(BaseNode):
                 'headers': response_data['headers'],
                 'body': response_data['body'],
                 'url': response_data['url'],
-                'method': method,
+                'method': self._node_data.method,
                 'success': 200 <= response_data['status_code'] < 300,
             }
 
         except Exception as e:
             raise NodeExecutionError(
-                f'HTTP request failed: {str(e)}', node.id, {'config': config, 'inputs': inputs}
+                f'HTTP request failed: {str(e)}',
+                node.id,
+                {'config': node.config, 'inputs': inputs},
             ) from e
-
-    def validate_config(self, config: Dict[str, Any]) -> bool:
-        """Validate HTTP node configuration.
-
-        Args:
-            config: Node configuration dictionary
-
-        Returns:
-            True if configuration is valid, False otherwise
-        """
-        required_fields = ['method', 'url']
-
-        # Check required fields
-        for field in required_fields:
-            if field not in config or not config[field]:
-                return False
-
-        # Validate method
-        method = config.get('method', '').upper()
-        if method not in self.SUPPORTED_METHODS:
-            return False
-
-        # Validate URL format (basic check)
-        url = config.get('url', '')
-        if not url.startswith(('http://', 'https://')):
-            return False
-
-        # Validate timeout
-        timeout = config.get('timeout', 30)
-        if not isinstance(timeout, (int, float)) or timeout <= 0:
-            return False
-
-        # Validate headers format
-        headers = config.get('headers', {})
-        if not isinstance(headers, dict):
-            return False
-
-        # Validate params format
-        params = config.get('params', {})
-        if not isinstance(params, dict):
-            return False
-
-        return True
 
     def get_required_inputs(self) -> List[str]:
         """Get the list of required input parameters.
@@ -215,7 +177,7 @@ class HTTPNodeExecutor(BaseNode):
         return result
 
     def _render_dict_values(self, data: Dict[str, Any], inputs: Dict[str, Any]) -> Dict[str, Any]:
-        """Render dictionary values with input variables.
+        """Render dictionary values with input variables recursively.
 
         Args:
             data: Dictionary with template values
@@ -229,8 +191,38 @@ class HTTPNodeExecutor(BaseNode):
         for key, value in data.items():
             if isinstance(value, str):
                 result[key] = self._render_template(value, inputs)
+            elif isinstance(value, dict):
+                # Recursively render nested dictionaries
+                result[key] = self._render_dict_values(value, inputs)
+            elif isinstance(value, list):
+                # Render list items
+                result[key] = self._render_list_values(value, inputs)
             else:
                 result[key] = value
+
+        return result
+
+    def _render_list_values(self, data: list, inputs: Dict[str, Any]) -> list:
+        """Render list values with input variables recursively.
+
+        Args:
+            data: List with template values
+            inputs: Dictionary of input variables
+
+        Returns:
+            List with rendered values
+        """
+        result = []
+
+        for item in data:
+            if isinstance(item, str):
+                result.append(self._render_template(item, inputs))
+            elif isinstance(item, dict):
+                result.append(self._render_dict_values(item, inputs))
+            elif isinstance(item, list):
+                result.append(self._render_list_values(item, inputs))
+            else:
+                result.append(item)
 
         return result
 
@@ -238,14 +230,16 @@ class HTTPNodeExecutor(BaseNode):
         """Render request body with input variables.
 
         Args:
-            body: Request body (can be dict, string, etc.)
+            body: Request body (can be dict, string, list, etc.)
             inputs: Dictionary of input variables
 
         Returns:
-            Rendered body
+            Rendered body*
         """
         if isinstance(body, dict):
             return self._render_dict_values(body, inputs)
+        elif isinstance(body, list):
+            return self._render_list_values(body, inputs)
         elif isinstance(body, str):
             return self._render_template(body, inputs)
         else:
