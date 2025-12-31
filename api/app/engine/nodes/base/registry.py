@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-24 16:42:24
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-24 17:05:14
+LastEditTime: 2025-12-30 17:04:47
 FilePath: /api/app/engine/nodes/base/registry.py
 Description: 注册节点
 
@@ -10,6 +10,8 @@ Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from typing import Any, Dict, Type
+
+from app.engine.nodes.base.emum import NodeTypeEnum
 
 from .entities import BaseNode
 from .exc import NodeRegistrationError
@@ -109,7 +111,7 @@ node_executor_registry = NodeExecutorRegistry()
 
 
 # Decorator for easy registration
-def register_node_executor(node_type: str):
+def register_node_executor(node_type: NodeTypeEnum):
     """Decorator to register a node executor.
 
     Args:

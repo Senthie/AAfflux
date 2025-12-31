@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-23 14:52:34
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-29 16:19:54
+LastEditTime: 2025-12-30 17:04:11
 FilePath: /api/app/engine/nodes/base/emum.py
 Description: node 类的相关的节点类型
 
@@ -24,6 +24,7 @@ class NodeTypeEnum(StrEnum):
     AGENT = 'agent'
     OLLAMA = 'ollama'
     CHAT = 'chat'
+    HTTP = 'http'
 
 
 class NodeExecutionTypeEnum(StrEnum):
