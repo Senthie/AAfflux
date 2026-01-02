@@ -33,7 +33,7 @@ from app.models.application import (
 from app.models.audit import AuditLog
 
 # 认证域
-from app.models.auth import APIKey, PasswordReset, RefreshToken, User
+from app.models.auth import APIKey, PasswordReset, RefreshToken, UserEntity
 from app.models.base import AuditMixin, BaseEntity, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
 
 # 计费域
@@ -96,7 +96,7 @@ __all__ = [
     'AuditMixin',
     'WorkspaceMixin',
     # 认证域
-    'User',
+    'UserEntity',
     'RefreshToken',
     'PasswordReset',
     'APIKey',

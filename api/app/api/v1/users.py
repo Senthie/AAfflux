@@ -9,24 +9,22 @@ Description: 用户管理，增删改查
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, UploadFile, HTTPException, File, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.security import HTTPBearer
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.database import get_session
 from app.middleware.auth import get_current_user
-from app.services.user_service import UserService
+from app.models.auth.user import UserEntity
 from app.schemas.user import (
-    UserProfileResponse,
-    UserUpdateRequest,
+    AvatarUploadResponse,
     PasswordChangeRequest,
     PasswordChangeResponse,
-    AvatarUploadResponse,
     UserDeleteResponse,
+    UserProfileResponse,
+    UserUpdateRequest,
 )
-
-from app.models.auth.user import User
-
+from app.services.user_service import UserService
 
 security = HTTPBearer()
 
@@ -34,7 +32,7 @@ router = APIRouter(prefix='/users', tags=['User Management'])
 
 # 依赖注入定义
 DbSession = Annotated[AsyncSession, Depends(get_session)]
-CurrentUser = Annotated[User, Depends(get_current_user)]
+CurrentUser = Annotated[UserEntity, Depends(get_current_user)]
 
 
 def get_user_service(session: DbSession) -> UserService:

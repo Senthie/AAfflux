@@ -24,7 +24,7 @@ from app.core.config import settings
 from app.models.application.application import Application
 from app.models.audit.audit_log import AuditLog
 from app.models.auth.token import RefreshToken
-from app.models.auth.user import User
+from app.models.auth.user import UserEntity
 from app.models.tenant.organization import Organization, Team, Workspace
 from app.models.workflow.workflow import Workflow
 
@@ -90,7 +90,7 @@ class TestUserCRUD:
     async def test_user_crud(self, test_db_session: AsyncSession):
         """Test User model CRUD operations."""
         unique_id = str(uuid4())[:8]
-        user = User(
+        user = UserEntity(
             name=f'Test User {unique_id}',
             email=f'test{unique_id}@example.com',
             password_hash='hashed_password',
@@ -100,7 +100,7 @@ class TestUserCRUD:
         await test_db_session.commit()
         await test_db_session.refresh(user)
 
-        stmt = select(User).where(User.email == f'test{unique_id}@example.com')
+        stmt = select(UserEntity).where(UserEntity.email == f'test{unique_id}@example.com')
         result = await test_db_session.execute(stmt)
         found_user = result.scalar_one_or_none()
         assert found_user is not None
@@ -312,7 +312,7 @@ class TestIntegrationScenarios:
         unique_id = str(uuid4())[:8]
 
         # Create user
-        user = User(
+        user = UserEntity(
             name=f'Integration Test User {unique_id}',
             email=f'integration{unique_id}@example.com',
             password_hash='hashed_password',

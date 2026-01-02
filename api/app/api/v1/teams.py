@@ -10,21 +10,21 @@ Description:团队管理 API 端点，更新了接口使用的安全方法。
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.database import get_session
 from app.middleware.auth import get_current_user
-from app.models.auth.user import User
+from app.models.auth.user import UserEntity
 from app.schemas.team import (
     TeamCreate,
-    TeamResponse,
-    TeamMemberResponse,
-    TeamMemberCreate,
-    TeamMemberUpdate,
+    TeamInvitationAccept,
     TeamInvitationCreate,
     TeamInvitationResponse,
-    TeamInvitationAccept,
+    TeamMemberCreate,
+    TeamMemberResponse,
+    TeamMemberUpdate,
+    TeamResponse,
 )
 from app.services.team_service import TeamService
 
@@ -32,7 +32,7 @@ router = APIRouter(prefix='/teams', tags=['Team Management'])
 
 # 依赖注入定义
 DbSession = Annotated[AsyncSession, Depends(get_session)]
-CurrentUser = Annotated[User, Depends(get_current_user)]
+CurrentUser = Annotated[UserEntity, Depends(get_current_user)]
 
 
 def get_team_service(session: DbSession) -> TeamService:

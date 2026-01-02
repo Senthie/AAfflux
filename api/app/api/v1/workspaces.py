@@ -15,14 +15,14 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.database import get_session
 from app.middleware.auth import get_current_user
-from app.models.auth.user import User
+from app.models.auth.user import UserEntity
 from app.schemas.workspace import (
     WorkspaceCreate,
-    WorkspaceUpdate,
-    WorkspaceResponse,
-    WorkspaceResourcesResponse,
-    WorkspaceResourceMove,
     WorkspaceDeleteResponse,
+    WorkspaceResourceMove,
+    WorkspaceResourcesResponse,
+    WorkspaceResponse,
+    WorkspaceUpdate,
 )
 from app.services.workspace_service import WorkspaceService
 
@@ -30,7 +30,7 @@ router = APIRouter(prefix='/workspaces', tags=['Workspace Management'])
 
 # 依赖注入定义
 DbSession = Annotated[AsyncSession, Depends(get_session)]
-CurrentUser = Annotated[User, Depends(get_current_user)]
+CurrentUser = Annotated[UserEntity, Depends(get_current_user)]
 
 
 def get_workspace_service(session: DbSession) -> WorkspaceService:

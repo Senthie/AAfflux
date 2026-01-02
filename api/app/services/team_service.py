@@ -7,22 +7,23 @@ FilePath: : AAfflux: api: app: services: team_service.py
 Description:团队管理服务，实现了团队的crud操作，还有团队成员的邀请链接，令牌的审查。
 """
 
+from datetime import datetime, timedelta
 from typing import List, Optional
 from uuid import UUID
-from datetime import datetime, timedelta
-from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlmodel import select
 
-from app.models.tenant.organization import Team, TeamMember
-from app.models.tenant.invitation import TeamInvitation
-from app.models.auth.user import User
-from app.schemas.team import TeamCreate
-from app.utils.rbac import Role
-from app.utils.invitation_security import InvitationSecurityManager
-from app.services.invitation_audit_service import InvitationAuditService
-from app.services.email_service import EmailService
-from app.core.redis import get_redis
+from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
+
 from app.core.config import settings
+from app.core.redis import get_redis
+from app.models.auth.user import UserEntity
+from app.models.tenant.invitation import TeamInvitation
+from app.models.tenant.organization import Team, TeamMember
+from app.schemas.team import TeamCreate
+from app.services.email_service import EmailService
+from app.services.invitation_audit_service import InvitationAuditService
+from app.utils.invitation_security import InvitationSecurityManager
+from app.utils.rbac import Role
 
 
 class TeamService:
@@ -207,7 +208,7 @@ class TeamService:
 
         # 7. 获取团队和邀请者信息
         team = await self.get_team(team_id)
-        inviter = await self.session.get(User, invited_by)
+        inviter = await self.session.get(UserEntity, invited_by)
 
         # 8. 发送邀请邮件
         email_sent = await self._email_service.send_invitation_email(

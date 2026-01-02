@@ -7,26 +7,28 @@ FilePath: : AAfflux: api: app: api: v1: applications.py
 Description:应用管理api端点
 """
 
+from math import ceil
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel.ext.asyncio.session import AsyncSession
-from app.api.dependencies import get_session, get_current_user
-from app.models.auth.user import User
-from app.services.application_service import ApplicationService
+
+from app.api.dependencies import get_current_user, get_session
+from app.models.auth.user import UserEntity
 from app.schemas.application import (
-    ApplicationCreate,
-    ApplicationUpdate,
-    ApplicationResponse,
-    ApplicationListResponse,
-    ApplicationListItem,
-    ApplicationQuery,
-    ApplicationPublishRequest,
     APIKeyCreate,
     APIKeyCreateResponse,
-    APIKeyResponse,
     APIKeyListResponse,
+    APIKeyResponse,
+    ApplicationCreate,
+    ApplicationListItem,
+    ApplicationListResponse,
+    ApplicationPublishRequest,
+    ApplicationQuery,
+    ApplicationResponse,
+    ApplicationUpdate,
 )
-from math import ceil
+from app.services.application_service import ApplicationService
 
 router = APIRouter(prefix='/applications', tags=['applications'])
 
@@ -35,7 +37,7 @@ router = APIRouter(prefix='/applications', tags=['applications'])
 async def create_application(
     data: ApplicationCreate,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    current_user: UserEntity = Depends(get_current_user),
 ):
     """创建应用"""
     service = ApplicationService(session)
@@ -51,7 +53,7 @@ async def list_applications(
     page: int = Query(1, ge=1, description='页码'),
     page_size: int = Query(20, ge=1, le=100, description='每页数量'),
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    current_user: UserEntity = Depends(get_current_user),
 ):
     """分页查询应用列表"""
     service = ApplicationService(session)
@@ -93,7 +95,7 @@ async def list_applications(
 async def get_application(
     application_id: UUID,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    current_user: UserEntity = Depends(get_current_user),
 ):
     """获取单个应用详情"""
     service = ApplicationService(session)
@@ -110,7 +112,7 @@ async def update_application(
     application_id: UUID,
     data: ApplicationUpdate,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    current_user: UserEntity = Depends(get_current_user),
 ):
     """更新应用"""
     service = ApplicationService(session)
@@ -126,7 +128,7 @@ async def update_application(
 async def delete_application(
     application_id: UUID,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    current_user: UserEntity = Depends(get_current_user),
 ):
     """删除应用"""
     service = ApplicationService(session)
@@ -143,7 +145,7 @@ async def publish_application(
     application_id: UUID,
     data: ApplicationPublishRequest,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    current_user: UserEntity = Depends(get_current_user),
 ):
     """发布/取消发布应用"""
     service = ApplicationService(session)
@@ -164,7 +166,7 @@ async def create_api_key(
     application_id: UUID,
     data: APIKeyCreate,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    current_user: UserEntity = Depends(get_current_user),
 ):
     """为应用创建API密钥"""
     service = ApplicationService(session)
@@ -180,7 +182,7 @@ async def create_api_key(
 async def list_api_keys(
     application_id: UUID,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    current_user: UserEntity = Depends(get_current_user),
 ):
     """获取应用的API密钥列表"""
     service = ApplicationService(session)
@@ -213,7 +215,7 @@ async def revoke_api_key(
     application_id: UUID,
     api_key_id: UUID,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    current_user: UserEntity = Depends(get_current_user),
 ):
     """撤销API密钥"""
     service = ApplicationService(session)

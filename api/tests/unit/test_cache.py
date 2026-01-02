@@ -20,7 +20,7 @@ from uuid import uuid4
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.auth.user import User
+from app.models.auth.user import UserEntity
 from app.utils.cache import CacheManager, cache, cache_invalidate, cache_result
 
 
@@ -156,7 +156,7 @@ class TestCacheStrategy:
     async def test_user(self, test_session: AsyncSession):
         """创建测试用户"""
         unique_id = uuid4()
-        user = User(
+        user = UserEntity(
             id=unique_id,
             name='testuser',
             email=f'test_{unique_id}@example.com',

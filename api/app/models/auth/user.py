@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2026-01-02 17:14:49
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-02 17:18:18
+LastEditTime: 2026-01-02 17:41:17
 FilePath: /api/app/models/auth/user.py
 Description:用户模型 - 1张表。
 
@@ -18,7 +18,7 @@ from sqlmodel import Field
 from app.models.base import BaseEntity, SoftDeleteMixin, TimestampMixin
 
 
-class User(BaseEntity, TimestampMixin, SoftDeleteMixin, table=True):
+class UserEntity(BaseEntity, TimestampMixin, SoftDeleteMixin, table=True):
     """用户表 - 系统用户账户。
 
     存储系统用户的基本信息和认证凭证。
