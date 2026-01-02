@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-30 10:23:25
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-02 15:12:01
+LastEditTime: 2026-01-02 16:32:16
 FilePath: /api/tests/unit/test_workflow.py
 Description:模拟真实的AI传入传出的流程
 
@@ -227,7 +227,7 @@ class TestWorkflow:
             workflow_id=workflow.id,
             type=NodeTypeEnum.CHAT.value,
             name='Test Chat Node',
-            config={'prompt': '公交站里的女孩', 'title': 'Test Chat Node'},
+            config={'prompt': '一个女孩站在公交车站', 'title': 'Test Chat Node'},
         )
         # 创建 Ollama provider 示例
         ollama_node = Node(
