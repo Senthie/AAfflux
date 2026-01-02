@@ -8,12 +8,13 @@ Description: API依赖注入模块
 """
 
 from typing import AsyncGenerator
+
 from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_session as _get_session
 from app.middleware.auth import get_current_user as _get_current_user
-from app.models.auth.user import User
+from app.models.auth.user import UserEntity
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
@@ -22,7 +23,7 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
-async def get_current_user(request: Request) -> User:
+async def get_current_user(request: Request) -> UserEntity:
     """获取当前用户依赖"""
     return await _get_current_user(request)
 

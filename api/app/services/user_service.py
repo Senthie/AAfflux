@@ -7,18 +7,16 @@ FilePath: : AAfflux: api: app: services: user_service.py
 Description:用户管理服务
 """
 
+from datetime import datetime
 from typing import Optional
 from uuid import UUID
-from datetime import datetime
 
-from fastapi import UploadFile, HTTPException, status
+from fastapi import HTTPException, UploadFile, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-
-from app.models.auth.user import User
+from app.models.auth.user import UserEntity
 from app.schemas.user import UserUpdateRequest
-
 from app.utils.password import get_password_hash, verify_password
 
 
@@ -28,21 +26,21 @@ class UserService:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get_user_by_id(self, user_id: UUID) -> Optional[User]:
+    async def get_user_by_id(self, user_id: UUID) -> Optional[UserEntity]:
         """根据ID获取用户"""
         result = await self.session.execute(
-            select(User).where(User.id == user_id, User.is_deleted.is_(False))
+            select(UserEntity).where(UserEntity.id == user_id, UserEntity.is_deleted.is_(False))
         )
         return result.scalar_one_or_none()
 
-    async def get_user_by_email(self, email: str) -> Optional[User]:
+    async def get_user_by_email(self, email: str) -> Optional[UserEntity]:
         """根据邮箱获取用户"""
         result = await self.session.execute(
-            select(User).where(User.email == email, User.is_deleted.is_(False))
+            select(UserEntity).where(UserEntity.email == email, UserEntity.is_deleted.is_(False))
         )
         return result.scalar_one_or_none()
 
-    async def update_user(self, user: User, update_data: UserUpdateRequest) -> User:
+    async def update_user(self, user: UserEntity, update_data: UserUpdateRequest) -> UserEntity:
         """更新用户资料"""
         # 检查邮箱是否已被其他用户使用
         if update_data.email and update_data.email != user.email:
@@ -66,7 +64,7 @@ class UserService:
         await self.session.refresh(user)
         return user
 
-    async def change_password(self, user: User, old_password: str, new_password: str) -> bool:
+    async def change_password(self, user: UserEntity, old_password: str, new_password: str) -> bool:
         """修改密码"""
         # 验证旧密码
         if not verify_password(old_password, user.password_hash):
@@ -80,7 +78,7 @@ class UserService:
         await self.session.commit()
         return True
 
-    async def update_avatar(self, user: User, file: UploadFile) -> str:
+    async def update_avatar(self, user: UserEntity, file: UploadFile) -> str:
         """更新用户头像"""
         # 验证文件类型
         if not file.content_type or not file.content_type.startswith('image/'):
@@ -126,10 +124,10 @@ class UserService:
 
         return avatar_url
 
-    async def restore_user(self, user_id: UUID) -> Optional[User]:
+    async def restore_user(self, user_id: UUID) -> Optional[UserEntity]:
         """恢复已删除的用户"""
         result = await self.session.execute(
-            select(User).where(User.id == user_id, User.is_deleted is True)
+            select(UserEntity).where(UserEntity.id == user_id, UserEntity.is_deleted is True)
         )
         user = result.scalar_one_or_none()
 

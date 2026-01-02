@@ -1,11 +1,11 @@
 """认证域模型"""
 
-from .user import User
-from .token import RefreshToken, PasswordReset
 from .api_key import APIKey
+from .token import PasswordReset, RefreshToken
+from .user import UserEntity
 
 __all__ = [
-    'User',
+    'UserEntity',
     'RefreshToken',
     'PasswordReset',
     'APIKey',

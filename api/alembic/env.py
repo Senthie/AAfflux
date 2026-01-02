@@ -34,7 +34,7 @@ from app.models import (  # noqa: F401
     PromptTemplateVersion,
     Team,
     TeamMember,
-    User,
+    UserEntity,
     Workflow,
     Workspace,
 )

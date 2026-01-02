@@ -16,7 +16,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.main import app
-from app.models.auth.user import User
+from app.models.auth.user import UserEntity
 from app.models.tenant.organization import Organization
 from app.schemas.application import ApplicationCreate
 from app.schemas.workflow import WorkflowCreateRequest, WorkflowUpdateRequest
@@ -37,7 +37,7 @@ class TestEndToEndIntegration:
     async def test_user(self, test_session: AsyncSession):
         """创建测试用户"""
         unique_id = uuid4()
-        user = User(
+        user = UserEntity(
             id=unique_id,
             name='integrationuser',
             email=f'integration_{unique_id}@example.com',
@@ -49,7 +49,7 @@ class TestEndToEndIntegration:
         return user
 
     @pytest.fixture
-    async def test_organization(self, test_session: AsyncSession, test_user: User):
+    async def test_organization(self, test_session: AsyncSession, test_user: UserEntity):
         """创建测试组织"""
         org = Organization(
             id=uuid4(),
@@ -62,12 +62,12 @@ class TestEndToEndIntegration:
         return org
 
     @pytest.fixture
-    async def auth_token(self, test_session: AsyncSession, test_user: User):
+    async def auth_token(self, test_session: AsyncSession, test_user: UserEntity):
         """生成认证令牌"""
         return generate_access_token(test_user.id)
 
     async def test_database_crud_operations(
-        self, test_session: AsyncSession, test_user: User, test_organization: Organization
+        self, test_session: AsyncSession, test_user: UserEntity, test_organization: Organization
     ):
         """测试数据库CRUD操作"""
         workflow_service = WorkflowService(test_session)
@@ -114,14 +114,14 @@ class TestEndToEndIntegration:
         unique_id1 = uuid4()
         unique_id2 = uuid4()
 
-        user1 = User(
+        user1 = UserEntity(
             id=unique_id1,
             name='tenant1user',
             email=f'tenant1_{unique_id1}@example.com',
             password_hash='$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj3QJflLxQjm',
         )
 
-        user2 = User(
+        user2 = UserEntity(
             id=unique_id2,
             name='tenant2user',
             email=f'tenant2_{unique_id2}@example.com',
@@ -158,7 +158,7 @@ class TestEndToEndIntegration:
             assert access_response.status_code in [403, 404]
 
     async def test_data_consistency_across_services(
-        self, test_session: AsyncSession, test_user: User, test_organization: Organization
+        self, test_session: AsyncSession, test_user: UserEntity, test_organization: Organization
     ):
         """测试跨服务数据一致性"""
         workflow_service = WorkflowService(test_session)

@@ -9,7 +9,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.database import get_session
 from app.core.redis import get_redis
-from app.models import User
+from app.models import UserEntity
 from app.services.auth_service import AuthService
 
 security = HTTPBearer()
@@ -81,7 +81,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         return response
 
 
-async def get_current_user(request: Request) -> User:
+async def get_current_user(request: Request) -> UserEntity:
     """
     Dependency to get current authenticated user.
 
@@ -106,7 +106,7 @@ async def get_current_user(request: Request) -> User:
     return user
 
 
-async def get_current_user_optional(request: Request) -> Optional[User]:
+async def get_current_user_optional(request: Request) -> Optional[UserEntity]:
     """
     Dependency to get current user if authenticated.
 
@@ -122,7 +122,7 @@ async def get_current_user_optional(request: Request) -> Optional[User]:
 async def verify_token_dependency(
     credentials: HTTPAuthorizationCredentials = security,
     db: Session = None,
-) -> User:
+) -> UserEntity:
     """
     Dependency to verify token and return user.
 

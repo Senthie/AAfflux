@@ -15,12 +15,12 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.database import get_session
 from app.middleware.auth import get_current_user
-from app.models.auth.user import User
+from app.models.auth.user import UserEntity
 from app.schemas.organization import (
     OrganizationCreate,
-    OrganizationUpdate,
     OrganizationResponse,
     OrganizationStatsResponse,
+    OrganizationUpdate,
 )
 from app.services.organization_service import OrganizationService
 
@@ -28,7 +28,7 @@ router = APIRouter(prefix='/organizations', tags=['Organization Management'])
 
 # 依赖注入定义
 DbSession = Annotated[AsyncSession, Depends(get_session)]
-CurrentUser = Annotated[User, Depends(get_current_user)]
+CurrentUser = Annotated[UserEntity, Depends(get_current_user)]
 
 
 def get_organization_service(session: DbSession) -> OrganizationService:

@@ -20,7 +20,7 @@ from app.core.config import settings
 from app.core.exceptions import EmailAlreadyExistsException, InvalidCredentialsException
 from app.core.redis import RedisClient
 from app.core.response import ResponseSchemaModel, response_base
-from app.models.auth import User
+from app.models.auth import UserEntity
 from app.schemas.auth_schema import (
     LoginRequest,
     LoginResponse,
@@ -66,9 +66,9 @@ class AuthService:
             ValueError: If email already exists
         """
         # Check if user already exists
-        statement = select(User).where(
-            User.email == request.email,
-            User.is_deleted.is_(False),  # type: ignore
+        statement = select(UserEntity).where(
+            UserEntity.email == request.email,
+            UserEntity.is_deleted.is_(False),  # type: ignore
         )
         result = await self.db.execute(statement)
         existing_user = result.scalar_one_or_none()
@@ -78,7 +78,7 @@ class AuthService:
 
         # Create new user
         password_hash = get_password_hash(request.password)
-        user = User(
+        user = UserEntity(
             email=request.email,
             password_hash=password_hash,
             name=request.name,
@@ -112,9 +112,9 @@ class AuthService:
             ValueError: If credentials are invalid
         """
         # Find user by email
-        statement = select(User).where(
-            User.email == request.email,
-            User.is_deleted.is_(False),  # type: ignore
+        statement = select(UserEntity).where(
+            UserEntity.email == request.email,
+            UserEntity.is_deleted.is_(False),  # type: ignore
         )
         result = await self.db.execute(statement)
         user = result.scalar_one_or_none()
@@ -163,7 +163,7 @@ class AuthService:
             raise ValueError('Token has been revoked')
 
         # Verify user still exists
-        user = await self.db.get(User, user_id)
+        user = await self.db.get(UserEntity, user_id)
         if not user or user.is_deleted:
             raise ValueError('User not found')
 
@@ -216,9 +216,9 @@ class AuthService:
             ValueError: If user not found
         """
         # Find user by email
-        statement = select(User).where(
-            User.email == email,
-            User.is_deleted.is_(False),  # type: ignore
+        statement = select(UserEntity).where(
+            UserEntity.email == email,
+            UserEntity.is_deleted.is_(False),  # type: ignore
         )
         result = await self.db.execute(statement)
         user = result.scalar_one_or_none()
@@ -268,7 +268,7 @@ class AuthService:
             raise ValueError('Invalid or expired reset token')
 
         # Get user
-        user = await self.db.get(User, user_id)
+        user = await self.db.get(UserEntity, user_id)
         if not user or user.is_deleted:
             raise ValueError('User not found')
 
@@ -282,7 +282,7 @@ class AuthService:
         # Delete reset token
         await self.redis.delete(f'password_reset:{user_id}')
 
-    async def verify_access_token(self, token: str) -> Optional[User]:
+    async def verify_access_token(self, token: str) -> Optional[UserEntity]:
         """
         Verify access token and return user.
 
@@ -306,7 +306,7 @@ class AuthService:
         user_id = UUID(payload['user_id'])
 
         # Get user from database
-        user = await self.db.get(User, user_id)
+        user = await self.db.get(UserEntity, user_id)
         if user and user.is_deleted:
             return None
 

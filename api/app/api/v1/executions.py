@@ -7,22 +7,24 @@ FilePath: : AAfflux: api: app: api: v1: executions.py
 Description:执行记录查询的api端点
 """
 
+from math import ceil
 from typing import List
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel.ext.asyncio.session import AsyncSession
-from app.api.dependencies import get_session, get_current_user
-from app.models.auth.user import User
-from app.services.execution_record_service import ExecutionRecordService
+
+from app.api.dependencies import get_current_user, get_session
+from app.models.auth.user import UserEntity
 from app.schemas.execution import (
-    ExecutionRecordResponse,
-    ExecutionRecordListResponse,
     ExecutionRecordListItem,
+    ExecutionRecordListResponse,
     ExecutionRecordQuery,
+    ExecutionRecordResponse,
     ExecutionStatistics,
     NodeExecutionResultResponse,
 )
-from math import ceil
+from app.services.execution_record_service import ExecutionRecordService
 
 router = APIRouter(prefix='/executions', tags=['executions'])
 
@@ -36,7 +38,7 @@ async def list_execution_records(
     page: int = Query(1, ge=1, description='页码'),
     page_size: int = Query(20, ge=1, le=100, description='每页数量'),
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    current_user: UserEntity = Depends(get_current_user),
 ):
     """分页查询执行记录列表"""
     service = ExecutionRecordService(session)
@@ -73,7 +75,7 @@ async def list_execution_records(
 async def get_execution_record(
     execution_id: UUID,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    current_user: UserEntity = Depends(get_current_user),
 ):
     """获取单个执行记录详情"""
     service = ExecutionRecordService(session)
@@ -89,7 +91,7 @@ async def get_execution_record(
 async def get_execution_node_results(
     execution_id: UUID,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    current_user: UserEntity = Depends(get_current_user),
 ):
     """获取执行记录的节点结果"""
     service = ExecutionRecordService(session)
@@ -107,7 +109,7 @@ async def get_execution_node_results(
 async def delete_execution_record(
     execution_id: UUID,
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    current_user: UserEntity = Depends(get_current_user),
 ):
     """删除执行记录"""
     service = ExecutionRecordService(session)
@@ -124,7 +126,7 @@ async def get_workflow_executions(
     workflow_id: UUID,
     limit: int = Query(50, ge=1, le=100, description='返回数量限制'),
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    current_user: UserEntity = Depends(get_current_user),
 ):
     """获取工作流的执行记录"""
     service = ExecutionRecordService(session)
@@ -149,7 +151,7 @@ async def get_execution_statistics(
     workflow_id: UUID = Query(None, description='工作流ID'),
     days: int = Query(30, ge=1, le=365, description='统计天数'),
     session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    current_user: UserEntity = Depends(get_current_user),
 ):
     """获取执行统计信息"""
     service = ExecutionRecordService(session)

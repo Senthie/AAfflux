@@ -18,7 +18,7 @@ from uuid import uuid4
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.auth.user import User
+from app.models.auth.user import UserEntity
 from app.models.tenant.organization import Organization
 from app.models.workflow.workflow import Workflow
 from app.schemas.execution import ExecutionRecordCreate, ExecutionRecordQuery, ExecutionRecordUpdate
@@ -33,7 +33,7 @@ class TestExecutionRecordService:
     async def test_user(self, test_session: AsyncSession):
         """创建测试用户"""
         unique_id = uuid4()
-        user = User(
+        user = UserEntity(
             id=unique_id,
             name='testuser',
             email=f'test_{unique_id}@example.com',
@@ -45,7 +45,7 @@ class TestExecutionRecordService:
         return user
 
     @pytest.fixture
-    async def test_organization(self, test_session: AsyncSession, test_user: User):
+    async def test_organization(self, test_session: AsyncSession, test_user: UserEntity):
         """创建测试组织"""
         org = Organization(
             id=uuid4(),
@@ -59,7 +59,7 @@ class TestExecutionRecordService:
 
     @pytest.fixture
     async def test_workflow(
-        self, test_session: AsyncSession, test_user: User, test_organization: Organization
+        self, test_session: AsyncSession, test_user: UserEntity, test_organization: Organization
     ):
         """创建测试工作流"""
         workflow = Workflow(
@@ -195,7 +195,7 @@ class TestDataMigration:
     async def test_user(self, test_session: AsyncSession):
         """创建测试用户"""
         unique_id = uuid4()
-        user = User(
+        user = UserEntity(
             id=unique_id,
             name='testuser',
             email=f'test_{unique_id}@example.com',
@@ -207,7 +207,7 @@ class TestDataMigration:
         return user
 
     @pytest.fixture
-    async def test_organization(self, test_session: AsyncSession, test_user: User):
+    async def test_organization(self, test_session: AsyncSession, test_user: UserEntity):
         """创建测试组织"""
         org = Organization(
             id=uuid4(),
@@ -227,7 +227,7 @@ class TestDataMigration:
     async def test_data_migration_backward_compatibility(
         self,
         migration_manager: DataMigrator,
-        test_user: User,
+        test_user: UserEntity,
         test_organization: Organization,
         test_session: AsyncSession,
     ):
