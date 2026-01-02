@@ -9,6 +9,7 @@ from collections.abc import Mapping
 from typing import Any, Dict, List, Optional
 
 import httpx
+import json_repair
 
 from app.engine.execution_context import ExecutionContext
 from app.engine.nodes.base import (
@@ -21,6 +22,7 @@ from app.engine.nodes.base import (
 from app.engine.nodes.base.emum import NodeExecutionTypeEnum, NodeTypeEnum
 from app.engine.nodes.http.entities import HttpNodeData
 from app.models.workflow.workflow import Node
+from app.utils.json_path import JsonPathUtil
 
 
 @register_node_executor(NodeTypeEnum.HTTP)
@@ -86,21 +88,18 @@ class HTTPNodeExecutor(BaseNode):
         """
         self.init_node_data(node.config)
 
-        # Get inputs for this node
-        inputs = context.get_node_input(node, [])
-
         try:
             # Render URL with inputs
-            url = self._render_template(self._node_data.url, inputs)
+            url = self._render_template(self._node_data.url, {})
 
             # Render headers with inputs
-            rendered_headers = self._render_dict_values(self._node_data.headers, inputs)
+            rendered_headers = self._render_dict_values(self._node_data.headers, {})
 
             # Render params with inputs
-            rendered_params = self._render_dict_values(self._node_data.params, inputs)
+            rendered_params = self._render_dict_values(self._node_data.params, {})
 
             # Render body with inputs
-            rendered_body = self._render_body(self._node_data.body, inputs)
+            rendered_body = self._render_body(self._node_data.body, context)
 
             # Make the HTTP request
             response_data = await self._make_request(
@@ -126,7 +125,7 @@ class HTTPNodeExecutor(BaseNode):
             raise NodeExecutionError(
                 f'HTTP request failed: {str(e)}',
                 node.id,
-                {'config': node.config, 'inputs': inputs},
+                {'config': node.config},
             ) from e
 
     def get_required_inputs(self) -> List[str]:
@@ -226,7 +225,7 @@ class HTTPNodeExecutor(BaseNode):
 
         return result
 
-    def _render_body(self, body: Any, inputs: Dict[str, Any]) -> Any:
+    def _render_body(self, body: Any, context: ExecutionContext | None = None) -> Any:
         """Render request body with input variables.
 
         Args:
@@ -236,12 +235,21 @@ class HTTPNodeExecutor(BaseNode):
         Returns:
             Rendered body*
         """
-        if isinstance(body, dict):
-            return self._render_dict_values(body, inputs)
+        if (
+            isinstance(body, dict)
+            and self._node_data.body_is_expr
+            and isinstance(context, ExecutionContext)
+        ):
+            body = f'{body}'
+            exprs = JsonPathUtil.get_exprs(body)
+            for expr in exprs:
+                value = context.get_node_output(expr.expr)
+                body = body.replace(expr.org_name, str(value), 1)
+            return json_repair.loads(body)
         elif isinstance(body, list):
-            return self._render_list_values(body, inputs)
+            return body
         elif isinstance(body, str):
-            return self._render_template(body, inputs)
+            return body
         else:
             return body
 
