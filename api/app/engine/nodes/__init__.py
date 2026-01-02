@@ -1,5 +1,10 @@
 """
-Node Types Module
+Author: Senthie seemoon2077@gmail.com
+Date: 2025-12-30 09:00:15
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-02 12:18:32
+FilePath: /api/app/engine/nodes/__init__.py
+Description:Node Types Module
 
 This module provides utilities for registering and accessing node executors.
 Node types are automatically registered when their modules are imported
@@ -13,6 +18,8 @@ Usage:
 
     # 获取节点执行器
     executor = node_executor_registry.get_executor('AGENT')
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 # 标记是否已注册
@@ -43,6 +50,7 @@ def register_all_nodes() -> None:
 
     # 基础节点 (无依赖其他节点)
     from app.engine.nodes.chat.chat import ChatNode  # noqa: F401
+    from app.engine.nodes.http.http_node import HttpNodeData
     from app.engine.nodes.provider.ollama_node import OllamaNode  # noqa: F401
 
     _nodes_registered = True

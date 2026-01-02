@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-30 15:53:04
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-30 16:48:33
+LastEditTime: 2026-01-02 11:00:12
 FilePath: /api/app/engine/nodes/http/entities.py
 Description: http node 的数据对象
 
@@ -23,6 +23,7 @@ class HttpNodeData(BaseNodeData):
     url: str = Field(frozen=True)
     headers: Dict
     params: Dict
+    body_is_expr: bool = Field(default=False, frozen=True)
     body: Dict | None = None
     timeout: int
     follow_redirects: bool
