@@ -18,13 +18,13 @@ from uuid import UUID
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Column, Field
 
-from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin
+from app.models.base import BaseEntity, TimestampMixin, WorkspaceMixin
 
 
 # 注意：AuditMixin 通常包含 created_by/updated_by，
 # 审计日志通常不需要 updated_by (不可篡改)，且 created_by 对应 user_id，
 # 所以这里只继承 TimestampMixin 和 WorkspaceMixin 即可。
-class AuditLog(BaseModel, TimestampMixin, WorkspaceMixin, table=True):
+class AuditLog(BaseEntity, TimestampMixin, WorkspaceMixin, table=True):
     """审计日志表 - 记录系统操作日志。
 
     记录用户在系统中的所有重要操作，包括创建、更新、删除等。

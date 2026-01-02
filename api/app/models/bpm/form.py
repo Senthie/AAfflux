@@ -13,12 +13,13 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlmodel import Field, SQLModel, Column, JSON
-from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, AuditMixin, SoftDeleteMixin
+from sqlmodel import JSON, Column, Field, SQLModel
+
+from app.models.base import AuditMixin, BaseEntity, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
 
 
 class FormDefinition(
-    BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin, table=True
+    BaseEntity, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin, table=True
 ):
     """表单定义表"""
 

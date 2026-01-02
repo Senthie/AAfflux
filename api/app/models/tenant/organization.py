@@ -11,14 +11,16 @@
 """
 
 from datetime import datetime
-from uuid import UUID
 from typing import Optional
-from sqlmodel import Field, Column
+from uuid import UUID
+
 from sqlalchemy.dialects.postgresql import JSONB
-from app.models.base import BaseModel, TimestampMixin, AuditMixin, SoftDeleteMixin
+from sqlmodel import Column, Field
+
+from app.models.base import AuditMixin, BaseEntity, SoftDeleteMixin, TimestampMixin
 
 
-class Organization(BaseModel, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):
+class Organization(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):
     """企业表 - 顶层组织实体。
 
     企业是系统中的最高层级组织单位，可以包含多个团队。
@@ -46,7 +48,7 @@ class Organization(BaseModel, TimestampMixin, AuditMixin, SoftDeleteMixin, table
     settings: dict = Field(default_factory=dict, sa_column=Column(JSONB))
 
 
-class Team(BaseModel, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):
+class Team(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):
     """团队表 - 中层组织实体。
 
     团队是协作的基本单位，可以属于企业或独立存在。
@@ -76,7 +78,7 @@ class Team(BaseModel, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):
     settings: dict = Field(default_factory=dict, sa_column=Column(JSONB))
 
 
-class Workspace(BaseModel, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):
+class Workspace(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):
     """工作空间表 - 资源隔离单元。
 
     工作空间是资源隔离的基本单位，所有业务资源（工作流、应用等）都关联到工作空间。
@@ -107,7 +109,7 @@ class Workspace(BaseModel, TimestampMixin, AuditMixin, SoftDeleteMixin, table=Tr
     settings: dict = Field(default_factory=dict, sa_column=Column(JSONB))
 
 
-class TeamMember(BaseModel, table=True):
+class TeamMember(BaseEntity, table=True):
     """团队成员表 - 用户与团队的关联关系。
 
     建立用户和团队之间的多对多关系，并定义用户在团队中的角色。

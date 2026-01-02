@@ -10,10 +10,10 @@ from uuid import UUID
 
 from sqlmodel import Field
 
-from app.models.base import BaseModel, TimestampMixin
+from app.models.base import BaseEntity, TimestampMixin
 
 
-class APIKey(BaseModel, TimestampMixin, table=True):
+class APIKey(BaseEntity, TimestampMixin, table=True):
     """API密钥表 - 管理应用API密钥。
 
     存储应用的API密钥，用于外部系统调用应用API。

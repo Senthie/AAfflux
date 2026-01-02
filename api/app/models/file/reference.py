@@ -14,11 +14,13 @@ Description:实现了softdelete软删除的基础类继承
 """
 
 from uuid import UUID
+
 from sqlmodel import Field
-from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, SoftDeleteMixin
+
+from app.models.base import BaseEntity, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
 
 
-class FileReference(BaseModel, WorkspaceMixin, TimestampMixin, SoftDeleteMixin, table=True):
+class FileReference(BaseEntity, WorkspaceMixin, TimestampMixin, SoftDeleteMixin, table=True):
     """文件引用表 - PostgreSQL中的文件引用。
 
     在PostgreSQL中存储文件的元数据和引用信息。

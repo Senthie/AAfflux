@@ -15,13 +15,14 @@ Description:添加了softdelete软删除字段
 
 from datetime import datetime
 from typing import Optional
-from sqlmodel import Field
-from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, SoftDeleteMixin
+
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlmodel import Column
+from sqlmodel import Column, Field
+
+from app.models.base import BaseEntity, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
 
 
-class EndUser(BaseModel, WorkspaceMixin, TimestampMixin, SoftDeleteMixin, table=True):
+class EndUser(BaseEntity, WorkspaceMixin, TimestampMixin, SoftDeleteMixin, table=True):
     """终端用户表 - C端用户。
 
     存储使用已发布应用的终端用户信息。

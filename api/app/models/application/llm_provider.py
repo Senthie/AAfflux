@@ -12,11 +12,11 @@ Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Column, Field, SQLModel
 
-from app.models.base import AuditMixin, BaseModel, TimestampMixin, WorkspaceMixin, SoftDeleteMixin
+from app.models.base import AuditMixin, BaseEntity, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
 
 
 class LLMProvider(
-    BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin, table=True
+    BaseEntity, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin, table=True
 ):
     """LLM提供商表 - AI模型服务配置。
 

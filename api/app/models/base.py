@@ -1,4 +1,13 @@
-"""Base model classes and mixins for the application."""
+"""
+Author: Senthie seemoon2077@gmail.com
+Date: 2026-01-02 17:14:49
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-02 17:17:23
+FilePath: /api/app/models/base.py
+Description: Base model classes and mixins for the application.
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
+"""
 
 from datetime import datetime
 from typing import Any, Dict, Optional
@@ -7,7 +16,7 @@ from uuid import UUID, uuid4
 from sqlmodel import Field, SQLModel
 
 
-class BaseModel(SQLModel):
+class BaseEntity(SQLModel):
     """Abstract base class for all data models.
 
     Provides common fields and behaviors that all models should have.

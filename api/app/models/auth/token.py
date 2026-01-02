@@ -20,10 +20,10 @@ from uuid import UUID
 
 from sqlmodel import Field
 
-from app.models.base import AuditMixin, BaseModel, TimestampMixin
+from app.models.base import AuditMixin, BaseEntity, TimestampMixin
 
 
-class RefreshToken(BaseModel, TimestampMixin, AuditMixin, table=True):
+class RefreshToken(BaseEntity, TimestampMixin, AuditMixin, table=True):
     """刷新令牌表 - 管理用户刷新令牌。
 
     存储用户的刷新令牌，用于获取新的访问令牌。
@@ -56,7 +56,7 @@ class RefreshToken(BaseModel, TimestampMixin, AuditMixin, table=True):
     revoked: bool = Field(default=False, index=True)
 
 
-class PasswordReset(BaseModel, TimestampMixin, table=True):
+class PasswordReset(BaseEntity, TimestampMixin, table=True):
     """密码重置表 - 管理密码重置请求。
 
     存储密码重置请求的令牌，用于验证用户身份。

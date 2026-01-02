@@ -24,10 +24,10 @@ from uuid import UUID
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Column, Field, Relationship
 
-from app.models.base import AuditMixin, BaseModel, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
+from app.models.base import AuditMixin, BaseEntity, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
 
 
-class Workflow(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin, table=True):
+class Workflow(BaseEntity, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin, table=True):
     """工作流表 - DAG工作流定义。
 
     存储工作流的基本信息和输入输出schema。
@@ -56,7 +56,7 @@ class Workflow(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDelete
     output_schema: dict = Field(default_factory=dict, sa_column=Column(JSONB))
 
 
-class Node(BaseModel, SoftDeleteMixin, table=True):
+class Node(BaseEntity, SoftDeleteMixin, table=True):
     """节点表 - 工作流中的处理节点。
 
     定义工作流中的各个处理单元，包括类型、配置和位置信息。
@@ -84,7 +84,7 @@ class Node(BaseModel, SoftDeleteMixin, table=True):
     position: dict = Field(default_factory=dict, sa_column=Column(JSONB))  # {x, y}
 
 
-class Connection(BaseModel, table=True):
+class Connection(BaseEntity, table=True):
     """连接表 - 节点之间的连接关系。
 
     定义工作流中节点之间的数据流向。
@@ -110,7 +110,7 @@ class Connection(BaseModel, table=True):
     target_input: str = Field(max_length=255)
 
 
-class ExecutionRecord(BaseModel, table=True):
+class ExecutionRecord(BaseEntity, table=True):
     """执行记录表 - 工作流执行历史。
 
     记录工作流的每次执行，包括输入、输出、状态和耗时。
@@ -150,7 +150,7 @@ class ExecutionRecord(BaseModel, table=True):
     )
 
 
-class NodeExecutionResult(BaseModel, table=True):
+class NodeExecutionResult(BaseEntity, table=True):
     """节点执行结果表 - 单个节点的执行记录。
 
     记录工作流执行过程中每个节点的执行情况。

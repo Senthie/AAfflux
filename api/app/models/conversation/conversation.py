@@ -4,14 +4,16 @@
 支持终端用户与AI应用的多轮对话。
 """
 
-from uuid import UUID
 from typing import Optional
-from sqlmodel import Field, Column
+from uuid import UUID
+
 from sqlalchemy.dialects.postgresql import JSONB
-from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin, SoftDeleteMixin
+from sqlmodel import Column, Field
+
+from app.models.base import BaseEntity, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
 
 
-class Conversation(BaseModel, WorkspaceMixin, TimestampMixin, SoftDeleteMixin, table=True):
+class Conversation(BaseEntity, WorkspaceMixin, TimestampMixin, SoftDeleteMixin, table=True):
     """对话表 - 会话管理。
 
     存储终端用户与AI应用的对话会话。
@@ -52,7 +54,7 @@ class Conversation(BaseModel, WorkspaceMixin, TimestampMixin, SoftDeleteMixin, t
     custom_metadata: Optional[dict] = Field(default=None, sa_column=Column(JSONB))
 
 
-class Message(BaseModel, TimestampMixin, SoftDeleteMixin, table=True):
+class Message(BaseEntity, TimestampMixin, SoftDeleteMixin, table=True):
     """消息表 - 对话消息。
 
     存储对话中的每条消息，包括用户输入和AI回复。
