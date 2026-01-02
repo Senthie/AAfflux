@@ -1,14 +1,24 @@
-"""用户模型 - 1张表。
+"""
+Author: Senthie seemoon2077@gmail.com
+Date: 2026-01-02 17:14:49
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-02 17:18:18
+FilePath: /api/app/models/auth/user.py
+Description:用户模型 - 1张表。
 
 本模块定义了系统的用户认证模型。
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from typing import Optional
+
 from sqlmodel import Field
-from app.models.base import BaseModel, TimestampMixin, SoftDeleteMixin
+
+from app.models.base import BaseEntity, SoftDeleteMixin, TimestampMixin
 
 
-class User(BaseModel, TimestampMixin, SoftDeleteMixin, table=True):
+class User(BaseEntity, TimestampMixin, SoftDeleteMixin, table=True):
     """用户表 - 系统用户账户。
 
     存储系统用户的基本信息和认证凭证。

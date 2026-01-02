@@ -21,23 +21,6 @@
 """
 
 # 基础模型
-from app.models.base import BaseModel, TimestampMixin, SoftDeleteMixin, AuditMixin, WorkspaceMixin
-
-# 认证域
-from app.models.auth import User, RefreshToken, PasswordReset, APIKey
-
-# 租户域
-from app.models.tenant import Organization, Team, Workspace, TeamMember, TeamInvitation
-
-# 工作流域
-from app.models.workflow import (
-    Workflow,
-    Node,
-    Connection,
-    ExecutionRecord,
-    NodeExecutionResult,
-)
-
 # 应用域
 from app.models.application import (
     Application,
@@ -46,52 +29,68 @@ from app.models.application import (
     PromptTemplateVersion,
 )
 
-# 对话域
-from app.models.conversation import (
-    Conversation,
-    Message,
-    MessageAnnotation,
-    MessageFeedback,
-    EndUser,
-)
+# 审计域
+from app.models.audit import AuditLog
 
-# 知识库域
-from app.models.dataset import (
-    Dataset,
-    Document,
-    DocumentSegment,
-    DatasetApplicationJoin,
-)
+# 认证域
+from app.models.auth import APIKey, PasswordReset, RefreshToken, User
+from app.models.base import AuditMixin, BaseEntity, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
 
-# 插件域
-from app.models.plugin import Plugin, InstalledPlugin
+# 计费域
+from app.models.billing import Subscription, UsageRecord
 
 # BPM域
 from app.models.bpm import (
+    Approval,
+    ApprovalAction,
+    FormData,
+    FormDefinition,
     ProcessDefinition,
     ProcessInstance,
     ProcessStatus,
     Task,
     TaskStatus,
     TaskType,
-    Approval,
-    ApprovalAction,
-    FormDefinition,
-    FormData,
 )
 
-# 计费域
-from app.models.billing import Subscription, UsageRecord
+# 对话域
+from app.models.conversation import (
+    Conversation,
+    EndUser,
+    Message,
+    MessageAnnotation,
+    MessageFeedback,
+)
+
+# 知识库域
+from app.models.dataset import (
+    Dataset,
+    DatasetApplicationJoin,
+    Document,
+    DocumentSegment,
+)
 
 # 文件域
 from app.models.file import FileReference
 
-# 审计域
-from app.models.audit import AuditLog
+# 插件域
+from app.models.plugin import InstalledPlugin, Plugin
+
+# 租户域
+from app.models.tenant import Organization, Team, TeamInvitation, TeamMember, Workspace
+
+# 工作流域
+from app.models.workflow import (
+    Connection,
+    ExecutionRecord,
+    Node,
+    NodeExecutionResult,
+    Workflow,
+)
 
 __all__ = [
     # 基础模型
-    'BaseModel',
+    'BaseEntity',
     'TimestampMixin',
     'SoftDeleteMixin',
     'AuditMixin',
