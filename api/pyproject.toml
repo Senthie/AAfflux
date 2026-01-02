@@ -29,6 +29,7 @@ dependencies = [
   "sqlmodel>=0.0.22",
   "structlog>=24.4.0",
   "uvicorn[standard]>=0.32.0",
+  "json-repair>=0.55.0",
 ]
 
 [project.optional-dependencies]
