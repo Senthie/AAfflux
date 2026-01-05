@@ -1,23 +1,21 @@
 """
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-10 14:33:29
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-17 15:45:20
-FilePath: : AAfflux: api: app: utils: tenant_context.py
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-05 10:42:49
+FilePath: /api/app/utils/tenant_context.py
 Description:租户隔离和上下文管理
 """
 
-"""租户上下文管理"""
-"""租户上下文管理"""
-
-from typing import Optional, List, Dict
-from uuid import UUID
 from dataclasses import dataclass
-from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlmodel import select
+from typing import Dict, List, Optional
+from uuid import UUID
 
-from app.models.tenant.organization import TeamMember, Workspace, Team
-from app.utils.rbac import Role, Permission
+from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
+
+from app.models.tenant.organization import Team, TeamMember, Workspace
+from app.utils.rbac import Permission, Role
 
 
 @dataclass
