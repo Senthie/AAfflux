@@ -2,7 +2,7 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-09 18:00:00
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-05 17:58:35
+LastEditTime: 2026-01-06 16:58:53
 FilePath: /api/app/api/v1/auth.py
 Description: 认证相关API端点
 """
@@ -68,13 +68,12 @@ async def register(
 
 @router.post(
     '/login',
-    response_model=LoginResponse,
     summary='用户登录',
 )
 async def login(
     request: LoginRequest,
     auth_service: AuthServiceDep,
-) -> LoginResponse:
+) -> ResponseSchemaModel[LoginResponse]:
     """
     用户登录
 
@@ -95,21 +94,20 @@ async def login(
 
 @router.post(
     '/refresh',
-    response_model=TokenPair,
     summary='刷新访问令牌',
 )
 async def refresh_token(
     request: RefreshTokenRequest,
     auth_service: AuthServiceDep,
-) -> TokenPair:
+) -> ResponseSchemaModel[TokenPair] | ResponseModel:
     """
     使用刷新令牌获取新的访问令牌
 
     - **refresh_token**: 刷新令牌
     """
     try:
-        tokens = await auth_service.refresh_token(request.refresh_token)
-        return tokens
+        response = await auth_service.refresh_token(request.refresh_token)
+        return response
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

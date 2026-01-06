@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-02 08:55:33
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-05 15:58:21
+LastEditTime: 2026-01-06 16:28:57
 FilePath: /api/app/services/auth_service.py
 Description: Authentication service for user registration, login, and token management
 
@@ -98,7 +98,7 @@ class AuthService:
             )
         )
 
-    async def login(self, request: LoginRequest) -> LoginResponse:
+    async def login(self, request: LoginRequest) -> ResponseSchemaModel[LoginResponse]:
         """
         Authenticate user and generate tokens.
 
@@ -129,12 +129,14 @@ class AuthService:
         # Generate tokens
         tokens = await self._generate_token_pair(user.id)
 
-        return LoginResponse(
-            user=UserResponse.model_validate(user),
-            tokens=tokens,
+        return response_base.success(
+            data=LoginResponse(
+                user=UserResponse.model_validate(user),
+                tokens=tokens,
+            )
         )
 
-    async def refresh_token(self, refresh_token: str) -> TokenPair:
+    async def refresh_token(self, refresh_token: str) -> ResponseSchemaModel[TokenPair]:
         """
         Refresh access token using refresh token.
 
@@ -168,7 +170,7 @@ class AuthService:
         # Generate new token pair
         tokens = await self._generate_token_pair(user_id)
 
-        return tokens
+        return response_base.success(data=tokens)
 
     async def logout(self, access_token: str, refresh_token: str) -> None:
         """
