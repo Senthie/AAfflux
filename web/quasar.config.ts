@@ -104,6 +104,33 @@ export default defineConfig((ctx) => {
         devServer: {
             // https: true,
             open: true, // opens browser window automatically
+            proxy: {
+                '/api': {
+                    target: 'http://14.12.0.212:8000',
+                    changeOrigin: true,
+                    secure: false,
+                    ws: true,
+                    configure: (proxy) => {
+                        proxy.on('error', (err) => {
+                            console.log('proxy error', err)
+                        })
+                        proxy.on('proxyReq', (proxyReq, req) => {
+                            console.log(
+                                'Sending Request to the Target:',
+                                req.method,
+                                req.url
+                            )
+                        })
+                        proxy.on('proxyRes', (proxyRes, req) => {
+                            console.log(
+                                'Received Response from the Target:',
+                                proxyRes.statusCode,
+                                req.url
+                            )
+                        })
+                    },
+                },
+            },
         },
 
         // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#framework
