@@ -28,7 +28,7 @@ export async function v1_auth_register(
 ): Promise<IResponse<IRegisterRes>> {
     try {
         const response = await api.post<IResponse<IRegisterRes>>(
-            '/api/v1/auth/register',
+            '/v1/auth/register',
             request
         )
 
@@ -70,7 +70,7 @@ export async function v1_auth_login(
 ): Promise<IResponse<ILoginRes>> {
     try {
         const response = await api.post<IResponse<ILoginRes>>(
-            '/api/v1/auth/login',
+            '/v1/auth/login',
             request
         )
 
@@ -112,7 +112,7 @@ export async function v1_auth_refresh(request: {
 }): Promise<IResponse<ITokenPair>> {
     try {
         const response = await api.post<IResponse<ITokenPair>>(
-            '/api/v1/auth/refresh',
+            '/v1/auth/refresh',
             request
         )
 
