@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-06 12:15:18
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-06 17:22:31
+ * @LastEditTime: 2026-01-06 17:43:56
  * @FilePath: /web/src/stores/user-store.ts
  * @Description:
  *
@@ -17,10 +17,12 @@ import {
 } from 'src/apis/AuthApi'
 import type {
     ILogin,
+    ILoginRes,
     IRegister,
     ITokenPair,
     IUserRes,
 } from 'src/interfaces/IAuth'
+import type { IResponse } from 'src/interfaces/IResponse'
 import { TokenManager } from 'src/utils/tokenManager'
 
 export const useUserStore = defineStore('user', {
@@ -70,7 +72,7 @@ export const useUserStore = defineStore('user', {
         /**
          * 用户登录
          */
-        async login(user: ILogin) {
+        async login(user: ILogin): Promise<IResponse<ILoginRes>> {
             const res = await v1_auth_login(user)
             if (res.code === 200) {
                 this.setUserData(res.data.user, res.data.tokens)
