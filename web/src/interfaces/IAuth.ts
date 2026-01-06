@@ -45,4 +45,4 @@ interface ILoginRes {
     user: IUserRes
     tokens: ITokenPair
 }
-export type { IRegister, ILogin, ITokenPair, IRegisterRes, ILoginRes }
+export type { IRegister, ILogin, ITokenPair, IRegisterRes, ILoginRes, IUserRes }
