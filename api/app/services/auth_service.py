@@ -1,9 +1,9 @@
 """
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-02 08:55:33
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-09 16:31:13
-FilePath: : AAfflux: api: app: services: auth_service.py
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-05 15:58:21
+FilePath: /api/app/services/auth_service.py
 Description: Authentication service for user registration, login, and token management
 
 Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
@@ -17,7 +17,9 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.config import settings
+from app.core.exceptions import EmailAlreadyExistsException, InvalidCredentialsException
 from app.core.redis import RedisClient
+from app.core.response import ResponseSchemaModel, response_base
 from app.models.auth import User
 from app.schemas.auth_schema import (
     LoginRequest,
@@ -50,7 +52,7 @@ class AuthService:
         self.db = db
         self.redis = redis
 
-    async def register(self, request: RegisterRequest) -> RegisterResponse:
+    async def register(self, request: RegisterRequest) -> ResponseSchemaModel[RegisterResponse]:
         """
         Register a new user.
 
@@ -66,13 +68,13 @@ class AuthService:
         # Check if user already exists
         statement = select(User).where(
             User.email == request.email,
-            User.is_deleted.is_(False),
+            User.is_deleted.is_(False),  # type: ignore
         )
         result = await self.db.execute(statement)
         existing_user = result.scalar_one_or_none()
 
         if existing_user:
-            raise ValueError('Email already registered')
+            raise EmailAlreadyExistsException()
 
         # Create new user
         password_hash = get_password_hash(request.password)
@@ -89,9 +91,11 @@ class AuthService:
         # Generate tokens
         tokens = await self._generate_token_pair(user.id)
 
-        return RegisterResponse(
-            user=UserResponse.model_validate(user),
-            tokens=tokens,
+        return response_base.success(
+            data=RegisterResponse(
+                user=UserResponse.model_validate(user),
+                tokens=tokens,
+            )
         )
 
     async def login(self, request: LoginRequest) -> LoginResponse:
@@ -108,16 +112,19 @@ class AuthService:
             ValueError: If credentials are invalid
         """
         # Find user by email
-        statement = select(User).where(User.email == request.email, User.is_deleted.is_(False))
+        statement = select(User).where(
+            User.email == request.email,
+            User.is_deleted.is_(False),  # type: ignore
+        )
         result = await self.db.execute(statement)
         user = result.scalar_one_or_none()
 
         if not user:
-            raise ValueError('Invalid email or password')
+            raise InvalidCredentialsException()
 
         # Verify password
         if not verify_password(request.password, user.password_hash):
-            raise ValueError('Invalid email or password')
+            raise InvalidCredentialsException()
 
         # Generate tokens
         tokens = await self._generate_token_pair(user.id)
@@ -207,7 +214,10 @@ class AuthService:
             ValueError: If user not found
         """
         # Find user by email
-        statement = select(User).where(User.email == email, User.is_deleted.is_(False))
+        statement = select(User).where(
+            User.email == email,
+            User.is_deleted.is_(False),  # type: ignore
+        )
         result = await self.db.execute(statement)
         user = result.scalar_one_or_none()
 

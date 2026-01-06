@@ -1,9 +1,9 @@
 """
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-09 18:00:00
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-09 16:33:45
-FilePath: : AAfflux: api: app: api: v1: auth.py
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-05 17:58:35
+FilePath: /api/app/api/v1/auth.py
 Description: 认证相关API端点
 """
 
@@ -13,7 +13,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.database import get_session
+from app.core.exceptions import AuthException
 from app.core.redis import RedisClient, get_redis
+from app.core.response import ResponseModel, ResponseSchemaModel, response_base
 from app.schemas.auth_schema import (
     LoginRequest,
     LoginResponse,
@@ -43,14 +45,12 @@ AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
 
 @router.post(
     '/register',
-    response_model=RegisterResponse,
-    status_code=status.HTTP_201_CREATED,
     summary='用户注册',
 )
 async def register(
     request: RegisterRequest,
     auth_service: AuthServiceDep,
-) -> RegisterResponse:
+) -> ResponseSchemaModel[RegisterResponse] | ResponseModel:
     """
     用户注册
 
@@ -61,11 +61,9 @@ async def register(
     try:
         response = await auth_service.register(request)
         return response
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        ) from e
+    except AuthException as e:
+        # 返回业务异常的响应格式
+        raise e
 
 
 @router.post(
@@ -174,7 +172,7 @@ async def reset_password(
 async def confirm_reset_password(
     request: PasswordResetConfirm,
     auth_service: AuthServiceDep,
-) -> dict:
+) -> ResponseModel | dict:
     """
     使用重置令牌设置新密码
 
@@ -186,6 +184,8 @@ async def confirm_reset_password(
         return {
             'message': '密码重置成功',
         }
+    except AuthException as e:
+        return response_base.fail(res=e.response_code)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
