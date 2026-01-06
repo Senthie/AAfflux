@@ -1,3 +1,13 @@
+/*
+ * @Author: Senthie seemoon2077@gmail.com
+ * @Date: 2025-11-26 10:24:58
+ * @LastEditors: Senthie seemoon2077@gmail.com
+ * @LastEditTime: 2026-01-06 15:15:25
+ * @FilePath: /web/src/boot/axios.ts
+ * @Description: axios配置文件
+ *
+ * Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
+ */
 import { defineBoot } from '#q-app/wrappers'
 import axios, { type AxiosInstance } from 'axios'
 
@@ -14,7 +24,7 @@ declare module 'vue' {
 // good idea to move this instance creation inside of the
 // "export default () => {}" function below (which runs individually
 // for each client)
-const api = axios.create({ baseURL: 'https://api.example.com' })
+const api = axios.create({ baseURL: 'http://14.12.0.212:8000/' })
 
 export default defineBoot(({ app }) => {
     // for use inside Vue files (Options API) through this.$axios and this.$api
