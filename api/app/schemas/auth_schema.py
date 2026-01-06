@@ -1,17 +1,21 @@
 """Authentication related Pydantic schemas."""
 
-from typing import Optional
-from pydantic import BaseModel, EmailStr, Field, field_validator
-from uuid import UUID
 from datetime import datetime
 import re
+from typing import Optional
+from uuid import UUID
+
+from pydantic import BaseModel, EmailStr, Field, field_validator
+
+from app.core.exceptions import PasswordValidationException
+from app.enums.custom_response_code_enum import CustomResponseCodeEnum
 
 
 class RegisterRequest(BaseModel):
     """User registration request schema."""
 
     email: EmailStr
-    password: str = Field(..., min_length=8, max_length=100)
+    password: str = Field(..., max_length=100)
     name: str = Field(..., min_length=1, max_length=100)
 
     @field_validator('password')
@@ -19,13 +23,13 @@ class RegisterRequest(BaseModel):
     def validate_password_strength(cls, v: str) -> str:
         """Validate password strength."""
         if len(v) < 8:
-            raise ValueError('Password must be at least 8 characters long')
+            raise PasswordValidationException(CustomResponseCodeEnum.PASSWORD_TOO_SHORT)
         if not re.search(r'[A-Z]', v):
-            raise ValueError('Password must contain at least one uppercase letter')
+            raise PasswordValidationException(CustomResponseCodeEnum.PASSWORD_MISSING_UPPERCASE)
         if not re.search(r'[a-z]', v):
-            raise ValueError('Password must contain at least one lowercase letter')
+            raise PasswordValidationException(CustomResponseCodeEnum.PASSWORD_MISSING_LOWERCASE)
         if not re.search(r'\d', v):
-            raise ValueError('Password must contain at least one digit')
+            raise PasswordValidationException(CustomResponseCodeEnum.PASSWORD_MISSING_DIGIT)
         return v
 
 
@@ -88,18 +92,18 @@ class PasswordResetConfirm(BaseModel):
     """Password reset confirmation schema."""
 
     token: str
-    new_password: str = Field(..., min_length=8, max_length=100)
+    new_password: str = Field(..., max_length=100)
 
     @field_validator('new_password')
     @classmethod
     def validate_password_strength(cls, v: str) -> str:
         """Validate password strength."""
         if len(v) < 8:
-            raise ValueError('Password must be at least 8 characters long')
+            raise PasswordValidationException(CustomResponseCodeEnum.PASSWORD_TOO_SHORT)
         if not re.search(r'[A-Z]', v):
-            raise ValueError('Password must contain at least one uppercase letter')
+            raise PasswordValidationException(CustomResponseCodeEnum.PASSWORD_MISSING_UPPERCASE)
         if not re.search(r'[a-z]', v):
-            raise ValueError('Password must contain at least one lowercase letter')
+            raise PasswordValidationException(CustomResponseCodeEnum.PASSWORD_MISSING_LOWERCASE)
         if not re.search(r'\d', v):
-            raise ValueError('Password must contain at least one digit')
+            raise PasswordValidationException(CustomResponseCodeEnum.PASSWORD_MISSING_DIGIT)
         return v
