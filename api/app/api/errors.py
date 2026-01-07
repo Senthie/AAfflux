@@ -2,7 +2,7 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-22 10:32:49
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-08 12:31:27
+LastEditTime: 2026-01-08 14:08:55
 FilePath: /api/app/api/errors.py
 Description:统一错误处理器
 """
@@ -25,6 +25,7 @@ class BusinessException(Exception):
     """业务异常"""
 
     def __init__(self, message: str, error_code: str = 'BUSINESS_ERROR', details: dict = None):
+    def __init__(self, message: str, error_code: str = 'BUSINESS_ERROR', details: dict = None):
         self.message = message
         self.error_code = error_code
         self.details = details
@@ -35,6 +36,7 @@ class AuthenticationException(Exception):
     """认证异常"""
 
     def __init__(self, message: str = '认证失败'):
+    def __init__(self, message: str = '认证失败'):
         self.message = message
         super().__init__(message)
 
@@ -43,6 +45,7 @@ class AuthorizationException(Exception):
     """授权异常"""
 
     def __init__(self, message: str = '权限不足'):
+    def __init__(self, message: str = '权限不足'):
         self.message = message
         super().__init__(message)
 
@@ -50,6 +53,7 @@ class AuthorizationException(Exception):
 class ResourceNotFoundException(Exception):
     """资源不存在异常"""
 
+    def __init__(self, message: str = '资源不存在'):
     def __init__(self, message: str = '资源不存在'):
         self.message = message
         super().__init__(message)
@@ -100,7 +104,9 @@ async def authentication_exception_handler(request: Request, exc: Authentication
     return JSONResponse(
         status_code=status.HTTP_401_UNAUTHORIZED,
         content=error_response(
-            message=exc.message, error_code='AUTHENTICATION_ERROR', path=str(request.url)
+            message=exc.message,
+            error_code="AUTHENTICATION_ERROR",
+            path=str(request.url),
         ),
     )
 
@@ -235,7 +241,9 @@ async def general_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content=error_response(
-            message='服务器内部错误', error_code='INTERNAL_SERVER_ERROR', path=str(request.url)
+            message="服务器内部错误",
+            error_code="INTERNAL_SERVER_ERROR",
+            path=str(request.url),
         ),
     )
 
