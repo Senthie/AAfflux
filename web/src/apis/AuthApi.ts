@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-06 14:30:33
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-06 16:07:27
+ * @LastEditTime: 2026-01-07 15:17:33
  * @FilePath: /web/src/apis/AuthApi.ts
  * @Description: Auth 的 api 请求
  *
@@ -84,9 +84,11 @@ export async function v1_auth_login(
 
         return response.data
     } catch (error) {
-        const errorMessage =
+        let errorMessage =
             error instanceof Error ? error.message : '网络请求失败'
-
+        if (error.response.data.msg) {
+            errorMessage = error.response.data.msg
+        }
         Notify.create({
             type: 'negative',
             message: errorMessage,

@@ -1,18 +1,16 @@
-<template>
-    <q-page class="row items-center justify-evenly">
-        <example-component
-            title="Example component"
-            active
-            :todos="todos"
-            :meta="meta"
-        ></example-component>
-    </q-page>
-</template>
-
+<!--
+ * @Author: Senthie seemoon2077@gmail.com
+ * @Date: 2025-11-26 10:24:58
+ * @LastEditors: Senthie seemoon2077@gmail.com
+ * @LastEditTime: 2026-01-07 15:31:11
+ * @FilePath: /web/src/pages/IndexPage.vue
+ * @Description: 用户登陆后的主页
+ *
+ * Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
+-->
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { Todo, Meta } from 'components/models'
-import ExampleComponent from 'components/ExampleComponent.vue'
 
 const todos = ref<Todo[]>([
     {
@@ -36,8 +34,9 @@ const todos = ref<Todo[]>([
         content: 'ct5',
     },
 ])
-
-const meta = ref<Meta>({
-    totalCount: 1200,
-})
 </script>
+<template>
+    <q-page class="row justify-evenly">
+        <div></div>
+    </q-page>
+</template>
