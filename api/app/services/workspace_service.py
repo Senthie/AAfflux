@@ -1,22 +1,24 @@
 """
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-10 14:41:43
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-15 12:19:50
-FilePath: : AAfflux: api: app: services: workspace_service.py
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-07 17:18:32
+FilePath: /api/app/services/workspace_service.py
 Description:工作空间管理服务
 """
 
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
 from uuid import UUID
-from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlmodel import select
 
-from app.models.tenant.organization import Workspace
-from app.models.workflow.workflow import Workflow
+from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
+
+from app.core.response import ResponseSchemaModel, response_base
 from app.models.application.application import Application
 from app.models.file.reference import FileReference
-from app.schemas.workspace import WorkspaceCreate, WorkspaceUpdate
+from app.models.tenant.organization import TeamMember, Workspace
+from app.models.workflow.workflow import Workflow
+from app.schemas.workspace import WorkspaceCreate, WorkspaceResponse, WorkspaceUpdate
 
 
 class WorkspaceService:
@@ -157,3 +159,26 @@ class WorkspaceService:
             select(Workspace).where(Workspace.team_id == team_id, Workspace.is_deleted.is_(False))
         )
         return list(result.scalars().all())
+
+    async def get_user_workspaces(
+        self, user_id: UUID
+    ) -> ResponseSchemaModel[list[WorkspaceResponse]]:
+        """获取用户可访问的所有工作空间"""
+        # 获取用户所属的所有团队
+        team_memberships = await self.session.execute(
+            select(TeamMember).where(TeamMember.user_id == user_id)
+        )
+
+        team_ids = [membership.team_id for membership in team_memberships.scalars().all()]
+
+        if not team_ids:
+            return response_base.success(data=[])
+
+        # 获取这些团队下的所有工作空间
+        result = await self.session.execute(
+            select(Workspace).where(
+                Workspace.team_id.in_(team_ids), Workspace.is_deleted.is_(False)
+            )
+        )
+        lst = [WorkspaceResponse.model_validate(ws) for ws in result.scalars().all()]
+        return response_base.success(data=lst)

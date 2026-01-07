@@ -1,9 +1,9 @@
 """
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-10 17:45:21
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-11 10:17:11
-FilePath: : AAfflux: api: app: api: v1: workspaces.py
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-07 17:22:35
+FilePath: /api/app/api/v1/workspaces.py
 Description:工作空间管理 API 端点"
 """
 
@@ -14,6 +14,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.database import get_session
+from app.core.response import ResponseSchemaModel
 from app.middleware.auth import get_current_user
 from app.models.auth.user import UserEntity
 from app.schemas.workspace import (
@@ -39,6 +40,20 @@ def get_workspace_service(session: DbSession) -> WorkspaceService:
 
 
 WorkspaceServiceDep = Annotated[WorkspaceService, Depends(get_workspace_service)]
+
+
+@router.get(
+    '',
+    response_model=ResponseSchemaModel[list[WorkspaceResponse]],
+    summary='获取用户可访问的工作空间',
+)
+async def list_user_workspaces(
+    current_user: CurrentUser,
+    service: WorkspaceServiceDep,
+) -> ResponseSchemaModel[list[WorkspaceResponse]]:
+    """获取当前用户可访问的所有工作空间"""
+    res = await service.get_user_workspaces(current_user.id)
+    return res
 
 
 @router.post(
