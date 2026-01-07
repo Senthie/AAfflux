@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-02 08:55:33
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-06 16:28:57
+LastEditTime: 2026-01-07 16:52:36
 FilePath: /api/app/services/auth_service.py
 Description: Authentication service for user registration, login, and token management
 
@@ -21,6 +21,7 @@ from app.core.exceptions import EmailAlreadyExistsException, InvalidCredentialsE
 from app.core.redis import RedisClient
 from app.core.response import ResponseSchemaModel, response_base
 from app.models.auth import UserEntity
+from app.models.tenant.organization import Team, TeamMember, Workspace
 from app.schemas.auth_schema import (
     LoginRequest,
     LoginResponse,
@@ -87,6 +88,9 @@ class AuthService:
         self.db.add(user)
         await self.db.commit()
         await self.db.refresh(user)
+
+        # Create default team and workspace for the user
+        await self._create_default_workspace(user)
 
         # Generate tokens
         tokens = await self._generate_token_pair(user.id)
@@ -331,3 +335,47 @@ class AuthService:
             token_type='bearer',
             expires_in=settings.access_token_expire_minutes * 60,
         )
+
+    async def _create_default_workspace(self, user: UserEntity) -> Workspace:
+        """
+        Create default team and workspace for a new user.
+
+        Args:
+            user: The newly created user
+
+        Returns:
+            Created workspace
+        """
+        # Create default team for the user
+        team = Team(
+            name='Personal',
+            description=f'Default team for {user.name}',
+            created_by=user.id,
+        )
+
+        self.db.add(team)
+        await self.db.commit()
+        await self.db.refresh(team)
+
+        # Add user as admin of the team
+        team_member = TeamMember(
+            team_id=team.id,
+            user_id=user.id,
+            role='ADMIN',
+        )
+
+        self.db.add(team_member)
+
+        # Create default workspace
+        workspace = Workspace(
+            name=f"{user.name}'s Workspace",
+            team_id=team.id,
+            description=f'Default workspace for {user.name}',
+            created_by=user.id,
+        )
+
+        self.db.add(workspace)
+        await self.db.commit()
+        await self.db.refresh(workspace)
+
+        return workspace
