@@ -1,4 +1,10 @@
-"""租户层模型 - 4张表。
+"""
+Author: Senthie seemoon2077@gmail.com
+Date: 2026-01-07 15:44:21
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-07 16:20:26
+FilePath: /api/app/models/tenant/organization.py
+Description:租户层模型 - 4张表。
 
 本模块定义了系统的三层租户架构：
 1. Organization - 企业表（顶层）
@@ -8,6 +14,8 @@
 
 租户层级关系：Organization → Team → Workspace
 资源隔离单位：Workspace（所有业务资源都关联到 workspace_id）
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from datetime import datetime
@@ -20,7 +28,7 @@ from sqlmodel import Column, Field
 from app.models.base import AuditMixin, BaseEntity, SoftDeleteMixin, TimestampMixin
 
 
-class Organization(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):
+class Organization(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):  # type: ignore
     """企业表 - 顶层组织实体。
 
     企业是系统中的最高层级组织单位，可以包含多个团队。
@@ -41,14 +49,14 @@ class Organization(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, tabl
 
     """
 
-    __tablename__ = 'organizations'
+    __tablename__ = 'organizations'  # type: ignore
 
     name: str = Field(max_length=255, index=True)
     description: Optional[str] = None
     settings: dict = Field(default_factory=dict, sa_column=Column(JSONB))
 
 
-class Team(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):
+class Team(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):  # type: ignore
     """团队表 - 中层组织实体。
 
     团队是协作的基本单位，可以属于企业或独立存在。
@@ -70,7 +78,7 @@ class Team(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):
 
     """
 
-    __tablename__ = 'teams'
+    __tablename__ = 'teams'  # type: ignore
 
     name: str = Field(max_length=255, index=True)
     organization_id: Optional[UUID] = Field(default=None, index=True)  # Logical FK to organizations
@@ -78,7 +86,7 @@ class Team(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):
     settings: dict = Field(default_factory=dict, sa_column=Column(JSONB))
 
 
-class Workspace(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):
+class Workspace(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):  # type: ignore
     """工作空间表 - 资源隔离单元。
 
     工作空间是资源隔离的基本单位，所有业务资源（工作流、应用等）都关联到工作空间。
@@ -97,11 +105,9 @@ class Workspace(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=T
         team_id: 所属团队ID（逻辑外键）
         description: 工作空间描述
         settings: 工作空间级配置（JSONB格式）
-
-
     """
 
-    __tablename__ = 'workspaces'
+    __tablename__ = 'workspaces'  # type: ignore
 
     name: str = Field(max_length=255, index=True)
     team_id: UUID = Field(index=True)  # Logical FK to teams
@@ -109,7 +115,7 @@ class Workspace(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=T
     settings: dict = Field(default_factory=dict, sa_column=Column(JSONB))
 
 
-class TeamMember(BaseEntity, table=True):
+class TeamMember(BaseEntity, table=True):  # type: ignore
     """团队成员表 - 用户与团队的关联关系。
 
     建立用户和团队之间的多对多关系，并定义用户在团队中的角色。
@@ -125,7 +131,7 @@ class TeamMember(BaseEntity, table=True):
         joined_at: 加入时间
     """
 
-    __tablename__ = 'team_members'
+    __tablename__ = 'team_members'  # type: ignore
 
     team_id: UUID = Field(index=True)  # Logical FK to teams
     user_id: UUID = Field(index=True)  # Logical FK to users
