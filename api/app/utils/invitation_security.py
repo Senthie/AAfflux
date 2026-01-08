@@ -1,11 +1,11 @@
 """邀请安全管理器"""
 
-import hmac
-import hashlib
-import secrets
-import json
 from datetime import datetime, timedelta
-from typing import Dict, Any
+import hashlib
+import hmac
+import json
+import secrets
+from typing import Any, Dict
 from uuid import UUID
 
 from app.core.config import settings
@@ -141,7 +141,7 @@ class InvitationSecurityManager:
         return usage_info
 
     async def record_token_attempt(
-        self, token: str, success: bool = False, user_id: UUID = None
+        self, token: str, success: bool = False, user_id: UUID | None = None
     ) -> bool:
         """记录令牌使用尝试"""
         usage_key = f'token_usage:{token}'

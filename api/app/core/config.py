@@ -1,6 +1,7 @@
 """Application configuration using pydantic-settings."""
 
 from typing import Optional
+
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -35,6 +36,7 @@ class Settings(BaseSettings):
         env_file_encoding='utf-8',
         case_sensitive=False,
         extra='ignore',
+        env_prefix='',  # No prefix for environment variables
     )
 
     # Application
@@ -50,7 +52,7 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
     secret_key: Optional[str] = Field(
-        None, min_length=32, description='Secret key for HMAC signing'
+        default=None, min_length=32, description='Secret key for HMAC signing'
     )
 
     # Invitation Security
@@ -134,4 +136,19 @@ class Settings(BaseSettings):
 
 
 # Global settings instance
-settings = Settings()
+try:
+    settings = Settings()
+except Exception as e:
+    # Fallback for development/testing when .env might not be available
+    import os
+
+    if os.getenv('TESTING') or os.getenv('CI'):
+        # Provide minimal defaults for testing
+        settings = Settings(
+            jwt_secret_key='test-secret-key-minimum-32-characters',
+            database_url='postgresql+asyncpg://test:test@localhost/test',
+            mongodb_url='mongodb://localhost:27017',
+            redis_url='redis://localhost:6379',
+        )
+    else:
+        raise e
