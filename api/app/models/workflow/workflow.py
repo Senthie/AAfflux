@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-24 16:24:52
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-29 17:10:56
+LastEditTime: 2026-01-08 16:36:45
 FilePath: /api/app/models/workflow/workflow.py
 Description:工作流模型 - 5张表。
     本模块定义了DAG工作流相关的数据模型：
@@ -27,7 +27,7 @@ from sqlmodel import Column, Field, Relationship
 from app.models.base import AuditMixin, BaseEntity, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
 
 
-class Workflow(BaseEntity, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin, table=True):
+class Workflow(BaseEntity, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin, table=True):  # type: ignore
     """工作流表 - DAG工作流定义。
 
     存储工作流的基本信息和输入输出schema。
@@ -48,7 +48,7 @@ class Workflow(BaseEntity, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDelet
         output_schema: 输出结果schema（JSONB格式）
     """
 
-    __tablename__ = 'workflows'
+    __tablename__ = 'workflows'  # type: ignore
 
     name: str = Field(max_length=255, index=True)
     description: Optional[str] = None
@@ -56,7 +56,7 @@ class Workflow(BaseEntity, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDelet
     output_schema: dict = Field(default_factory=dict, sa_column=Column(JSONB))
 
 
-class Node(BaseEntity, SoftDeleteMixin, table=True):
+class Node(BaseEntity, SoftDeleteMixin, table=True):  # type: ignore
     """节点表 - 工作流中的处理节点。
 
     定义工作流中的各个处理单元，包括类型、配置和位置信息。
@@ -75,7 +75,7 @@ class Node(BaseEntity, SoftDeleteMixin, table=True):
         position: 节点位置坐标（JSONB格式，包含x和y）
     """
 
-    __tablename__ = 'nodes'
+    __tablename__ = 'nodes'  # type: ignore
 
     workflow_id: UUID = Field(index=True)  # Logical FK to workflows
     type: str = Field(max_length=50)  # LLM, CONDITION, CODE, HTTP, TRANSFORM
@@ -84,7 +84,7 @@ class Node(BaseEntity, SoftDeleteMixin, table=True):
     position: dict = Field(default_factory=dict, sa_column=Column(JSONB))  # {x, y}
 
 
-class Connection(BaseEntity, table=True):
+class Connection(BaseEntity, table=True):  # type: ignore
     """连接表 - 节点之间的连接关系。
 
     定义工作流中节点之间的数据流向。
@@ -101,7 +101,7 @@ class Connection(BaseEntity, table=True):
         target_input: 目标节点的输入端口名称
     """
 
-    __tablename__ = 'connections'
+    __tablename__ = 'connections'  # type: ignore
 
     workflow_id: UUID = Field(index=True)  # Logical FK to workflows
     source_node_id: UUID = Field(index=True)  # Logical FK to nodes
@@ -110,7 +110,7 @@ class Connection(BaseEntity, table=True):
     target_input: str = Field(max_length=255)
 
 
-class ExecutionRecord(BaseEntity, table=True):
+class ExecutionRecord(BaseEntity, table=True):  # type: ignore
     """执行记录表 - 工作流执行历史。
 
     记录工作流的每次执行，包括输入、输出、状态和耗时。
@@ -130,7 +130,7 @@ class ExecutionRecord(BaseEntity, table=True):
         duration_ms: 执行耗时（毫秒）
     """
 
-    __tablename__ = 'execution_records'
+    __tablename__ = 'execution_records'  # type: ignore
 
     workflow_id: UUID = Field(index=True)  # Logical FK to workflows
     inputs: dict = Field(default_factory=dict, sa_column=Column(JSONB))
@@ -150,7 +150,7 @@ class ExecutionRecord(BaseEntity, table=True):
     )
 
 
-class NodeExecutionResult(BaseEntity, table=True):
+class NodeExecutionResult(BaseEntity, table=True):  # type: ignore
     """节点执行结果表 - 单个节点的执行记录。
 
     记录工作流执行过程中每个节点的执行情况。
@@ -169,7 +169,7 @@ class NodeExecutionResult(BaseEntity, table=True):
         duration_ms: 执行耗时（毫秒）
     """
 
-    __tablename__ = 'node_execution_results'
+    __tablename__ = 'node_execution_results'  # type: ignore
 
     execution_record_id: UUID = Field(index=True)  # Logical FK to execution_records
     node_id: UUID = Field(index=True)  # Logical FK to nodes

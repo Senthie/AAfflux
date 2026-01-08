@@ -14,7 +14,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from app.api.dependencies import get_session, get_current_user
+from app.api.dependencies import get_current_user, get_session
 from app.schemas.bpm_approval_schemas import ApprovalRequest, ApprovalResponse
 from app.services.bpm_approval_service import ApprovalService
 from app.services.bpm_task_service import TaskService

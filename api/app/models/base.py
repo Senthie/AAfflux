@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2026-01-02 17:14:49
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-02 17:17:23
+LastEditTime: 2026-01-08 15:41:45
 FilePath: /api/app/models/base.py
 Description: Base model classes and mixins for the application.
 
@@ -75,7 +75,12 @@ class BaseEntity(SQLModel):
 
 
 class TimestampMixin:
-    """Mixin class providing timestamp fields and related methods."""
+    """
+    description: Mixin class providing timestamp fields and related methods.
+
+    param {datetime} created_at: create row time
+    param {datetime} updated_at: update row info time
+    """
 
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)

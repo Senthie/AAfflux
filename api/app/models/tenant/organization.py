@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2026-01-07 15:44:21
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-07 16:20:26
+LastEditTime: 2026-01-08 16:49:25
 FilePath: /api/app/models/tenant/organization.py
 Description:租户层模型 - 4张表。
 
@@ -12,20 +12,22 @@ Description:租户层模型 - 4张表。
 3. Workspace - 工作空间表（资源隔离层）
 4. TeamMember - 团队成员表（用户-团队关联）
 
-租户层级关系：Organization → Team → Workspace
+租户层级关系：Organization → Team → User-> Workspace
 资源隔离单位：Workspace（所有业务资源都关联到 workspace_id）
 
 Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from datetime import datetime
+import enum
 from typing import Optional
 from uuid import UUID
 
+from sqlalchemy import UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Column, Field
 
-from app.models.base import AuditMixin, BaseEntity, SoftDeleteMixin, TimestampMixin
+from app.models.base import AuditMixin, BaseEntity, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
 
 
 class Organization(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):  # type: ignore
@@ -56,7 +58,7 @@ class Organization(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, tabl
     settings: dict = Field(default_factory=dict, sa_column=Column(JSONB))
 
 
-class Team(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):  # type: ignore
+class Team(WorkspaceMixin, BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):  # type: ignore
     """团队表 - 中层组织实体。
 
     团队是协作的基本单位，可以属于企业或独立存在。
@@ -86,6 +88,31 @@ class Team(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):
     settings: dict = Field(default_factory=dict, sa_column=Column(JSONB))
 
 
+class TenantAccountRole(enum.StrEnum):
+    OWNER = 'owner'  # 顶级拥有
+    ADMIN = 'admin'  # 可以创建和修改资源
+    EDITOR = 'editor'  # 可编辑
+    NORMAL = 'normal'  # 只读访问
+    DATASET_OPERATOR = 'dataset_operator'  # 数据集管理的专业角色
+
+
+class WorkspacePlan(enum.StrEnum):
+    """
+    用户订阅状态
+    """
+
+    FREE = 'free'
+    PRO = 'pro'
+    ENTERPRISE = 'enterprise'
+
+
+class WorkspaceStatus(enum.StrEnum):
+    """Workspace type enum."""
+
+    NORMAL = 'normal'
+    ARCHIVE = 'archive'
+
+
 class Workspace(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):  # type: ignore
     """工作空间表 - 资源隔离单元。
 
@@ -102,17 +129,58 @@ class Workspace(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=T
         is_deleted: bool = Field(default=False)
 
         name: 工作空间名称
-        team_id: 所属团队ID（逻辑外键）
         description: 工作空间描述
         settings: 工作空间级配置（JSONB格式）
+
+        encrypt_public_key：加密公钥
+        plan: 租户的订阅计划
+        status: 租户的状态，归档 or 正常
+
+    v0.0.1 2026/1/8 移除了 `team_id` 由 `WorkspaceAccountUser` 进行数据表关联
     """
 
     __tablename__ = 'workspaces'  # type: ignore
 
     name: str = Field(max_length=255, index=True)
-    team_id: UUID = Field(index=True)  # Logical FK to teams
     description: Optional[str] = None
     settings: dict = Field(default_factory=dict, sa_column=Column(JSONB))
+
+    encrypt_public_key: str = Field(default='', max_length=1024)
+    plan: WorkspacePlan = Field(default='free', max_length=16)
+    status: WorkspaceStatus = Field(default='active', max_length=16)
+
+
+class WorkspaceAccountUser(
+    WorkspaceMixin,
+    BaseEntity,
+    TimestampMixin,
+    AuditMixin,
+    SoftDeleteMixin,
+    table=True,  # type: ignore
+):
+    """租户账户表 - 用户与租户的关联关系。
+
+    建立用户和租户之间的多对多关系，并定义用户在租户中的角色。
+
+    Attributes:
+    已经继承
+        id: 账户记录唯一标识符（UUID）
+
+        workspace_id: 工作空间ID（逻辑外键）
+        user_id: 用户ID（逻辑外键）
+        role: 角色（ADMIN-管理员/MEMBER-成员/GUEST-访客）
+        joined_at: 加入时间
+    """
+
+    __tablename__ = 'workspace_accounts'  # type: ignore
+    __table_args__ = (UniqueConstraint('workspace_id', 'user_id', name='uq_workspace_user'),)
+
+    # 外联属性
+    user_id: UUID = Field(index=True)  # Logical FK to users
+    # 关键 key
+    role: TenantAccountRole = Field(default='normal', max_length=16)
+    current: bool = Field(default=True)
+    invited_by: UUID = Field(default=None)
 
 
 class TeamMember(BaseEntity, table=True):  # type: ignore
@@ -129,11 +197,13 @@ class TeamMember(BaseEntity, table=True):  # type: ignore
         user_id: 用户ID（逻辑外键）
         role: 角色（ADMIN-管理员/MEMBER-成员/GUEST-访客）
         joined_at: 加入时间
+
+    v0.0.1:
+        移除了 `role` 属性，团队的权限通过 workspace 进行分配
     """
 
     __tablename__ = 'team_members'  # type: ignore
 
     team_id: UUID = Field(index=True)  # Logical FK to teams
     user_id: UUID = Field(index=True)  # Logical FK to users
-    role: str = Field(default='MEMBER', max_length=16)  # ADMIN, MEMBER, GUEST
     joined_at: datetime = Field(default_factory=datetime.utcnow)
