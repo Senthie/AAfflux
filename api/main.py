@@ -1,15 +1,14 @@
 """
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-02 08:50:10
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-08 16:08:18
-FilePath: : AAfflux: api: main.py
-Description:
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-09 10:59:51
+FilePath: /api/main.py
+Description: Application entry point.
 """
 
-"""Application entry point."""
-
 import uvicorn
+
 from app.core.config import settings
 
 
