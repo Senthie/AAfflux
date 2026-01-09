@@ -5,6 +5,7 @@
 ## 🚀 功能特性
 
 ### 核心功能
+
 - **用户认证与授权** - JWT令牌认证，基于角色的权限控制
 - **多租户管理** - 组织、团队、工作空间的层级管理
 - **工作流引擎** - 可视化DAG工作流编排和执行
@@ -14,6 +15,7 @@
 - **执行记录** - 完整的工作流执行历史和统计
 
 ### 技术特性
+
 - **异步架构** - 基于FastAPI和SQLModel的现代异步架构
 - **数据库支持** - PostgreSQL主数据库 + MongoDB文件存储
 - **缓存系统** - Redis缓存提升性能
@@ -76,9 +78,9 @@ uv run python main.py
 
 ### 5. 访问服务
 
-- API文档: http://localhost:8000/docs
-- 健康检查: http://localhost:8000/health
-- API根路径: http://localhost:8000/api/v1
+- API文档: <http://localhost:8000/docs>
+- 健康检查: <http://localhost:8000/health>
+- API根路径: <http://localhost:8000/api/v1>
 
 ## 🐳 Docker部署
 
@@ -108,32 +110,38 @@ docker-compose up -d --scale api=3
 ## 📚 API文档
 
 ### 认证接口
+
 - `POST /api/v1/auth/register` - 用户注册
 - `POST /api/v1/auth/login` - 用户登录
 - `POST /api/v1/auth/refresh` - 刷新令牌
 - `POST /api/v1/auth/logout` - 用户登出
 
 ### 用户管理
+
 - `GET /api/v1/users/me` - 获取当前用户信息
 - `PUT /api/v1/users/me` - 更新用户信息
 - `POST /api/v1/users/me/password` - 修改密码
 
 ### 组织管理
+
 - `GET /api/v1/organizations` - 获取组织列表
 - `POST /api/v1/organizations` - 创建组织
 - `GET /api/v1/organizations/{id}` - 获取组织详情
 
 ### 工作流管理
+
 - `GET /api/v1/workflows` - 获取工作流列表
 - `POST /api/v1/workflows` - 创建工作流
 - `POST /api/v1/workflows/{id}/execute` - 执行工作流
 
 ### 应用管理
+
 - `GET /api/v1/applications` - 获取应用列表
 - `POST /api/v1/applications` - 创建应用
 - `POST /api/v1/applications/{id}/publish` - 发布应用
 
 ### 执行记录
+
 - `GET /api/v1/executions` - 获取执行记录
 - `GET /api/v1/executions/{id}` - 获取执行详情
 - `GET /api/v1/executions/statistics` - 获取执行统计
@@ -197,16 +205,19 @@ uv run pytest --cov=app --cov-report=html
 ## 🔒 安全配置
 
 ### JWT配置
+
 - 使用强密钥（至少32字符）
 - 设置合适的过期时间
 - 启用令牌刷新机制
 
 ### 数据库安全
+
 - 使用强密码
 - 限制数据库访问权限
 - 启用SSL连接
 
 ### API安全
+
 - 启用CORS配置
 - 使用HTTPS
 - 实施速率限制
@@ -214,16 +225,19 @@ uv run pytest --cov=app --cov-report=html
 ## 📊 监控和日志
 
 ### 日志配置
+
 - 结构化JSON日志
 - 多级别日志记录
 - 日志轮转和归档
 
 ### 错误追踪
+
 - Sentry集成
 - 异常自动上报
 - 性能监控
 
 ### 健康检查
+
 - `/health` - 基础健康检查
 - 数据库连接检查
 - 外部服务检查
@@ -231,16 +245,19 @@ uv run pytest --cov=app --cov-report=html
 ## 🚀 性能优化
 
 ### 缓存策略
+
 - Redis缓存热点数据
 - 查询结果缓存
 - 会话缓存
 
 ### 数据库优化
+
 - 索引优化
 - 查询优化
 - 连接池配置
 
 ### 异步处理
+
 - Celery后台任务
 - 异步I/O操作
 - 批量处理
