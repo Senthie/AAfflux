@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2026-01-07 15:44:21
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-09 10:51:43
+LastEditTime: 2026-01-09 11:19:13
 FilePath: /api/app/models/tenant/organization.py
 Description:租户层模型 - 4张表。
 
@@ -218,7 +218,7 @@ class WorkspaceAccountUser(
     # 关键 key
     role: TenantAccountRole = Field(default='normal', max_length=16)
     current: bool = Field(default=True)
-    invited_by: UUID = Field(default=None)
+    invited_by: UUID | None = Field(default=None)
 
 
 class TeamMember(BaseEntity, table=True):  # type: ignore
