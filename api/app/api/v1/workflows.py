@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-09 03:26:58
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-09 08:54:06
+LastEditTime: 2026-01-09 16:01:19
 FilePath: /api/app/api/v1/workflows.py
 Description:Workflow management API endpoints.
 
@@ -14,10 +14,12 @@ Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_session
+from app.core.response import ResponseModel, ResponseSchemaModel, response_base
+from app.enums.custom_response_code_enum import CustomResponseCodeEnum
 from app.middleware.auth import get_current_user
 from app.models.auth.user import UserEntity
 from app.schemas.workflow import (
@@ -57,8 +59,6 @@ CurrentUser = Annotated[UserEntity, Depends(get_current_user)]
 
 @router.post(
     '/',
-    response_model=WorkflowResponse,
-    status_code=status.HTTP_201_CREATED,
     summary='Create a new workflow',
 )
 async def create_workflow(
@@ -66,7 +66,7 @@ async def create_workflow(
     current_user: CurrentUser,
     session: DbSession,
     workspace_id: UUID,
-) -> WorkflowResponse:
+) -> ResponseSchemaModel[WorkflowResponse] | ResponseModel:
     """
     Create a new workflow in the specified workspace.
 
@@ -87,17 +87,16 @@ async def create_workflow(
             workspace_id=workspace_id,
             created_by=current_user.id,
         )
-        return WorkflowResponse.model_validate(workflow)
+        return response_base.success(data=WorkflowResponse.model_validate(workflow))
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f'Failed to create workflow: {str(e)}',
-        ) from e
+        return response_base.fail(
+            res=CustomResponseCodeEnum.INTERNAL_SERVER_ERROR,
+            data=f'Failed to create workflow: {str(e)}',
+        )
 
 
 @router.get(
     '/',
-    response_model=WorkflowListResponse,
     summary='List workflows in workspace',
 )
 async def list_workflows(
@@ -106,7 +105,7 @@ async def list_workflows(
     session: DbSession,
     skip: int = 0,
     limit: int = 100,
-) -> WorkflowListResponse:
+) -> ResponseSchemaModel[WorkflowListResponse] | ResponseModel:
     """
     List all workflows in the specified workspace.
 
@@ -126,22 +125,23 @@ async def list_workflows(
         workspace_id=workspace_id, skip=skip, limit=limit
     )
 
-    return WorkflowListResponse(
-        workflows=[WorkflowResponse.model_validate(w) for w in workflows],
-        total=total,
+    return response_base.success(
+        data=WorkflowListResponse(
+            workflows=[WorkflowResponse.model_validate(w) for w in workflows],
+            total=total,
+        )
     )
 
 
 @router.get(
     '/{workflow_id}',
-    response_model=WorkflowDetailResponse,
     summary='Get workflow details',
 )
 async def get_workflow(
     workflow_id: UUID,
     current_user: CurrentUser,
     session: DbSession,
-) -> WorkflowDetailResponse:
+) -> ResponseSchemaModel[WorkflowDetailResponse] | ResponseModel:
     """
     Get detailed information about a workflow including nodes and connections.
 
@@ -160,21 +160,22 @@ async def get_workflow(
         nodes = await service.list_nodes(workflow_id)
         connections = await service.list_connections(workflow_id)
 
-        return WorkflowDetailResponse(
-            **workflow.model_dump(),
-            nodes=[NodeResponse.model_validate(n) for n in nodes],
-            connections=[ConnectionResponse.model_validate(c) for c in connections],
+        return response_base.success(
+            data=WorkflowDetailResponse(
+                **workflow.model_dump(),
+                nodes=[NodeResponse.model_validate(n) for n in nodes],
+                connections=[ConnectionResponse.model_validate(c) for c in connections],
+            )
         )
     except WorkflowNotFoundError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        ) from e
+        return response_base.fail(
+            res=CustomResponseCodeEnum.NOT_FOUND,
+            data=str(e),
+        )
 
 
 @router.put(
     '/{workflow_id}',
-    response_model=WorkflowResponse,
     summary='Update workflow',
 )
 async def update_workflow(
@@ -182,7 +183,7 @@ async def update_workflow(
     workflow_data: WorkflowUpdateRequest,
     current_user: CurrentUser,
     session: DbSession,
-) -> WorkflowResponse:
+) -> ResponseSchemaModel[WorkflowResponse] | ResponseModel:
     """
     Update a workflow's properties.
 
@@ -199,24 +200,23 @@ async def update_workflow(
 
     try:
         workflow = await service.update_workflow(workflow_id, workflow_data)
-        return WorkflowResponse.model_validate(workflow)
+        return response_base.success(data=WorkflowResponse.model_validate(workflow))
     except WorkflowNotFoundError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        ) from e
+        return response_base.fail(
+            res=CustomResponseCodeEnum.NOT_FOUND,
+            data=str(e),
+        )
 
 
 @router.delete(
     '/{workflow_id}',
-    response_model=WorkflowDeleteResponse,
     summary='Delete workflow',
 )
 async def delete_workflow(
     workflow_id: UUID,
     current_user: CurrentUser,
     session: DbSession,
-) -> WorkflowDeleteResponse:
+) -> ResponseSchemaModel[WorkflowDeleteResponse] | ResponseModel:
     """
     Delete a workflow and all its associated data.
 
@@ -232,28 +232,29 @@ async def delete_workflow(
 
     try:
         await service.delete_workflow(workflow_id)
-        return WorkflowDeleteResponse(
-            success=True,
-            message='Workflow deleted successfully',
-            workflow_id=workflow_id,
+        return response_base.success(
+            data=WorkflowDeleteResponse(
+                success=True,
+                message='Workflow deleted successfully',
+                workflow_id=workflow_id,
+            )
         )
     except WorkflowNotFoundError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        ) from e
+        return response_base.fail(
+            res=CustomResponseCodeEnum.NOT_FOUND,
+            data=str(e),
+        )
 
 
 @router.post(
     '/{workflow_id}/validate',
-    response_model=ValidationResultResponse,
     summary='Validate workflow',
 )
 async def validate_workflow(
     workflow_id: UUID,
     current_user: CurrentUser,
     session: DbSession,
-) -> ValidationResultResponse:
+) -> ResponseSchemaModel[ValidationResultResponse] | ResponseModel:
     """
     Validate a workflow's completeness and correctness.
 
@@ -269,27 +270,28 @@ async def validate_workflow(
 
     try:
         validation_result = await service.validate_workflow(workflow_id)
-        return ValidationResultResponse(
-            is_valid=validation_result.is_valid,
-            errors=[ValidationErrorDetail(message=error) for error in validation_result.errors],
+        return response_base.success(
+            data=ValidationResultResponse(
+                is_valid=validation_result.is_valid,
+                errors=[ValidationErrorDetail(message=error) for error in validation_result.errors],
+            )
         )
     except WorkflowNotFoundError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        ) from e
+        return response_base.fail(
+            res=CustomResponseCodeEnum.NOT_FOUND,
+            data=str(e),
+        )
 
 
 @router.post(
     '/{workflow_id}/save',
-    response_model=WorkflowResponse,
     summary='Save and validate workflow',
 )
 async def save_workflow(
     workflow_id: UUID,
     current_user: CurrentUser,
     session: DbSession,
-) -> WorkflowResponse:
+) -> ResponseSchemaModel[WorkflowResponse] | ResponseModel:
     """
     Save a workflow after validating its completeness.
 
@@ -308,20 +310,20 @@ async def save_workflow(
 
     try:
         workflow = await service.save_workflow(workflow_id)
-        return WorkflowResponse.model_validate(workflow)
+        return response_base.success(data=WorkflowResponse.model_validate(workflow))
     except WorkflowNotFoundError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        ) from e
+        return response_base.fail(
+            res=CustomResponseCodeEnum.NOT_FOUND,
+            data=str(e),
+        )
     except WorkflowValidationError as e:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail={
+        return response_base.fail(
+            res=CustomResponseCodeEnum.BAD_REQUEST,
+            data={
                 'message': 'Workflow validation failed',
                 'errors': e.validation_result.errors,
             },
-        ) from e
+        )
 
 
 # ============================================================================
@@ -331,8 +333,6 @@ async def save_workflow(
 
 @router.post(
     '/{workflow_id}/nodes',
-    response_model=NodeResponse,
-    status_code=status.HTTP_201_CREATED,
     summary='Add node to workflow',
 )
 async def add_node(
@@ -340,7 +340,7 @@ async def add_node(
     node_data: NodeCreateRequest,
     current_user: CurrentUser,
     session: DbSession,
-) -> NodeResponse:
+) -> ResponseSchemaModel[NodeResponse] | ResponseModel:
     """
     Add a new node to a workflow.
 
@@ -357,32 +357,31 @@ async def add_node(
 
     try:
         node = await service.add_node(workflow_id, node_data)
-        return NodeResponse.model_validate(node)
+        return response_base.success(data=NodeResponse.model_validate(node))
     except WorkflowNotFoundError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        ) from e
+        return response_base.fail(
+            res=CustomResponseCodeEnum.NOT_FOUND,
+            data=str(e),
+        )
     except WorkflowValidationError as e:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail={
+        return response_base.fail(
+            res=CustomResponseCodeEnum.BAD_REQUEST,
+            data={
                 'message': 'Node validation failed',
                 'errors': e.validation_result.errors,
             },
-        ) from e
+        )
 
 
 @router.get(
     '/{workflow_id}/nodes',
-    response_model=list[NodeResponse],
     summary='List workflow nodes',
 )
 async def list_nodes(
     workflow_id: UUID,
     current_user: CurrentUser,
     session: DbSession,
-) -> list[NodeResponse]:
+) -> ResponseSchemaModel[list[NodeResponse]] | ResponseModel:
     """
     List all nodes in a workflow.
 
@@ -397,12 +396,11 @@ async def list_nodes(
     service = WorkflowService(session)
 
     nodes = await service.list_nodes(workflow_id)
-    return [NodeResponse.model_validate(n) for n in nodes]
+    return response_base.success(data=[NodeResponse.model_validate(n) for n in nodes])
 
 
 @router.get(
     '/{workflow_id}/nodes/{node_id}',
-    response_model=NodeResponse,
     summary='Get node details',
 )
 async def get_node(
@@ -410,7 +408,7 @@ async def get_node(
     node_id: UUID,
     current_user: CurrentUser,
     session: DbSession,
-) -> NodeResponse:
+) -> ResponseSchemaModel[NodeResponse] | ResponseModel:
     """
     Get details of a specific node.
 
@@ -429,21 +427,20 @@ async def get_node(
         node = await service.get_node(node_id)
         # Verify node belongs to the workflow
         if node.workflow_id != workflow_id:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f'Node {node_id} not found in workflow {workflow_id}',
+            return response_base.fail(
+                res=CustomResponseCodeEnum.NOT_FOUND,
+                data=f'Node {node_id} not found in workflow {workflow_id}',
             )
-        return NodeResponse.model_validate(node)
+        return response_base.success(data=NodeResponse.model_validate(node))
     except NodeNotFoundError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        ) from e
+        return response_base.fail(
+            res=CustomResponseCodeEnum.NOT_FOUND,
+            data=str(e),
+        )
 
 
 @router.put(
     '/{workflow_id}/nodes/{node_id}',
-    response_model=NodeResponse,
     summary='Update node',
 )
 async def update_node(
@@ -452,7 +449,7 @@ async def update_node(
     node_data: NodeUpdateRequest,
     current_user: CurrentUser,
     session: DbSession,
-) -> NodeResponse:
+) -> ResponseSchemaModel[NodeResponse] | ResponseModel:
     """
     Update a node's properties.
 
@@ -472,31 +469,30 @@ async def update_node(
         node = await service.get_node(node_id)
         # Verify node belongs to the workflow
         if node.workflow_id != workflow_id:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f'Node {node_id} not found in workflow {workflow_id}',
+            return response_base.fail(
+                res=CustomResponseCodeEnum.NOT_FOUND,
+                data=f'Node {node_id} not found in workflow {workflow_id}',
             )
 
         updated_node = await service.update_node(node_id, node_data)
-        return NodeResponse.model_validate(updated_node)
+        return response_base.success(data=NodeResponse.model_validate(updated_node))
     except NodeNotFoundError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        ) from e
+        return response_base.fail(
+            res=CustomResponseCodeEnum.NOT_FOUND,
+            data=str(e),
+        )
     except WorkflowValidationError as e:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail={
+        return response_base.fail(
+            res=CustomResponseCodeEnum.BAD_REQUEST,
+            data={
                 'message': 'Node validation failed',
                 'errors': e.validation_result.errors,
             },
-        ) from e
+        )
 
 
 @router.delete(
     '/{workflow_id}/nodes/{node_id}',
-    status_code=status.HTTP_204_NO_CONTENT,
     summary='Delete node',
 )
 async def delete_node(
@@ -504,7 +500,7 @@ async def delete_node(
     node_id: UUID,
     current_user: CurrentUser,
     session: DbSession,
-) -> None:
+) -> ResponseModel:
     """
     Delete a node from a workflow.
 
@@ -520,17 +516,18 @@ async def delete_node(
         node = await service.get_node(node_id)
         # Verify node belongs to the workflow
         if node.workflow_id != workflow_id:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f'Node {node_id} not found in workflow {workflow_id}',
+            return response_base.fail(
+                res=CustomResponseCodeEnum.NOT_FOUND,
+                data=f'Node {node_id} not found in workflow {workflow_id}',
             )
 
         await service.delete_node(node_id)
+        return response_base.success()
     except NodeNotFoundError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        ) from e
+        return response_base.fail(
+            res=CustomResponseCodeEnum.NOT_FOUND,
+            data=str(e),
+        )
 
 
 # ============================================================================
@@ -540,8 +537,6 @@ async def delete_node(
 
 @router.post(
     '/{workflow_id}/connections',
-    response_model=ConnectionResponse,
-    status_code=status.HTTP_201_CREATED,
     summary='Create connection between nodes',
 )
 async def create_connection(
@@ -549,7 +544,7 @@ async def create_connection(
     connection_data: ConnectionCreateRequest,
     current_user: CurrentUser,
     session: DbSession,
-) -> ConnectionResponse:
+) -> ResponseSchemaModel[ConnectionResponse] | ResponseModel:
     """
     Create a connection between two nodes in a workflow.
 
@@ -566,32 +561,31 @@ async def create_connection(
 
     try:
         connection = await service.connect_nodes(workflow_id, connection_data)
-        return ConnectionResponse.model_validate(connection)
+        return response_base.success(data=ConnectionResponse.model_validate(connection))
     except (WorkflowNotFoundError, NodeNotFoundError) as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        ) from e
+        return response_base.fail(
+            res=CustomResponseCodeEnum.NOT_FOUND,
+            data=str(e),
+        )
     except WorkflowValidationError as e:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail={
+        return response_base.fail(
+            res=CustomResponseCodeEnum.BAD_REQUEST,
+            data={
                 'message': 'Connection validation failed',
                 'errors': e.validation_result.errors,
             },
-        ) from e
+        )
 
 
 @router.get(
     '/{workflow_id}/connections',
-    response_model=list[ConnectionResponse],
     summary='List workflow connections',
 )
 async def list_connections(
     workflow_id: UUID,
     current_user: CurrentUser,
     session: DbSession,
-) -> list[ConnectionResponse]:
+) -> ResponseSchemaModel[list[ConnectionResponse]] | ResponseModel:
     """
     List all connections in a workflow.
 
@@ -606,12 +600,11 @@ async def list_connections(
     service = WorkflowService(session)
 
     connections = await service.list_connections(workflow_id)
-    return [ConnectionResponse.model_validate(c) for c in connections]
+    return response_base.success(data=[ConnectionResponse.model_validate(c) for c in connections])
 
 
 @router.delete(
     '/{workflow_id}/connections/{connection_id}',
-    status_code=status.HTTP_204_NO_CONTENT,
     summary='Delete connection',
 )
 async def delete_connection(
@@ -619,7 +612,7 @@ async def delete_connection(
     connection_id: UUID,
     current_user: CurrentUser,
     session: DbSession,
-) -> None:
+) -> ResponseModel:
     """
     Delete a connection between nodes.
 
@@ -635,14 +628,15 @@ async def delete_connection(
         connection = await service.get_connection(connection_id)
         # Verify connection belongs to the workflow
         if connection.workflow_id != workflow_id:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f'Connection {connection_id} not found in workflow {workflow_id}',
+            return response_base.fail(
+                res=CustomResponseCodeEnum.NOT_FOUND,
+                data=f'Connection {connection_id} not found in workflow {workflow_id}',
             )
 
         await service.delete_connection(connection_id)
+        return response_base.success()
     except ConnectionNotFoundError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        ) from e
+        return response_base.fail(
+            res=CustomResponseCodeEnum.NOT_FOUND,
+            data=str(e),
+        )
