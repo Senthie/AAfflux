@@ -2,7 +2,7 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-10 14:41:43
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-07 17:18:32
+LastEditTime: 2026-01-09 12:04:01
 FilePath: /api/app/services/workspace_service.py
 Description:工作空间管理服务
 """
@@ -16,7 +16,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from app.core.response import ResponseSchemaModel, response_base
 from app.models.application.application import Application
 from app.models.file.reference import FileReference
-from app.models.tenant.organization import TeamMember, Workspace
+from app.models.tenant.organization import Workspace, WorkspaceAccountUser
 from app.models.workflow.workflow import Workflow
 from app.schemas.workspace import WorkspaceCreate, WorkspaceResponse, WorkspaceUpdate
 
@@ -165,19 +165,19 @@ class WorkspaceService:
     ) -> ResponseSchemaModel[list[WorkspaceResponse]]:
         """获取用户可访问的所有工作空间"""
         # 获取用户所属的所有团队
-        team_memberships = await self.session.execute(
-            select(TeamMember).where(TeamMember.user_id == user_id)
+        workspace_accounts = await self.session.execute(
+            select(WorkspaceAccountUser).where(WorkspaceAccountUser.user_id == user_id)
         )
 
-        team_ids = [membership.team_id for membership in team_memberships.scalars().all()]
+        workspace_ids = [wa.workspace_id for wa in workspace_accounts.scalars().all()]
 
-        if not team_ids:
+        if not workspace_ids:
             return response_base.success(data=[])
 
         # 获取这些团队下的所有工作空间
         result = await self.session.execute(
             select(Workspace).where(
-                Workspace.team_id.in_(team_ids), Workspace.is_deleted.is_(False)
+                Workspace.id.in_(workspace_ids), Workspace.is_deleted.is_(False)
             )
         )
         lst = [WorkspaceResponse.model_validate(ws) for ws in result.scalars().all()]

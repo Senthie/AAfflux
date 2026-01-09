@@ -1,16 +1,19 @@
 """
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-10 17:46:17
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-12 14:35:12
-FilePath: : AAfflux: api: app: schemas: workspace.py
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-09 12:21:20
+FilePath: /api/app/schemas/workspace.py
 Description:工作空间管理相关的 Pydantic Schemas
 """
 
 from datetime import datetime
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, List, Optional
 from uuid import UUID
+
 from pydantic import BaseModel, Field
+
+from app.models.tenant.organization import WorkspacePlan, WorkspaceStatus
 
 
 class WorkspaceBase(BaseModel):
@@ -40,10 +43,12 @@ class WorkspaceResponse(WorkspaceBase):
     """工作空间响应"""
 
     id: UUID = Field(description='工作空间ID')
-    team_id: UUID = Field(description='所属团队ID')
-    created_by: UUID = Field(description='创建者ID')
+    name: str = Field(description='工作空间名称')
+    description: str = Field(description='工作空间描述')
     created_at: datetime = Field(description='创建时间')
     updated_at: datetime = Field(description='更新时间')
+    plan: WorkspacePlan = Field(description='工作空间套餐')
+    status: WorkspaceStatus = Field(description='工作空间的状态')
 
     class Config:
         from_attributes = True
