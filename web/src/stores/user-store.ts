@@ -14,7 +14,7 @@ import {
     v1_auth_login,
     v1_auth_register,
     v1_auth_refresh,
-} from 'src/apis/AuthApi'
+} from 'src/apis/auth_api'
 import type {
     ILogin,
     ILoginRes,

@@ -2,8 +2,8 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-06 14:30:33
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-07 15:17:33
- * @FilePath: /web/src/apis/AuthApi.ts
+ * @LastEditTime: 2026-01-09 14:33:19
+ * @FilePath: /web/src/apis/auth_api.ts
  * @Description: Auth 的 api 请求
  *
  * Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.

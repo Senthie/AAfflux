@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useUserStore } from '../user-store'
-import * as AuthApi from 'src/apis/AuthApi'
+import * as AuthApi from 'src/apis/auth_api'
 import type {
     ILogin,
     IRegister,
