@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2026-01-07 15:44:21
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-08 16:49:25
+LastEditTime: 2026-01-09 10:51:43
 FilePath: /api/app/models/tenant/organization.py
 Description:租户层模型 - 4张表。
 
@@ -107,13 +107,13 @@ class WorkspacePlan(enum.StrEnum):
 
 
 class WorkspaceStatus(enum.StrEnum):
-    """Workspace type enum."""
+    """Workspace status enum."""
 
     NORMAL = 'normal'
     ARCHIVE = 'archive'
 
 
-class Workspace(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):  # type: ignore
+class Workspace(BaseEntity, TimestampMixin, SoftDeleteMixin, table=True):  # type: ignore
     """工作空间表 - 资源隔离单元。
 
     工作空间是资源隔离的基本单位，所有业务资源（工作流、应用等）都关联到工作空间。
@@ -136,7 +136,9 @@ class Workspace(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=T
         plan: 租户的订阅计划
         status: 租户的状态，归档 or 正常
 
-    v0.0.1 2026/1/8 移除了 `team_id` 由 `WorkspaceAccountUser` 进行数据表关联
+    v0.0.1 2026/1/8:
+        移除了 `team_id` 由 `WorkspaceAccountUser` 进行数据表关联
+        移除 `AuditMixin` 的字段，因为workspace会更具Accounts表进行用户关联
     """
 
     __tablename__ = 'workspaces'  # type: ignore
@@ -146,19 +148,55 @@ class Workspace(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=T
     settings: dict = Field(default_factory=dict, sa_column=Column(JSONB))
 
     encrypt_public_key: str = Field(default='', max_length=1024)
-    plan: WorkspacePlan = Field(default='free', max_length=16)
-    status: WorkspaceStatus = Field(default='active', max_length=16)
+    plan: WorkspacePlan = Field(default=WorkspacePlan.FREE, max_length=16)
+    status: WorkspaceStatus = Field(default=WorkspaceStatus.NORMAL, max_length=16)
+
+    def set_status(self, status: WorkspaceStatus) -> None:
+        """设置工作空间状态。
+
+        Args:
+            status: WorkspaceStatus 枚举值
+        """
+        self.status = status
+        if hasattr(self, 'touch'):
+            self.touch()  # 更新时间戳
+
+    def is_normal(self) -> bool:
+        """检查工作空间是否处于活跃状态。
+
+        Returns:
+            bool: 如果状态为 NORMAL 返回 True
+        """
+        return self.status == WorkspaceStatus.NORMAL
+
+    def archive(self) -> None:
+        """归档工作空间。"""
+        self.set_status(WorkspaceStatus.ARCHIVE)
+
+    def normal(self) -> None:
+        """设置工作空间为正常状态"""
+        self.set_status(WorkspaceStatus.NORMAL)
+
+    def set_plan(self, plan: WorkspacePlan) -> None:
+        """设置工作空间计划。
+
+        Args:
+            plan: WorkspacePlan 枚举值
+        """
+        self.plan = plan
+        if hasattr(self, 'touch'):
+            self.touch()  # 更新时间戳
 
 
 class WorkspaceAccountUser(
     WorkspaceMixin,
     BaseEntity,
     TimestampMixin,
-    AuditMixin,
     SoftDeleteMixin,
     table=True,  # type: ignore
 ):
-    """租户账户表 - 用户与租户的关联关系。
+    """
+    租户账户表 - 用户与租户的关联关系。
 
     建立用户和租户之间的多对多关系，并定义用户在租户中的角色。
 
