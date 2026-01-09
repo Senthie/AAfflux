@@ -2,7 +2,7 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-09 18:00:00
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-06 16:58:53
+LastEditTime: 2026-01-09 10:45:20
 FilePath: /api/app/api/v1/auth.py
 Description: 认证相关API端点
 """
@@ -16,6 +16,7 @@ from app.core.database import get_session
 from app.core.exceptions import AuthException
 from app.core.redis import RedisClient, get_redis
 from app.core.response import ResponseModel, ResponseSchemaModel, response_base
+from app.enums.custom_response_code_enum import CustomResponseCodeEnum
 from app.schemas.auth_schema import (
     LoginRequest,
     LoginResponse,
@@ -64,6 +65,12 @@ async def register(
     except AuthException as e:
         # 返回业务异常的响应格式
         raise e
+    except Exception as e:
+        # 返回未知异常的响应格式
+        return response_base.fail(
+            res=CustomResponseCodeEnum.UNKNOWN_ERROR,
+            data=str(e),
+        )
 
 
 @router.post(

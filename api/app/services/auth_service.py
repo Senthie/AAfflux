@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-02 08:55:33
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-07 16:52:36
+LastEditTime: 2026-01-09 11:05:17
 FilePath: /api/app/services/auth_service.py
 Description: Authentication service for user registration, login, and token management
 
@@ -21,7 +21,7 @@ from app.core.exceptions import EmailAlreadyExistsException, InvalidCredentialsE
 from app.core.redis import RedisClient
 from app.core.response import ResponseSchemaModel, response_base
 from app.models.auth import UserEntity
-from app.models.tenant.organization import Team, TeamMember, Workspace
+from app.models.tenant.organization import TenantAccountRole, Workspace, WorkspaceAccountUser
 from app.schemas.auth_schema import (
     LoginRequest,
     LoginResponse,
@@ -346,36 +346,23 @@ class AuthService:
         Returns:
             Created workspace
         """
-        # Create default team for the user
-        team = Team(
-            name='Personal',
-            description=f'Default team for {user.name}',
-            created_by=user.id,
-        )
-
-        self.db.add(team)
-        await self.db.commit()
-        await self.db.refresh(team)
-
-        # Add user as admin of the team
-        team_member = TeamMember(
-            team_id=team.id,
-            user_id=user.id,
-            role='ADMIN',
-        )
-
-        self.db.add(team_member)
-
-        # Create default workspace
+        # Create onyl workspace for user
         workspace = Workspace(
-            name=f"{user.name}'s Workspace",
-            team_id=team.id,
-            description=f'Default workspace for {user.name}',
-            created_by=user.id,
+            name='Personal',
+            description='',
+            settings={},
+            encrypt_public_key='',
         )
-
         self.db.add(workspace)
         await self.db.commit()
         await self.db.refresh(workspace)
-
+        # create workspace account user
+        workspace_account = WorkspaceAccountUser(
+            user_id=user.id,
+            workspace_id=workspace.id,  # type: ignore
+            role=TenantAccountRole.OWNER,
+            current=True,
+        )
+        self.db.add(workspace_account)
+        await self.db.commit()
         return workspace

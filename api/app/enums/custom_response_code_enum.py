@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2026-01-05 11:21:54
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-05 15:24:07
+LastEditTime: 2026-01-09 10:45:53
 FilePath: /api/app/enums/custom_response_code_enum.py
 Description: 自定义响应代码和信息
 
@@ -36,6 +36,7 @@ class CustomResponseCodeEnum(CustomCodeBase):
     NOT_FOUND = (404, '请求的资源不存在')
     INTERNAL_SERVER_ERROR = (500, '服务器内部错误')
 
+    UNKNOWN_ERROR = (999, '未知错误')
     # Auth
     EMAIL_ALREADY_EXISTS = (1001, '邮箱已存在')
     PASSWORD_TOO_SHORT = (1002, '密码长度至少8位')
