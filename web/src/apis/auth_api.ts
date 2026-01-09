@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-06 14:30:33
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-09 14:33:19
+ * @LastEditTime: 2026-01-09 15:29:05
  * @FilePath: /web/src/apis/auth_api.ts
  * @Description: Auth 的 api 请求
  *
@@ -18,6 +18,7 @@ import type {
 } from 'src/interfaces/IAuth'
 import type { IResponse } from 'src/interfaces/IResponse'
 import { Notify } from 'quasar'
+import { extractErrorMessage } from 'src/utils/errorHandler'
 /**
  * 用户注册
  * @param request 注册请求参数
@@ -42,8 +43,7 @@ export async function v1_auth_register(
 
         return response.data
     } catch (error) {
-        const errorMessage =
-            error instanceof Error ? error.message : '网络请求失败'
+        const errorMessage = extractErrorMessage(error)
 
         Notify.create({
             type: 'negative',
@@ -84,11 +84,8 @@ export async function v1_auth_login(
 
         return response.data
     } catch (error) {
-        let errorMessage =
-            error instanceof Error ? error.message : '网络请求失败'
-        if (error.response.data.msg) {
-            errorMessage = error.response.data.msg
-        }
+        const errorMessage = extractErrorMessage(error)
+
         Notify.create({
             type: 'negative',
             message: errorMessage,
@@ -127,8 +124,7 @@ export async function v1_auth_refresh(request: {
 
         return response.data
     } catch (error) {
-        const errorMessage =
-            error instanceof Error ? error.message : '网络请求失败'
+        const errorMessage = extractErrorMessage(error)
 
         Notify.create({
             type: 'negative',
