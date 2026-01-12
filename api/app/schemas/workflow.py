@@ -1,8 +1,15 @@
 """
-Workflow-related Pydantic schemas for request/response validation.
+Author: Senthie seemoon2077@gmail.com
+Date: 2026-01-08 14:12:08
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-12 10:37:46
+FilePath: /api/app/schemas/workflow.py
+Description:Workflow-related Pydantic schemas for request/response validation.
 
 This module defines the data transfer objects (DTOs) for workflow management,
 including schemas for workflows, nodes, and connections.
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from datetime import datetime
