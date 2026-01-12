@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-09 03:26:58
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-09 16:01:19
+LastEditTime: 2026-01-12 12:30:35
 FilePath: /api/app/api/v1/workflows.py
 Description:Workflow management API endpoints.
 
@@ -18,6 +18,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_session
+from app.core.exceptions import WorkspaceException
 from app.core.response import ResponseModel, ResponseSchemaModel, response_base
 from app.enums.custom_response_code_enum import CustomResponseCodeEnum
 from app.middleware.auth import get_current_user
@@ -85,9 +86,15 @@ async def create_workflow(
         workflow = await service.create_workflow(
             workflow_data=workflow_data,
             workspace_id=workspace_id,
-            created_by=current_user.id,
+            user=current_user,
         )
         return response_base.success(data=WorkflowResponse.model_validate(workflow))
+    except WorkspaceException as e:
+        return response_base.fail(
+            res=e.response_code,
+            data=f'Failed to create workflow: {str(e)}',
+        )
+
     except Exception as e:
         return response_base.fail(
             res=CustomResponseCodeEnum.INTERNAL_SERVER_ERROR,

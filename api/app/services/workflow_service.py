@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-09 03:25:28
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-09 06:15:52
+LastEditTime: 2026-01-12 14:27:15
 FilePath: /api/app/services/workflow_service.py
 Description:Workflow management service.
 
@@ -18,6 +18,10 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
+from app.core.exceptions import WorkspaceException
+from app.enums.custom_response_code_enum import CustomResponseCodeEnum
+from app.models.auth.user import UserEntity
+from app.models.tenant.organization import TenantAccountRole, WorkspaceAccountUser
 from app.models.workflow.workflow import Connection, ExecutionRecord, Node, Workflow
 from app.schemas.workflow import (
     ConnectionCreateRequest,
@@ -77,7 +81,7 @@ class WorkflowService:
     # ========================================================================
 
     async def create_workflow(
-        self, workflow_data: WorkflowCreateRequest, workspace_id: UUID, created_by: UUID
+        self, workflow_data: WorkflowCreateRequest, workspace_id: UUID, user: UserEntity
     ) -> Workflow:
         """Create a new workflow.
 
@@ -89,13 +93,30 @@ class WorkflowService:
         Returns:
             Created Workflow object
         """
+        # 1. get workspace
+        result = await self.db.execute(
+            select(WorkspaceAccountUser).where(
+                WorkspaceAccountUser.user_id == user.id,  # type: ignore
+                WorkspaceAccountUser.workspace_id == workspace_id,  # type: ignore
+                WorkspaceAccountUser.is_deleted.is_(False),  # type: ignore
+            )
+        )
+        workspace_account = result.scalars().first()
+        # 2. Validate workspace 的权限
+        if workspace_account is Node:
+            raise WorkspaceException(CustomResponseCodeEnum.WORKSPACE_NOT_EXISTS)
+
+        if TenantAccountRole.is_editing_role(workspace_account.role) is False:
+            raise WorkspaceException(CustomResponseCodeEnum.FORBIDDEN)
+
+        # 3. ceate workflow
         workflow = Workflow(
             name=workflow_data.name,
             description=workflow_data.description,
-            workspace_id=workspace_id,
+            workspace_id=workspace_id,  # type: ignore
             input_schema=workflow_data.input_schema,
             output_schema=workflow_data.output_schema,
-            created_by=created_by,
+            created_by=user.id,  # type: ignore
         )
 
         self.db.add(workflow)
