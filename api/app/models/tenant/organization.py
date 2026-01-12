@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2026-01-07 15:44:21
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-09 11:19:13
+LastEditTime: 2026-01-12 12:09:00
 FilePath: /api/app/models/tenant/organization.py
 Description:租户层模型 - 4张表。
 
@@ -94,6 +94,58 @@ class TenantAccountRole(enum.StrEnum):
     EDITOR = 'editor'  # 可编辑
     NORMAL = 'normal'  # 只读访问
     DATASET_OPERATOR = 'dataset_operator'  # 数据集管理的专业角色
+
+    @staticmethod
+    def is_valid_role(role: str) -> bool:
+        if not role:
+            return False
+        return role in {
+            TenantAccountRole.OWNER,
+            TenantAccountRole.ADMIN,
+            TenantAccountRole.EDITOR,
+            TenantAccountRole.NORMAL,
+            TenantAccountRole.DATASET_OPERATOR,
+        }
+
+    @staticmethod
+    def is_privileged_role(role: Optional['TenantAccountRole']) -> bool:
+        if not role:
+            return False
+        return role in {TenantAccountRole.OWNER, TenantAccountRole.ADMIN}
+
+    @staticmethod
+    def is_admin_role(role: Optional['TenantAccountRole']) -> bool:
+        if not role:
+            return False
+        return role == TenantAccountRole.ADMIN
+
+    @staticmethod
+    def is_non_owner_role(role: Optional['TenantAccountRole']) -> bool:
+        if not role:
+            return False
+        return role in {
+            TenantAccountRole.ADMIN,
+            TenantAccountRole.EDITOR,
+            TenantAccountRole.NORMAL,
+            TenantAccountRole.DATASET_OPERATOR,
+        }
+
+    @staticmethod
+    def is_editing_role(role: Optional['TenantAccountRole']) -> bool:
+        if not role:
+            return False
+        return role in {TenantAccountRole.OWNER, TenantAccountRole.ADMIN, TenantAccountRole.EDITOR}
+
+    @staticmethod
+    def is_dataset_edit_role(role: Optional['TenantAccountRole']) -> bool:
+        if not role:
+            return False
+        return role in {
+            TenantAccountRole.OWNER,
+            TenantAccountRole.ADMIN,
+            TenantAccountRole.EDITOR,
+            TenantAccountRole.DATASET_OPERATOR,
+        }
 
 
 class WorkspacePlan(enum.StrEnum):
@@ -216,7 +268,7 @@ class WorkspaceAccountUser(
     # 外联属性
     user_id: UUID = Field(index=True)  # Logical FK to users
     # 关键 key
-    role: TenantAccountRole = Field(default='normal', max_length=16)
+    role: TenantAccountRole = Field(default=TenantAccountRole.NORMAL, max_length=16)
     current: bool = Field(default=True)
     invited_by: UUID | None = Field(default=None)
 
