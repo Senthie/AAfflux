@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-09 03:25:28
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-12 14:27:15
+LastEditTime: 2026-01-12 17:49:14
 FilePath: /api/app/services/workflow_service.py
 Description:Workflow management service.
 
@@ -23,11 +23,13 @@ from app.enums.custom_response_code_enum import CustomResponseCodeEnum
 from app.models.auth.user import UserEntity
 from app.models.tenant.organization import TenantAccountRole, WorkspaceAccountUser
 from app.models.workflow.workflow import Connection, ExecutionRecord, Node, Workflow
+from app.schemas.page_schemas import PageRequest, PageResponse
 from app.schemas.workflow import (
     ConnectionCreateRequest,
     NodeCreateRequest,
     NodeUpdateRequest,
     WorkflowCreateRequest,
+    WorkflowResponse,
     WorkflowUpdateRequest,
 )
 from app.services.workflow_validator import ValidationResult, WorkflowValidator
@@ -144,8 +146,8 @@ class WorkflowService:
         return workflow
 
     async def list_workflows(
-        self, workspace_id: UUID, skip: int = 0, limit: int = 100
-    ) -> tuple[List[Workflow], int]:
+        self, workspace_id: UUID, page_req: PageRequest
+    ) -> PageResponse[WorkflowResponse]:
         """List workflows in a workspace.
 
         Args:
@@ -157,16 +159,18 @@ class WorkflowService:
             Tuple of (list of workflows, total count)
         """
         # Query workflows
+        # 计算跳过值
+        skip = (page_req.current - 1) * page_req.size
         statement = (
             select(Workflow)
             .where(Workflow.workspace_id == workspace_id)
             .where(~Workflow.is_deleted)
             .offset(skip)
-            .limit(limit)
+            .limit(page_req.size)
         )
         result = await self.db.execute(statement)
         workflows = result.scalars().all()
-
+        workflows = [WorkflowResponse.model_validate(workflow) for workflow in workflows]
         # Count total
         count_statement = (
             select(Workflow)
@@ -175,8 +179,10 @@ class WorkflowService:
         )
         count_result = await self.db.execute(count_statement)
         total = len(count_result.scalars().all())
-
-        return list(workflows), total
+        page_res = PageResponse.model_validate(page_req.model_dump())
+        page_res.records = workflows
+        page_res.total = total
+        return page_res
 
     async def update_workflow(
         self, workflow_id: UUID, workflow_data: WorkflowUpdateRequest

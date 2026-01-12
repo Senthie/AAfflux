@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-09 03:26:58
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-12 12:30:35
+LastEditTime: 2026-01-12 17:50:16
 FilePath: /api/app/api/v1/workflows.py
 Description:Workflow management API endpoints.
 
@@ -23,6 +23,7 @@ from app.core.response import ResponseModel, ResponseSchemaModel, response_base
 from app.enums.custom_response_code_enum import CustomResponseCodeEnum
 from app.middleware.auth import get_current_user
 from app.models.auth.user import UserEntity
+from app.schemas.page_schemas import PageRequest, PageResponse
 from app.schemas.workflow import (
     ConnectionCreateRequest,
     ConnectionResponse,
@@ -34,7 +35,6 @@ from app.schemas.workflow import (
     WorkflowCreateRequest,
     WorkflowDeleteResponse,
     WorkflowDetailResponse,
-    WorkflowListResponse,
     WorkflowResponse,
     WorkflowUpdateRequest,
 )
@@ -102,17 +102,16 @@ async def create_workflow(
         )
 
 
-@router.get(
-    '/',
+@router.post(
+    '/list',
     summary='List workflows in workspace',
 )
 async def list_workflows(
     workspace_id: UUID,
+    page_req: PageRequest,
     current_user: CurrentUser,
     session: DbSession,
-    skip: int = 0,
-    limit: int = 100,
-) -> ResponseSchemaModel[WorkflowListResponse] | ResponseModel:
+) -> ResponseSchemaModel[PageResponse[WorkflowResponse]]:
     """
     List all workflows in the specified workspace.
 
@@ -128,16 +127,9 @@ async def list_workflows(
     """
     service = WorkflowService(session)
 
-    workflows, total = await service.list_workflows(
-        workspace_id=workspace_id, skip=skip, limit=limit
-    )
+    res = await service.list_workflows(workspace_id=workspace_id, page_req=page_req)
 
-    return response_base.success(
-        data=WorkflowListResponse(
-            workflows=[WorkflowResponse.model_validate(w) for w in workflows],
-            total=total,
-        )
-    )
+    return response_base.success(data=res)
 
 
 @router.get(
