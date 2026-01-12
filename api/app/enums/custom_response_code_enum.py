@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2026-01-05 11:21:54
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-09 10:45:53
+LastEditTime: 2026-01-12 12:19:07
 FilePath: /api/app/enums/custom_response_code_enum.py
 Description: 自定义响应代码和信息
 
@@ -43,3 +43,7 @@ class CustomResponseCodeEnum(CustomCodeBase):
     PASSWORD_MISSING_UPPERCASE = (1003, '密码必须包含至少一个大写字母')
     PASSWORD_MISSING_LOWERCASE = (1004, '密码必须包含至少一个小写字母')
     PASSWORD_MISSING_DIGIT = (1005, '密码必须包含至少一个数字')
+
+    # workspace
+    WORKSPACE_ALREADY_EXISTS = (2001, '工作空间已存在')
+    WORKSPACE_NOT_EXISTS = (2002, '工作空间不存在')
