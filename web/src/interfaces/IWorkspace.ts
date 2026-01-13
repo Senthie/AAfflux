@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-09 14:36:55
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-09 14:39:27
+ * @LastEditTime: 2026-01-12 11:44:52
  * @FilePath: /web/src/interfaces/IWorkspace.ts
  * @Description:
  *
@@ -20,7 +20,7 @@ export enum WorkspaceStatus {
 }
 
 export interface IWorkspaceResponse {
-    id: number
+    id: string
     name: string
     description: string
     created_at: string
