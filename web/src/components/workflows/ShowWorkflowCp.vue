@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-12 11:49:16
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-14 11:53:42
+ * @LastEditTime: 2026-01-14 11:58:18
  * @FilePath: /web/src/components/workflows/ShowWorkflowCp.vue
  * @Description: 展示当前的工作空间的工作流
  *
@@ -23,6 +23,7 @@ const oepe_delete_dialog = (workflow_id: string) => {
 const handle_delete_workflow = async () => {
     const res = await v1_delete_workflow(delete_workflow_id.value)
     if (res.code) {
+        // TOOD 全局刷新不友好，后期需要改为局部刷新
         location.reload()
     }
 }

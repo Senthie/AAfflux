@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-09 16:54:11
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-14 11:54:49
+ * @LastEditTime: 2026-01-14 11:58:10
  * @FilePath: /web/src/components/workflows/CreateWorkflowCp.vue
  * @Description: 创建工作流
  *
@@ -26,6 +26,7 @@ const create_workflow_data = reactive<IWorkflowCreateRequest>({
 
 const handle_create_workflow = async () => {
     await v1_create_workflow(create_workflow_data, workspace_store.workspace.id)
+    // TOOD 全局刷新不友好，后期需要改为局部刷新
     location.reload()
 }
 </script>
