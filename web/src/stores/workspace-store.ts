@@ -2,14 +2,16 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-12 11:07:19
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-12 11:58:02
+ * @LastEditTime: 2026-01-13 16:05:39
  * @FilePath: /web/src/stores/workspace-store.ts
  * @Description: 当前的Workspace 的资源类
  *
  * Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
  */
 import { defineStore } from 'pinia'
+import { v1_workflow_list } from 'src/apis/workflow_api'
 import { v1_get_workspaces } from 'src/apis/workscpace_api'
+import type { IPageReq, IPageRes } from 'src/interfaces/Ipage'
 import type { IWorkflowResponse } from 'src/interfaces/IWorkflows'
 import type { IWorkspaceResponse } from 'src/interfaces/IWorkspace'
 
@@ -20,8 +22,29 @@ export const useWorkspaceStore = defineStore('workspaceStore', {
             // 所有这些属性都将自动推断出它们的类型S
             workspace: {} as IWorkspaceResponse,
             workspace_ids: [] as IWorkspaceResponse[],
-            workflows: [] as IWorkflowResponse[],
+            page_workflows: {
+                records: [],
+                total: 0,
+                size: 10,
+                current: 1,
+                orders: [],
+                maxLimit: 100,
+            } as IPageRes<IWorkflowResponse>,
         }
+    },
+    getters: {
+        page(state): IPageReq {
+            return {
+                total: state.page_workflows.total,
+                size: state.page_workflows.size,
+                current: state.page_workflows.current,
+                orders: state.page_workflows.orders,
+                maxLimit: state.page_workflows.maxLimit,
+            }
+        },
+        workflows(state): IWorkflowResponse[] {
+            return state.page_workflows.records
+        },
     },
     actions: {
         setWorkspace(workspace: IWorkspaceResponse) {
@@ -39,15 +62,26 @@ export const useWorkspaceStore = defineStore('workspaceStore', {
                 if (wp.name === 'Personal') this.workspace = wp
                 break
             }
+            void this.handle_get_workflows_by_workspace_id(null)
         },
 
-        handle_get_workflows_by_workspace_id(workspace_id: string | null) {
+        async handle_get_workflows_by_workspace_id(
+            workspace_id: string | null
+        ) {
             if (workspace_id === null) {
                 workspace_id = this.workspace.id
             }
-            return this.workflows.filter(
-                (workflow) => workflow.workspace_id === workspace_id
+            const res = await v1_workflow_list(
+                {
+                    total: this.page_workflows.total,
+                    size: this.page_workflows.size,
+                    current: this.page_workflows.current,
+                    orders: this.page_workflows.orders,
+                    maxLimit: this.page_workflows.maxLimit,
+                },
+                workspace_id
             )
+            this.page_workflows = res.data
         },
     },
 })

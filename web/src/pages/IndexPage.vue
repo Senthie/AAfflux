@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2025-11-26 10:24:58
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-12 11:36:58
+ * @LastEditTime: 2026-01-13 16:14:49
  * @FilePath: /web/src/pages/IndexPage.vue
  * @Description: 用户登陆后的主页
  *
@@ -11,6 +11,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import CreateWorkflowCp from 'src/components/workflows/CreateWorkflowCp.vue'
+import ShowWorkflowCp from 'src/components/workflows/ShowWorkflowCp.vue'
 import { useWorkspaceStore } from 'src/stores/workspace-store'
 const workspace_store = useWorkspaceStore()
 
@@ -20,9 +21,16 @@ onMounted(() => {
 </script>
 <template>
     <q-page class="row justify-evenly">
-        <div>{{ workspace_store.workspace }}</div>
-        <div>
-            <CreateWorkflowCp />
+        <div class="row">
+            <div class="col-12">
+                <div>{{ workspace_store.workspace }}</div>
+                <div>
+                    <CreateWorkflowCp />
+                </div>
+            </div>
+            <div class="col-12">
+                <div><ShowWorkflowCp /></div>
+            </div>
         </div>
     </q-page>
 </template>
