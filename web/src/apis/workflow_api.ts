@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-08 14:12:08
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-12 11:43:33
+ * @LastEditTime: 2026-01-13 16:04:25
  * @FilePath: /web/src/apis/workflow_api.ts
  * @Description:
  *
@@ -10,6 +10,7 @@
  */
 import { Notify } from 'quasar'
 import { api } from 'src/boot/axios'
+import type { IPageReq, IPageRes } from 'src/interfaces/Ipage'
 import type { IResponse } from 'src/interfaces/IResponse'
 import type {
     IWorkflowResponse,
@@ -51,6 +52,44 @@ export async function v1_create_workflow(
             code: 500,
             msg: errorMessage,
             data: {} as IWorkflowResponse,
+            timestamp: new Date().toISOString(),
+        }
+    }
+}
+export async function v1_workflow_list(
+    request: IPageReq,
+    workspace_id: string
+): Promise<IResponse<IPageRes<IWorkflowResponse>>> {
+    try {
+        const response = await api.post<IResponse<IPageRes<IWorkflowResponse>>>(
+            `/v1/workflows/list`,
+
+            request,
+            { params: { workspace_id: workspace_id } }
+        )
+
+        // 无论成功还是失败都显示消息
+        if (response.data.code !== 200) {
+            Notify.create({
+                type: 'negative',
+                message: response.data.msg || '创建工作流失败',
+            })
+        }
+
+        return response.data
+    } catch (error) {
+        const errorMessage = extractErrorMessage(error)
+
+        Notify.create({
+            type: 'negative',
+            message: errorMessage,
+        })
+
+        // 返回一个错误响应格式
+        return {
+            code: 500,
+            msg: errorMessage,
+            data: {} as IPageRes<IWorkflowResponse>,
             timestamp: new Date().toISOString(),
         }
     }
