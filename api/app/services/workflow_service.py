@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-09 03:25:28
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-12 17:49:14
+LastEditTime: 2026-01-14 11:41:35
 FilePath: /api/app/services/workflow_service.py
 Description:Workflow management service.
 
@@ -218,7 +218,7 @@ class WorkflowService:
 
         return workflow
 
-    async def delete_workflow(self, workflow_id: UUID) -> None:
+    async def delete_workflow(self, workflow_id: UUID, user: UserEntity) -> None:
         """Delete a workflow and all its associated data.
 
         This performs a soft delete on the workflow and cascades to:
@@ -233,6 +233,21 @@ class WorkflowService:
             WorkflowNotFoundError: If workflow is not found
         """
         workflow = await self.get_workflow(workflow_id)
+        # 1. get workspace
+        result = await self.db.execute(
+            select(WorkspaceAccountUser).where(
+                WorkspaceAccountUser.user_id == user.id,  # type: ignore
+                WorkspaceAccountUser.workspace_id == workflow.workspace_id,
+                WorkspaceAccountUser.is_deleted.is_(False),  # type: ignore
+            )
+        )
+        workspace_account = result.scalars().first()
+        # 2. Validate workspace 的权限
+        if workspace_account is Node:
+            raise WorkspaceException(CustomResponseCodeEnum.WORKSPACE_NOT_EXISTS)
+
+        if TenantAccountRole.is_editing_role(workspace_account.role) is False:
+            raise WorkspaceException(CustomResponseCodeEnum.FORBIDDEN)
 
         # Soft delete the workflow
         workflow.soft_delete()

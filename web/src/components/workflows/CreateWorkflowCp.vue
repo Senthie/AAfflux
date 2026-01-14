@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-09 16:54:11
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-12 11:43:39
+ * @LastEditTime: 2026-01-14 11:54:49
  * @FilePath: /web/src/components/workflows/CreateWorkflowCp.vue
  * @Description: 创建工作流
  *
@@ -24,8 +24,9 @@ const create_workflow_data = reactive<IWorkflowCreateRequest>({
     output_schema: {},
 })
 
-const handle_create_workflow = () => {
-    void v1_create_workflow(create_workflow_data, workspace_store.workspace.id)
+const handle_create_workflow = async () => {
+    await v1_create_workflow(create_workflow_data, workspace_store.workspace.id)
+    location.reload()
 }
 </script>
 <template>

@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-08 14:12:08
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-13 16:04:25
+ * @LastEditTime: 2026-01-14 11:43:51
  * @FilePath: /web/src/apis/workflow_api.ts
  * @Description:
  *
@@ -90,6 +90,41 @@ export async function v1_workflow_list(
             code: 500,
             msg: errorMessage,
             data: {} as IPageRes<IWorkflowResponse>,
+            timestamp: new Date().toISOString(),
+        }
+    }
+}
+
+export async function v1_delete_workflow(
+    workflow_id: string
+): Promise<IResponse<string[]>> {
+    try {
+        const response = await api.delete<IResponse<string[]>>(
+            `/v1/workflows/${workflow_id}`
+        )
+
+        // 无论成功还是失败都显示消息
+        if (response.data.code !== 200) {
+            Notify.create({
+                type: 'negative',
+                message: response.data.msg || '删除工作流失败',
+            })
+        }
+
+        return response.data
+    } catch (error) {
+        const errorMessage = extractErrorMessage(error)
+
+        Notify.create({
+            type: 'negative',
+            message: errorMessage,
+        })
+
+        // 返回一个错误响应格式
+        return {
+            code: 500,
+            msg: errorMessage,
+            data: [],
             timestamp: new Date().toISOString(),
         }
     }

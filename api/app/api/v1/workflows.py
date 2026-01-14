@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-09 03:26:58
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-12 17:50:16
+LastEditTime: 2026-01-14 11:21:35
 FilePath: /api/app/api/v1/workflows.py
 Description:Workflow management API endpoints.
 
@@ -230,13 +230,18 @@ async def delete_workflow(
     service = WorkflowService(session)
 
     try:
-        await service.delete_workflow(workflow_id)
+        await service.delete_workflow(workflow_id, current_user)
         return response_base.success(
             data=WorkflowDeleteResponse(
                 success=True,
                 message='Workflow deleted successfully',
                 workflow_id=workflow_id,
             )
+        )
+    except WorkspaceException as e:
+        return response_base.fail(
+            res=e.response_code,
+            data=f'Failed to create workflow: {str(e)}',
         )
     except WorkflowNotFoundError as e:
         return response_base.fail(
