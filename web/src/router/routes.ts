@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2025-11-26 10:24:58
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-06 18:02:19
+ * @LastEditTime: 2026-01-14 15:12:59
  * @FilePath: /web/src/router/routes.ts
  * @Description: 路由配置页面
  *
@@ -23,6 +23,16 @@ const routes: RouteRecordRaw[] = [
         component: () => import('layouts/MainLayout.vue'),
         children: [
             { path: '', component: () => import('pages/IndexPage.vue') },
+        ],
+    },
+    {
+        path: '/workflow',
+        component: () => import('layouts/WorkflowLayout.vue'),
+        children: [
+            {
+                path: '',
+                component: () => import('pages/workflows/MainPage.vue'),
+            },
         ],
     },
     // Always leave this as last one,
