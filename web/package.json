@@ -16,10 +16,14 @@
         "postinstall": "quasar prepare"
     },
     "dependencies": {
+        "@leafer-ui/core": "^1.12.3",
+        "@leafer-ui/draw": "^1.12.3",
         "@quasar/extras": "^1.16.4",
         "@vueuse/core": "^14.1.0",
         "axios": "^1.2.1",
         "js-cookie": "^3.0.5",
+        "leafer-ui": "^1.12.3",
+        "leafer-x-dotwuxian": "^0.0.3",
         "pinia": "^3.0.1",
         "pinia-plugin-persistedstate": "^4.7.1",
         "quasar": "^2.16.0",
