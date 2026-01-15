@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@imengyu/vue3-context-menu':
+        specifier: ^1.5.3
+        version: 1.5.3
       '@leafer-in/editor':
         specifier: ^1.12.3
         version: 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-in/resize@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3))(@leafer-ui/core@1.12.3)(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)
@@ -412,6 +415,12 @@ packages:
   '@humanwhocodes/retry@0.4.3':
     resolution: {integrity: sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ==}
     engines: {node: '>=18.18'}
+
+  '@imengyu/vue-scroll-rect@0.1.8':
+    resolution: {integrity: sha512-Mg7rgHlsGPO0tcMFjp1kB2BZ3oRrRtFN8MoE52jTgQnlc+Y0N6ttFnbIxOh2fc9j82uhdQ8zgZcXlFHUXeGnCA==}
+
+  '@imengyu/vue3-context-menu@1.5.3':
+    resolution: {integrity: sha512-PysXO1/3r+1fetumAkpZcXG5FyKAS/Bs6TtSvJqcAvk+gSvnN4C6x9KfgN8cBhyCDT8XLHMOzw+gkevY2Mx7zA==}
 
   '@inquirer/external-editor@1.0.3':
     resolution: {integrity: sha512-RWbSrDiYmO4LbejWY7ttpxczuwQyZLBUyygsA9Nsv95hpzUWwnNTVQmAq3xuh7vNwCp07UTmE5i11XAEExx4RA==}
@@ -3536,6 +3545,12 @@ snapshots:
   '@humanwhocodes/module-importer@1.0.1': {}
 
   '@humanwhocodes/retry@0.4.3': {}
+
+  '@imengyu/vue-scroll-rect@0.1.8': {}
+
+  '@imengyu/vue3-context-menu@1.5.3':
+    dependencies:
+      '@imengyu/vue-scroll-rect': 0.1.8
 
   '@inquirer/external-editor@1.0.3(@types/node@20.19.25)':
     dependencies:

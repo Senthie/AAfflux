@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-14 15:07:09
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-15 11:37:05
+ * @LastEditTime: 2026-01-15 12:18:30
  * @FilePath: /web/src/pages/workflows/MainPage.vue
  * @Description:
  *
@@ -15,19 +15,82 @@ import { DotMatrix } from 'leafer-x-dotwuxian'
 // import { useWindowSize } from '@vueuse/core'
 // const { width, height } = useWindowSize()
 import { Connector } from 'leafer-connector'
-
+import ContextMenu from '@imengyu/vue3-context-menu'
 import '@leafer-in/editor' // 导入图形编辑器插件
 import '@leafer-in/viewport' // 导入视口插件 (可选)
 
 let app: App | null = null
 
+const onContextMenu = (e: MouseEvent) => {
+    // 阻止浏览器默认菜单
+    e.preventDefault()
+
+    // 显示自定义右键菜单
+    ContextMenu.showContextMenu({
+        x: e.x,
+        y: e.y,
+        items: [
+            {
+                label: '添加节点',
+                onClick: () => {
+                    createRect()
+                },
+            },
+            {
+                label: '编辑',
+                children: [
+                    {
+                        label: '复制',
+                        onClick: () => {
+                            console.log('复制')
+                        },
+                    },
+                    {
+                        label: '粘贴',
+                        onClick: () => {
+                            console.log('粘贴')
+                        },
+                    },
+                    {
+                        label: '删除',
+                        onClick: () => {
+                            console.log('删除')
+                        },
+                    },
+                ],
+            },
+            {
+                label: '视图',
+                children: [
+                    {
+                        label: '适应画布',
+                        onClick: () => {
+                            console.log('适应画布')
+                        },
+                    },
+                    {
+                        label: '重置缩放',
+                        onClick: () => {
+                            console.log('重置缩放')
+                        },
+                    },
+                ],
+            },
+        ],
+    })
+}
 onMounted(() => {
     app = new App({
         view: window,
         editor: {},
         wheel: { preventDefault: true }, // 阻止浏览器默认滚动页面事件
         touch: { preventDefault: true }, // 阻止移动端默认触摸屏滑动页面事件
-        pointer: { preventDefaultMenu: false }, // 阻止浏览器默认菜单事件
+        pointer: { preventDefaultMenu: true }, // 阻止浏览器默认菜单事件，改为 true
+    })
+
+    // 监听 leafer-ui 的右键事件
+    app.on('pointer.menu', (e: { origin: MouseEvent }) => {
+        onContextMenu(e.origin)
     })
     const dot = new DotMatrix(app, {
         dotColor: '#D2D4D7',
@@ -66,6 +129,18 @@ onMounted(() => {
     app.tree.add([a, b, c, edge, edge2])
 })
 
+const createRect = () => {
+    const c = new Rect({
+        x: 520,
+        y: 280,
+        width: 220,
+        height: 160,
+        fill: '#1E90FF',
+        draggable: true,
+    })
+    app?.tree.add(c)
+}
+
 onBeforeUnmount(() => {
     // leafer-editor 不同版本销毁方法名可能不同，这里尽量兜底
     app?.destroy?.()
@@ -74,7 +149,9 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div ref="container"></div>
+    <div class="box">
+        <div ref="container"></div>
+    </div>
 </template>
 
 <style lang="sass" scoped></style>
