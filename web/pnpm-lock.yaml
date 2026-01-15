@@ -8,6 +8,18 @@ importers:
 
   .:
     dependencies:
+      '@leafer-in/editor':
+        specifier: ^1.12.3
+        version: 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-in/resize@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3))(@leafer-ui/core@1.12.3)(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-in/resize':
+        specifier: ^1.12.3
+        version: 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-in/view':
+        specifier: ^1.12.3
+        version: 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-in/viewport':
+        specifier: ^1.12.3
+        version: 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/core@1.12.3)(@leafer-ui/interface@1.12.3)
       '@leafer-ui/core':
         specifier: ^1.12.3
         version: 1.12.3
@@ -26,6 +38,12 @@ importers:
       js-cookie:
         specifier: ^3.0.5
         version: 3.0.5
+      leafer-connector:
+        specifier: ^1.5.2
+        version: 1.5.2(leafer-editor@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))
+      leafer-editor:
+        specifier: ^1.12.3
+        version: 1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3)
       leafer-ui:
         specifier: ^1.12.3
         version: 1.12.3
@@ -475,11 +493,97 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
+  '@leafer-editor/partner@1.12.3':
+    resolution: {integrity: sha512-U2Yd4Oq+bJQIqN+yifbkgOB2AkZ3iRfEKxhZSL7bS/pexOTmgzsLZLebMM/HiVvvCkFuKZ/0W4ASFempwa4AsA==}
+
+  '@leafer-editor/web@1.12.3':
+    resolution: {integrity: sha512-0I4q0+IHuxdnu6xBhqq2cQ89furoB7uRn+/3tTAzNxVkbOm8oKLRdYLMJoP10D7xqyftxESnqgCoW69Hf6Go9A==}
+
+  '@leafer-in/arrow@1.12.3':
+    resolution: {integrity: sha512-6zRbBiumaWpTMFi0EOXw8CVH/7sxwMhXF3yY0XE2Mspzzj9VPsCnkI3H/bC/Dc2CNk/bgLZeRoS1Jm8xPi2klQ==}
+    peerDependencies:
+      '@leafer-in/interface': ^1.12.3
+      '@leafer-ui/draw': ^1.12.3
+      '@leafer-ui/interface': ^1.12.3
+
+  '@leafer-in/color@1.12.3':
+    resolution: {integrity: sha512-0Oh0Zu0HQ1gwuapeA72nF95Y7uiuJnxg3azD672pYHJEZiG0O3gfGCsC9kT3v+stAkBqZx1cIu2vUSEbu0kCXw==}
+    peerDependencies:
+      '@leafer-in/interface': ^1.12.3
+      '@leafer-ui/draw': ^1.12.3
+      '@leafer-ui/interface': ^1.12.3
+
+  '@leafer-in/editor@1.12.3':
+    resolution: {integrity: sha512-YfBqyjJtlGX/CBr5rRh/dMQ+vusqDqcqwDleV5EL+x6qS5gj4AMAxiKVEB9xdH/8fsd1MCpoAW0rOh8fM6y8yw==}
+    peerDependencies:
+      '@leafer-in/interface': ^1.12.3
+      '@leafer-in/resize': ^1.12.3
+      '@leafer-ui/core': ^1.12.3
+      '@leafer-ui/draw': ^1.12.3
+      '@leafer-ui/interface': ^1.12.3
+
+  '@leafer-in/export@1.12.3':
+    resolution: {integrity: sha512-w3zlzBa/3wE2UztnCEPQSZkowVbluopgywFd95yBKXXgmbNfZvaH6mOqNXez8mXMMEYk86dKDOeeonRtLHfDXg==}
+    peerDependencies:
+      '@leafer-in/interface': ^1.12.3
+      '@leafer-ui/draw': ^1.12.3
+      '@leafer-ui/interface': ^1.12.3
+
+  '@leafer-in/find@1.12.3':
+    resolution: {integrity: sha512-Im8hrjMi/ZfoWlqukmiyL4B6JtXMmO18u6sHlLN442rHEQFD0KseP4qI+Yr+4sFzF7JPu5DzSYHMmsEuIPGRXA==}
+    peerDependencies:
+      '@leafer-in/interface': ^1.12.3
+      '@leafer-ui/draw': ^1.12.3
+      '@leafer-ui/interface': ^1.12.3
+
+  '@leafer-in/html@1.12.3':
+    resolution: {integrity: sha512-TvMwVvm0g9Vi+Ku+31X96gHvskjypZRlBL5b12p7l3jCAnJ7G2HrmdTU9ojZwb2+CYgEy2XMOF3TbNvHzw/2rA==}
+    peerDependencies:
+      '@leafer-in/interface': ^1.12.3
+      '@leafer-ui/draw': ^1.12.3
+      '@leafer-ui/interface': ^1.12.3
+
   '@leafer-in/interface@1.12.3':
     resolution: {integrity: sha512-gdvZSYA/Cxehf3GNDKIMx8ItSC2yqVMxMFzVAGvE8rTtUPq1syTIRGzLLafCYHZQIoj5OXGAK43Qg0DV4RqOAA==}
     peerDependencies:
       '@leafer-ui/interface': ^1.12.3
       '@leafer/interface': ^1.12.3
+
+  '@leafer-in/resize@1.12.3':
+    resolution: {integrity: sha512-DBvqN1R3KludbrdWP+cOj+R3cxA1VpIEfc6MHX3nR9f/1UOp4WAsUHWGwTx/gd4XS04ncIvKAbJV/Oqkja28wA==}
+    peerDependencies:
+      '@leafer-in/interface': ^1.12.3
+      '@leafer-ui/draw': ^1.12.3
+      '@leafer-ui/interface': ^1.12.3
+
+  '@leafer-in/scroll@1.12.3':
+    resolution: {integrity: sha512-xheZ3aYqdQmsPZrzV3p8QAGVWKMGOE7tMOORZJzCsACRsykJqfsqKANLWLm0tXoTNyBi2Dqgj47zIKYCpxpVUQ==}
+    peerDependencies:
+      '@leafer-in/interface': ^1.12.3
+      '@leafer-ui/core': ^1.12.3
+      '@leafer-ui/interface': ^1.12.3
+
+  '@leafer-in/text-editor@1.12.3':
+    resolution: {integrity: sha512-BgcxrSTj+Cs5MU1TE8H2uM9iTJz5+y3H1Jh8q8hgzx3xeKSf6xCM56+J1f006ypBtTiWk3o05lBwqUiuMINFaA==}
+    peerDependencies:
+      '@leafer-in/editor': ^1.12.3
+      '@leafer-in/interface': ^1.12.3
+      '@leafer-ui/core': ^1.12.3
+      '@leafer-ui/interface': ^1.12.3
+
+  '@leafer-in/view@1.12.3':
+    resolution: {integrity: sha512-vb2e0mbDne/rhzyIygc7t/ohOJXVvN0PakXPkYBWklGuYsRVbfbtiu1wvGsVwNWJk7qRhySTtzUSiI9dJN2UGA==}
+    peerDependencies:
+      '@leafer-in/interface': ^1.12.3
+      '@leafer-ui/draw': ^1.12.3
+      '@leafer-ui/interface': ^1.12.3
+
+  '@leafer-in/viewport@1.12.3':
+    resolution: {integrity: sha512-r0xNAXPw/TUcXdqdWI+anuzPTZQ+v9VFpqjpWY7S+G93/X6qb772IhqEgxe8/hFT+8dzC/FD+rfx/RjNid7atQ==}
+    peerDependencies:
+      '@leafer-in/interface': ^1.12.3
+      '@leafer-ui/core': ^1.12.3
+      '@leafer-ui/interface': ^1.12.3
 
   '@leafer-ui/app@1.12.3':
     resolution: {integrity: sha512-GqNC9erxs2zIRQSmE3dfzX/gAd2qag3pKIKI60NqVJVjLeLsgqDm7qEatBZ129TJhwHx2ai6i4ACRzfhElirVw==}
@@ -2098,6 +2202,14 @@ packages:
     resolution: {integrity: sha512-b94GiNHQNy6JNTrt5w6zNyffMrNkXZb3KTkCZJb2V1xaEGCk093vkZ2jk3tpaeP33/OiXC+WvK9AxUebnf5nbw==}
     engines: {node: '>= 0.6.3'}
 
+  leafer-connector@1.5.2:
+    resolution: {integrity: sha512-AVpWm0F/vNRPnixM7E8lVruKxNi3Ir0cwoKi/noW1fsElEWj7XCWTAsAay/h8KfsqdD0iuPunEBpBZ7mM+JjJA==}
+    peerDependencies:
+      leafer-editor: ^1.12.1
+
+  leafer-editor@1.12.3:
+    resolution: {integrity: sha512-Y9fdnf+GRBrNsl1p86Y/fpqomREQd9Idho+96x2szE8aQ17nQujeXqw94FLaa1FQL6QLOYWhrIkdWBx0lvxgmg==}
+
   leafer-ui@1.12.3:
     resolution: {integrity: sha512-H/ygcYEO/Ek57J4owtyoDf3w15EInzxZr07xsYNUTkYCjd1gIDLTwJI7XskDutfjuZ4LdLIwHaDVcyb1TIOCiA==}
 
@@ -3515,10 +3627,110 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
+  '@leafer-editor/partner@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/core@1.12.3)(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)':
+    dependencies:
+      '@leafer-in/arrow': 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-in/color': 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-in/editor': 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-in/resize@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3))(@leafer-ui/core@1.12.3)(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-in/export': 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-in/find': 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-in/resize': 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-in/scroll': 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/core@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-in/view': 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-in/viewport': 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/core@1.12.3)(@leafer-ui/interface@1.12.3)
+    transitivePeerDependencies:
+      - '@leafer-in/interface'
+      - '@leafer-ui/core'
+      - '@leafer-ui/draw'
+      - '@leafer-ui/interface'
+
+  '@leafer-editor/web@1.12.3(@leafer-in/editor@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-in/resize@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3))(@leafer-ui/core@1.12.3)(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3))(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3)':
+    dependencies:
+      '@leafer-editor/partner': 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/core@1.12.3)(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-in/html': 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-in/interface': 1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3)
+      '@leafer-in/text-editor': 1.12.3(@leafer-in/editor@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-in/resize@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3))(@leafer-ui/core@1.12.3)(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3))(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/core@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-ui/core': 1.12.3
+      '@leafer-ui/draw': 1.12.3
+      leafer-ui: 1.12.3
+    transitivePeerDependencies:
+      - '@leafer-in/editor'
+      - '@leafer-ui/interface'
+      - '@leafer/interface'
+
+  '@leafer-in/arrow@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)':
+    dependencies:
+      '@leafer-in/interface': 1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3)
+      '@leafer-ui/draw': 1.12.3
+      '@leafer-ui/interface': 1.12.3
+
+  '@leafer-in/color@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)':
+    dependencies:
+      '@leafer-in/interface': 1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3)
+      '@leafer-ui/draw': 1.12.3
+      '@leafer-ui/interface': 1.12.3
+
+  '@leafer-in/editor@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-in/resize@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3))(@leafer-ui/core@1.12.3)(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)':
+    dependencies:
+      '@leafer-in/interface': 1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3)
+      '@leafer-in/resize': 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-ui/core': 1.12.3
+      '@leafer-ui/draw': 1.12.3
+      '@leafer-ui/interface': 1.12.3
+
+  '@leafer-in/export@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)':
+    dependencies:
+      '@leafer-in/interface': 1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3)
+      '@leafer-ui/draw': 1.12.3
+      '@leafer-ui/interface': 1.12.3
+
+  '@leafer-in/find@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)':
+    dependencies:
+      '@leafer-in/interface': 1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3)
+      '@leafer-ui/draw': 1.12.3
+      '@leafer-ui/interface': 1.12.3
+
+  '@leafer-in/html@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)':
+    dependencies:
+      '@leafer-in/interface': 1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3)
+      '@leafer-ui/draw': 1.12.3
+      '@leafer-ui/interface': 1.12.3
+
   '@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3)':
     dependencies:
       '@leafer-ui/interface': 1.12.3
       '@leafer/interface': 1.12.3
+
+  '@leafer-in/resize@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)':
+    dependencies:
+      '@leafer-in/interface': 1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3)
+      '@leafer-ui/draw': 1.12.3
+      '@leafer-ui/interface': 1.12.3
+
+  '@leafer-in/scroll@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/core@1.12.3)(@leafer-ui/interface@1.12.3)':
+    dependencies:
+      '@leafer-in/interface': 1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3)
+      '@leafer-ui/core': 1.12.3
+      '@leafer-ui/interface': 1.12.3
+
+  '@leafer-in/text-editor@1.12.3(@leafer-in/editor@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-in/resize@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3))(@leafer-ui/core@1.12.3)(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3))(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/core@1.12.3)(@leafer-ui/interface@1.12.3)':
+    dependencies:
+      '@leafer-in/editor': 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-in/resize@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3))(@leafer-ui/core@1.12.3)(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-in/interface': 1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3)
+      '@leafer-ui/core': 1.12.3
+      '@leafer-ui/interface': 1.12.3
+
+  '@leafer-in/view@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)':
+    dependencies:
+      '@leafer-in/interface': 1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3)
+      '@leafer-ui/draw': 1.12.3
+      '@leafer-ui/interface': 1.12.3
+
+  '@leafer-in/viewport@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/core@1.12.3)(@leafer-ui/interface@1.12.3)':
+    dependencies:
+      '@leafer-in/interface': 1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3)
+      '@leafer-ui/core': 1.12.3
+      '@leafer-ui/interface': 1.12.3
 
   '@leafer-ui/app@1.12.3':
     dependencies:
@@ -5391,6 +5603,32 @@ snapshots:
   lazystream@1.0.1:
     dependencies:
       readable-stream: 2.3.8
+
+  leafer-connector@1.5.2(leafer-editor@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3)):
+    dependencies:
+      leafer-editor: 1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3)
+
+  leafer-editor@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3):
+    dependencies:
+      '@leafer-editor/web': 1.12.3(@leafer-in/editor@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-in/resize@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3))(@leafer-ui/core@1.12.3)(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3))(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3)
+      '@leafer-in/arrow': 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-in/color': 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-in/editor': 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-in/resize@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3))(@leafer-ui/core@1.12.3)(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-in/export': 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-in/find': 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-in/html': 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-in/interface': 1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3)
+      '@leafer-in/resize': 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-in/scroll': 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/core@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-in/text-editor': 1.12.3(@leafer-in/editor@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-in/resize@1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3))(@leafer-ui/core@1.12.3)(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3))(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/core@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-in/view': 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/draw@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-in/viewport': 1.12.3(@leafer-in/interface@1.12.3(@leafer-ui/interface@1.12.3)(@leafer/interface@1.12.3))(@leafer-ui/core@1.12.3)(@leafer-ui/interface@1.12.3)
+      '@leafer-ui/core': 1.12.3
+      '@leafer-ui/draw': 1.12.3
+      leafer-ui: 1.12.3
+    transitivePeerDependencies:
+      - '@leafer-ui/interface'
+      - '@leafer/interface'
 
   leafer-ui@1.12.3:
     dependencies:

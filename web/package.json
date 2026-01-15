@@ -16,12 +16,18 @@
         "postinstall": "quasar prepare"
     },
     "dependencies": {
+        "@leafer-in/editor": "^1.12.3",
+        "@leafer-in/resize": "^1.12.3",
+        "@leafer-in/view": "^1.12.3",
+        "@leafer-in/viewport": "^1.12.3",
         "@leafer-ui/core": "^1.12.3",
         "@leafer-ui/draw": "^1.12.3",
         "@quasar/extras": "^1.16.4",
         "@vueuse/core": "^14.1.0",
         "axios": "^1.2.1",
         "js-cookie": "^3.0.5",
+        "leafer-connector": "^1.5.2",
+        "leafer-editor": "^1.12.3",
         "leafer-ui": "^1.12.3",
         "leafer-x-dotwuxian": "^0.0.3",
         "pinia": "^3.0.1",

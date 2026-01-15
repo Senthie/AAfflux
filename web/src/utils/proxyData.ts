@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /*
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-14 12:18:46
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-14 12:22:04
+ * @LastEditTime: 2026-01-14 15:36:39
  * @FilePath: /web/src/utils/proxyData.ts
  * @Description: Vue3 中实现响应式数据
  *
