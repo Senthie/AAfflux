@@ -296,9 +296,8 @@ class WorkflowService:
         node = Node(
             workflow_id=workflow_id,
             type=node_data.type,
-            name=node_data.name,
             config=node_data.config,
-            position=node_data.position,
+            ui=node_data.ui,
         )
 
         # Validate node configuration
@@ -360,12 +359,10 @@ class WorkflowService:
         node = await self.get_node(node_id)
 
         # Update fields
-        if node_data.name is not None:
-            node.name = node_data.name
         if node_data.config is not None:
             node.config = node_data.config
-        if node_data.position is not None:
-            node.position = node_data.position
+        if node_data.ui is not None:
+            node.ui = node_data.ui
 
         # Validate updated configuration
         validation_result = self.validator.validate_node_config(node)

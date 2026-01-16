@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-29 17:20:58
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-30 11:02:18
+LastEditTime: 2026-01-16 16:17:13
 FilePath: /api/tests/unit/test_chat_node.py
 Description: 测试 chat node 是否如期运行
 
@@ -67,7 +67,6 @@ class TestChatNode:
             id=uuid4(),
             workflow_id=workflow.id,
             type=NodeTypeEnum.CHAT.value,
-            name='Test Chat Node',
             config={'prompt': '1 + 1 = ?', 'title': 'Test Chat Node'},
         )
 

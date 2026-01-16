@@ -76,9 +76,8 @@ class NodeCreateRequest(BaseModel):
     """Request schema for creating a node."""
 
     type: str = Field(..., description='Node type (LLM, CONDITION, CODE, HTTP, TRANSFORM)')
-    name: str = Field(..., min_length=1, max_length=255, description='Node name')
     config: Dict[str, Any] = Field(default_factory=dict, description='Node configuration')
-    position: Dict[str, float] = Field(default_factory=dict, description='Node position (x, y)')
+    ui: Dict[str, Any] = Field(default_factory=dict, description='Node UI information (x, y, etc.)')
 
     @field_validator('type')
     @classmethod
@@ -93,9 +92,8 @@ class NodeCreateRequest(BaseModel):
 class NodeUpdateRequest(BaseModel):
     """Request schema for updating a node."""
 
-    name: Optional[str] = Field(None, min_length=1, max_length=255, description='Node name')
     config: Optional[Dict[str, Any]] = Field(None, description='Node configuration')
-    position: Optional[Dict[str, float]] = Field(None, description='Node position (x, y)')
+    ui: Optional[Dict[str, Any]] = Field(None, description='Node UI information (x, y, etc.)')
 
 
 class NodeResponse(BaseModel):
@@ -104,9 +102,8 @@ class NodeResponse(BaseModel):
     id: UUID
     workflow_id: UUID
     type: str
-    name: str
     config: Dict[str, Any]
-    position: Dict[str, float]
+    ui: Dict[str, Any]
     is_deleted: bool = False
 
     model_config = {'from_attributes': True}

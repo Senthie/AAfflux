@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-24 16:24:52
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-08 16:36:45
+LastEditTime: 2026-01-16 16:22:00
 FilePath: /api/app/models/workflow/workflow.py
 Description:工作流模型 - 5张表。
     本模块定义了DAG工作流相关的数据模型：
@@ -70,18 +70,22 @@ class Node(BaseEntity, SoftDeleteMixin, table=True):  # type: ignore
 
         workflow_id: 所属工作流ID（逻辑外键）
         type: 节点类型（LLM/CONDITION/CODE/HTTP/TRANSFORM）
-        name: 节点名称
+
         config: 节点配置（JSONB格式）
-        position: 节点位置坐标（JSONB格式，包含x和y）
+        ui: 节点在页面的详细信息，用于记录和渲染ui（JSONB格式，包含x和y）
+
+    2026/01/16:
+        delete name: 节点名称 因为在config中已经包含了title的字段
+        update field position -> ui position只能标识 坐标，ui是用来对节点在画板中的记录
+
     """
 
     __tablename__ = 'nodes'  # type: ignore
 
     workflow_id: UUID = Field(index=True)  # Logical FK to workflows
     type: str = Field(max_length=50)  # LLM, CONDITION, CODE, HTTP, TRANSFORM
-    name: str = Field(max_length=255)
     config: dict = Field(default_factory=dict, sa_column=Column(JSONB))
-    position: dict = Field(default_factory=dict, sa_column=Column(JSONB))  # {x, y}
+    ui: dict = Field(default_factory=dict, sa_column=Column(JSONB))  # {x, y}
 
 
 class Connection(BaseEntity, table=True):  # type: ignore

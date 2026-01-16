@@ -108,9 +108,8 @@ class WorkflowSerializer:
             'id': str(node.id),
             'workflow_id': str(node.workflow_id),
             'type': node.type,
-            'name': node.name,
             'config': node.config,
-            'position': node.position,
+            'ui': node.ui,
         }
 
     def _serialize_connection(self, connection: Connection) -> Dict[str, Any]:
@@ -232,7 +231,7 @@ class WorkflowSerializer:
             DeserializationError: If node data is invalid
         """
         # Validate required fields
-        required_fields = ['type', 'name']
+        required_fields = ['type']
         for field in required_fields:
             if field not in node_data:
                 raise DeserializationError(f'Missing required node field: {field}')
@@ -241,9 +240,8 @@ class WorkflowSerializer:
         node = Node(
             workflow_id=workflow_id,
             type=node_data['type'],
-            name=node_data['name'],
             config=node_data.get('config', {}),
-            position=node_data.get('position', {}),
+            ui=node_data.get('ui', {}),
         )
 
         return node
@@ -337,7 +335,7 @@ class WorkflowSerializer:
             for node in nodes:
                 if not isinstance(node, dict):
                     return False
-                if 'id' not in node or 'type' not in node or 'name' not in node:
+                if 'id' not in node or 'type' not in node:
                     return False
                 node_ids.add(node['id'])
 

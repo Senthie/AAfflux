@@ -95,12 +95,12 @@ class ExecutionContext:
         # 判断 node 的类型
         if isinstance(node, Node):
             # 获取node 的原始数据
-            node_title = node.name
+            node_title = node.config.get('title', str(node.id))
 
             _node = node.to_dict()
 
         else:
-            node_title: str = node.get('name', 'unknown')
+            node_title: str = node.get('config', {}).get('title', 'unknown')
             _node = node
 
         _node['outputs'] = outputs

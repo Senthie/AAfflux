@@ -115,7 +115,9 @@ class WorkflowValidator:
             node_result = self.validate_node_config(node)
             if not node_result.is_valid:
                 for error in node_result.errors:
-                    result.add_error(f'Node {node.name} ({node.id}): {error}')
+                    # Use title from config if available, otherwise use node id
+                    node_title = node.config.get('title', str(node.id))
+                    result.add_error(f'Node {node_title} ({node.id}): {error}')
 
         # Get all connections
         connections_statement = select(Connection).where(Connection.workflow_id == workflow_id)

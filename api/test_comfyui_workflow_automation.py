@@ -356,16 +356,14 @@ class ComfyUIWorkflowTester:
         # Chat Node (using LLM type)
         chat_node_config = {
             'type': 'LLM',
-            'name': 'Test Chat Node',
             'config': {'model': 'chat', 'prompt': '公交站里的女孩', 'title': 'Test Chat Node'},
-            'position': {'x': 100, 'y': 100},
+            'ui': {'x': 100, 'y': 100},
         }
         chat_node_id = self.create_node(workflow_id, chat_node_config)
 
         # Ollama Node (using LLM type)
         ollama_node_config = {
             'type': 'LLM',
-            'name': 'Real Ollama Provider',
             'config': {
                 'model': 'qwen3:8b',
                 'prompt': '你是一个 Stable Diffusion 绘画专家，我会提供给你画面描述，你将输出ai绘画提示词，只需要提供正向英文提示词，不需要输出Enhanced Notes和Positive Prompt。',
@@ -375,28 +373,26 @@ class ComfyUIWorkflowTester:
                 'timeout': 120,
                 'temperature': 0.1,
             },
-            'position': {'x': 300, 'y': 100},
+            'ui': {'x': 300, 'y': 100},
         }
         ollama_node_id = self.create_node(workflow_id, ollama_node_config)
 
         # Agent Node (using LLM type)
         agent_node_config = {
             'type': 'LLM',
-            'name': 'Math Agent',
             'config': {
                 'model': 'qwen3:8b',
                 'prompt': '你是一个 Stable Diffusion 绘画专家，我会提供给你画面描述，你将输出ai绘画提示词，只需要提供正向英文提示词，不需要输出Enhanced Notes和Positive Prompt。',
                 'title': 'Math Agent',
                 'temperature': 0.1,
             },
-            'position': {'x': 500, 'y': 100},
+            'ui': {'x': 500, 'y': 100},
         }
         agent_node_id = self.create_node(workflow_id, agent_node_config)
 
         # HTTP Node (ComfyUI)
         http_node_config = {
             'type': 'HTTP',
-            'name': 'Http Request',
             'config': {
                 'title': 'Http Request',
                 'method': 'POST',
@@ -457,7 +453,7 @@ class ComfyUIWorkflowTester:
                 'timeout': 30,
                 'follow_redirects': True,
             },
-            'position': {'x': 700, 'y': 100},
+            'ui': {'x': 700, 'y': 100},
         }
         http_node_id = self.create_node(workflow_id, http_node_config)
 
