@@ -18,6 +18,7 @@
     "dependencies": {
         "@imengyu/vue3-context-menu": "^1.5.3",
         "@leafer-in/editor": "^1.12.3",
+        "@leafer-in/find": "^1.12.3",
         "@leafer-in/resize": "^1.12.3",
         "@leafer-in/view": "^1.12.3",
         "@leafer-in/viewport": "^1.12.3",
