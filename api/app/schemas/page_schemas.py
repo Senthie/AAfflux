@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2026-01-12 14:56:18
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-12 17:49:50
+LastEditTime: 2026-01-19 11:02:37
 FilePath: /api/app/schemas/page_schemas.py
 Description:
 
@@ -17,7 +17,9 @@ T = TypeVar('T')
 
 
 class PageRequest(BaseModel):
-    """审批请求"""
+    """
+    Request list by page create a page list schema
+    """
 
     total: int = Field(default=0, description='查询列表总记录数')
     size: int = Field(default=10, description='每页显示条数，默认 10')
@@ -27,7 +29,9 @@ class PageRequest(BaseModel):
 
 
 class PageResponse(BaseModel, Generic[T]):
-    """审批请求"""
+    """
+    response page list
+    """
 
     records: List[T] = Field(default=[], description='记录列表')
     total: int = Field(default=0, description='查询列表总记录数')
