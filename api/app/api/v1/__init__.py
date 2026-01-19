@@ -8,22 +8,24 @@ Description: API v1 路由注册
 """
 
 from fastapi import APIRouter
+
 from app.api.v1 import (
-    auth,
-    users,
-    organizations,
-    teams,
-    workspaces,
-    applications,
     app_runtime,
-    executions,
+    applications,
+    auth,
     bpm_approvals,
     bpm_processes,
     bpm_tasks,
+    executions,
     file as file_router,
-    workflows,
-    templates,
+    organizations,
+    plugins,
     providers,
+    teams,
+    templates,
+    users,
+    workflows,
+    workspaces,
 )
 
 router = APIRouter(prefix='/api/v1', tags=['API v1'])
@@ -54,5 +56,6 @@ router.include_router(file_router.router, prefix='/files', tags=['Files'])
 router.include_router(workflows.router, tags=['Workflows'])
 router.include_router(templates.router, tags=['Templates'])
 router.include_router(providers.router, tags=['LLM Providers'])
+router.include_router(plugins.router, tags=['Plugins'])
 
 __all__ = ['router']
