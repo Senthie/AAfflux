@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-19 14:51:12
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-19 17:18:11
+ * @LastEditTime: 2026-01-20 14:50:03
  * @FilePath: /web/src/interfaces/IPlugin.ts
  * @Description: plugin 的请求和返回值的抽象
  *
@@ -17,6 +17,7 @@ export interface IPluginBase {
     icon: string
     category: string
     plugin_type: string
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     manifest: Record<string, any>
     source_url: string
     documentation_url: string
