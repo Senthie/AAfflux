@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-14 15:07:09
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-20 11:55:51
+ * @LastEditTime: 2026-01-20 14:51:31
  * @FilePath: /web/src/pages/workflows/MainPage.vue
  * @Description:
  *
@@ -10,7 +10,7 @@
 -->
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, reactive, ref } from 'vue'
-import type { IUI } from 'leafer-ui'
+import type { IUI, IPointerEvent } from 'leafer-ui'
 import { App } from 'leafer-ui'
 import { DotMatrix } from 'leafer-x-dotwuxian'
 // import { useWindowSize } from '@vueuse/core'
@@ -25,8 +25,15 @@ import type { PluginResponse } from 'src/interfaces/IPlugin'
 import { v1_plugins_list } from 'src/apis/plugin_api'
 import { NodeRect } from 'src/utils/nodeReact'
 import { Platform } from 'leafer-ui'
+
+// 定义接口
+interface NodeListeners {
+    setupConnectionListeners: (node: NodeRect) => void
+    setupNodeDragListeners: (node: NodeRect) => void
+}
+
 // 允许跨域图片渲染，但不支持导出画板内容（浏览器的限制）。
-Platform.image.crossOrigin = null
+Platform.image.crossOrigin = 'anonymous'
 
 let app: App = null as unknown as App
 const add_node_visiable = ref(false)
@@ -135,6 +142,10 @@ onMounted(() => {
         pointer: { preventDefaultMenu: true }, // 阻止浏览器默认菜单事件，改为 true
     })
 
+    // 连线状态管理
+    let isDraggingConnection = false
+    let draggingNode: NodeRect | null = null
+
     // 监听 leafer-ui 的右键事件
     app.on('pointer.menu', (e: { origin: MouseEvent }) => {
         if (app?.editor.single) {
@@ -144,6 +155,26 @@ onMounted(() => {
             onContextMenu(e.origin)
         }
     })
+
+    // 全局鼠标事件处理，用于连线功能
+    app.on('pointer.move', (e: IPointerEvent) => {
+        if (isDraggingConnection && draggingNode) {
+            // 禁用编辑器选择功能
+            if (app.editor) {
+                app.editor.cancel()
+            }
+            draggingNode.updateDragLineExternal(e)
+        }
+    })
+
+    app.on('pointer.up', (e: IPointerEvent) => {
+        if (isDraggingConnection && draggingNode) {
+            draggingNode.endDragConnectionExternal(e)
+            isDraggingConnection = false
+            draggingNode = null
+        }
+    })
+
     const dot = new DotMatrix(app, {
         dotColor: '#D2D4D7',
         gridGap: 45,
@@ -152,55 +183,40 @@ onMounted(() => {
         minSize: 0.1,
     })
     dot.enableDotMatrix(true)
-    const a = new NodeRect({
-        title: 'a',
-        x: 100,
-        y: 100,
-        editable: true,
-    })
-    const b = new NodeRect({
-        title: 'b',
-        x: 520,
-        y: 280,
-        editable: true,
-    })
-    const c = new NodeRect({
-        title: 'c',
-        icon: 'https://n8niostorageaccount.blob.core.windows.net/n8nio-strapi-blobs-prod/assets/Docu_Seal_b9ab4f1bfb.svg',
-        x: 520,
-        y: 580,
-        editable: true,
-    })
-    const edge = new Connector(app, {
-        from: a.out,
-        to: b.in,
-        stroke: '#32cd79',
-    })
-    const edge2 = new Connector(app, {
-        from: c.out,
-        to: b.in,
-        stroke: '#32cd79',
-    })
 
-    // 存储所有连接线，方便更新
-    const connectors = [edge, edge2]
+    // 将设置函数暴露给 createNodeRect 使用
+    ;(window as { setupNodeListeners?: NodeListeners }).setupNodeListeners = {
+        setupConnectionListeners: (node: NodeRect) => {
+            node.on('drag.connection.start', () => {
+                console.log('连线拖拽开始')
+                isDraggingConnection = true
+                draggingNode = node
 
-    // 监听节点拖动事件
-    const setupNodeDragListeners = (node: NodeRect) => {
-        node.on('drag.end', () => {
-            // 拖动结束时更新所有连接线
-            connectors.forEach((connector) => {
-                connector.update()
+                // 禁用编辑器的选择功能
+                if (app.editor) {
+                    app.editor.cancel()
+                }
             })
-        })
+
+            node.on('connection.created', (data: unknown) => {
+                console.log('新连接已创建:', data)
+                // 这里可以添加连接创建后的处理逻辑
+            })
+        },
+        setupNodeDragListeners: (node: NodeRect) => {
+            node.on('drag.end', () => {
+                // 拖动结束时更新所有连接线
+                const allConnectors = app.tree.children.filter(
+                    (child) => child instanceof Connector
+                )
+                allConnectors.forEach((connector) => {
+                    if (connector.update) {
+                        connector.update()
+                    }
+                })
+            })
+        },
     }
-
-    // 为所有节点设置拖动监听
-    setupNodeDragListeners(a)
-    setupNodeDragListeners(b)
-    setupNodeDragListeners(c)
-
-    app.tree.add([a, b, c, edge, edge2])
 
     // 获取插件
     void handle_get_plugins()
@@ -222,18 +238,13 @@ const createNodeRect = (plugin: PluginResponse) => {
         node.name = `rect${num}`
     } while (num <= 3)
 
-    // 为新节点添加拖动监听
-    node.on('drag.end', () => {
-        // 获取所有连接线并更新
-        const allConnectors = app.tree.children.filter(
-            (child) => child instanceof Connector
-        )
-        allConnectors.forEach((connector) => {
-            if (connector.update) {
-                connector.update()
-            }
-        })
-    })
+    // 使用全局设置函数为新节点添加监听器
+    const setupFunctions = (window as { setupNodeListeners?: NodeListeners })
+        .setupNodeListeners
+    if (setupFunctions) {
+        setupFunctions.setupNodeDragListeners(node)
+        setupFunctions.setupConnectionListeners(node)
+    }
 
     app.tree.add(node)
     add_node_visiable.value = false
