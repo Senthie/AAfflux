@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-14 15:07:09
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-20 11:32:29
+ * @LastEditTime: 2026-01-20 11:55:51
  * @FilePath: /web/src/pages/workflows/MainPage.vue
  * @Description:
  *
@@ -26,7 +26,7 @@ import { v1_plugins_list } from 'src/apis/plugin_api'
 import { NodeRect } from 'src/utils/nodeReact'
 import { Platform } from 'leafer-ui'
 // 允许跨域图片渲染，但不支持导出画板内容（浏览器的限制）。
-Platform.image.crossOrigin = 'anonymous'
+Platform.image.crossOrigin = null
 
 let app: App = null as unknown as App
 const add_node_visiable = ref(false)
@@ -128,7 +128,7 @@ const onNodeMenu = (e: MouseEvent, node: IUI) => {
 onMounted(() => {
     app = new App({
         view: window,
-        fill: '#D3D3D3',
+
         editor: {},
         wheel: { preventDefault: true }, // 阻止浏览器默认滚动页面事件
         touch: { preventDefault: true }, // 阻止移动端默认触摸屏滑动页面事件
@@ -172,11 +172,15 @@ onMounted(() => {
         editable: true,
     })
     const edge = new Connector(app, {
-        from: a.right_connect,
-        to: b.left_connect,
+        from: a.out,
+        to: b.in,
         stroke: '#32cd79',
     })
-    const edge2 = new Connector(app, { from: c, to: b, stroke: '#32cd79' })
+    const edge2 = new Connector(app, {
+        from: c.out,
+        to: b.in,
+        stroke: '#32cd79',
+    })
 
     // 存储所有连接线，方便更新
     const connectors = [edge, edge2]

@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-19 15:49:12
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-20 11:31:06
+ * @LastEditTime: 2026-01-20 11:58:50
  * @FilePath: /web/src/utils/nodeReact.ts
  * @Description: 创建一个 node 的节点类型
  *
@@ -53,8 +53,8 @@ export class NodeRect extends Group {
     @dataType('')
     declare public icon: string // 增加自定义属性
 
-    public left_connect: IUI = null as unknown as IUI
-    public right_connect: IUI = null as unknown as IUI
+    public in: IUI = null as unknown as IUI
+    public out: IUI = null as unknown as IUI
 
     constructor(data: INodeRectInputData) {
         super(data)
@@ -93,12 +93,11 @@ export class NodeRect extends Group {
             },
             cornerRadius: 20,
         })
-        this.left_connect = new Ellipse({
+        this.in = new Ellipse({
             width: 10,
             height: 10,
             x: -5,
             y: 45,
-            editable: true,
             fill: '#ffffffff',
             stroke: {
                 type: 'solid',
@@ -109,10 +108,10 @@ export class NodeRect extends Group {
                 },
             },
         })
-        this.right_connect = this.left_connect.clone({ x: 95 })
+        this.out = this.in.clone({ x: 95 })
         this.add(rect)
-        this.add(this.left_connect)
-        this.add(this.right_connect)
+        this.add(this.in)
+        this.add(this.out)
     }
 
     create_title(): void {
