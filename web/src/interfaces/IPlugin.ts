@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-19 14:51:12
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-19 14:58:10
+ * @LastEditTime: 2026-01-19 17:18:11
  * @FilePath: /web/src/interfaces/IPlugin.ts
  * @Description: plugin 的请求和返回值的抽象
  *
@@ -20,4 +20,14 @@ export interface IPluginBase {
     manifest: Record<string, any>
     source_url: string
     documentation_url: string
+}
+
+export interface PluginResponse extends IPluginBase {
+    id: string
+    install_count: number
+    rating: number
+    is_active: boolean
+    is_verified: boolean
+    created_at: string
+    updated_at: string
 }

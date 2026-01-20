@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-19 14:49:12
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-19 15:20:09
+ * @LastEditTime: 2026-01-19 17:18:35
  * @FilePath: /web/src/apis/plugin_api.ts
  * @Description: 请求 plugin 的接口 方法
  *
@@ -12,16 +12,16 @@
 import { Notify } from 'quasar'
 import { api } from 'src/boot/axios'
 import type { IPageReq, IPageRes } from 'src/interfaces/Ipage'
-import type { IPluginBase } from 'src/interfaces/IPlugin'
+import type { PluginResponse } from 'src/interfaces/IPlugin'
 import type { IResponse } from 'src/interfaces/IResponse'
 import { extractErrorMessage } from 'src/utils/errorHandler'
 
 // TOOD: 缺少过滤的条件
 export async function v1_plugins_list(
     request: IPageReq
-): Promise<IResponse<IPageRes<IPluginBase>>> {
+): Promise<IResponse<IPageRes<PluginResponse>>> {
     try {
-        const response = await api.post<IResponse<IPageRes<IPluginBase>>>(
+        const response = await api.post<IResponse<IPageRes<PluginResponse>>>(
             `/v1/plugins/list`,
 
             request
@@ -48,7 +48,7 @@ export async function v1_plugins_list(
         return {
             code: 500,
             msg: errorMessage,
-            data: {} as IPageRes<IPluginBase>,
+            data: {} as IPageRes<PluginResponse>,
             timestamp: new Date().toISOString(),
         }
     }
