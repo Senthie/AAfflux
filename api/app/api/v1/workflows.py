@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-09 03:26:58
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-14 11:21:35
+LastEditTime: 2026-01-20 17:16:31
 FilePath: /api/app/api/v1/workflows.py
 Description:Workflow management API endpoints.
 
@@ -155,7 +155,7 @@ async def get_workflow(
     service = WorkflowService(session)
 
     try:
-        workflow = await service.get_workflow(workflow_id)
+        workflow = await service.get_workflow(workflow_id, current_user)
         nodes = await service.list_nodes(workflow_id)
         connections = await service.list_connections(workflow_id)
 
@@ -170,6 +170,11 @@ async def get_workflow(
         return response_base.fail(
             res=CustomResponseCodeEnum.NOT_FOUND,
             data=str(e),
+        )
+    except WorkspaceException as e:
+        return response_base.fail(
+            res=e.response_code,
+            data=f'Failed to create workflow: {str(e)}',
         )
 
 

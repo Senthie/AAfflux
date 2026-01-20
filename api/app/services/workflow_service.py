@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-09 03:25:28
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-14 11:41:35
+LastEditTime: 2026-01-20 17:14:59
 FilePath: /api/app/services/workflow_service.py
 Description:Workflow management service.
 
@@ -127,7 +127,7 @@ class WorkflowService:
 
         return workflow
 
-    async def get_workflow(self, workflow_id: UUID) -> Workflow:
+    async def get_workflow(self, workflow_id: UUID, user: UserEntity) -> Workflow:
         """Get a workflow by ID.
 
         Args:
@@ -139,10 +139,25 @@ class WorkflowService:
         Raises:
             WorkflowNotFoundError: If workflow is not found
         """
+        # 1. get workflow
         workflow = await self.db.get(Workflow, workflow_id)
         if not workflow or workflow.is_deleted:
             raise WorkflowNotFoundError(f'Workflow {workflow_id} not found')
+        # 2. get workspace by workflow_id
+        result = await self.db.execute(
+            select(WorkspaceAccountUser).where(
+                WorkspaceAccountUser.user_id == user.id,  # type: ignore
+                WorkspaceAccountUser.workspace_id == workflow.workspace_id,  # type: ignore
+                WorkspaceAccountUser.is_deleted.is_(False),  # type: ignore
+            )
+        )
+        workspace_account = result.scalars().first()
+        # 2. Validate workspace 的权限
+        if workspace_account is Node:
+            raise WorkspaceException(CustomResponseCodeEnum.WORKSPACE_NOT_EXISTS)
 
+        if TenantAccountRole.is_editing_role(workspace_account.role) is False:
+            raise WorkspaceException(CustomResponseCodeEnum.FORBIDDEN)
         return workflow
 
     async def list_workflows(
