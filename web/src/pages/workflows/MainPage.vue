@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-14 15:07:09
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-20 14:51:31
+ * @LastEditTime: 2026-01-20 15:41:14
  * @FilePath: /web/src/pages/workflows/MainPage.vue
  * @Description:
  *
@@ -132,11 +132,9 @@ const onNodeMenu = (e: MouseEvent, node: IUI) => {
         ],
     })
 }
-onMounted(() => {
+onMounted(async () => {
     app = new App({
         view: window,
-
-        editor: {},
         wheel: { preventDefault: true }, // 阻止浏览器默认滚动页面事件
         touch: { preventDefault: true }, // 阻止移动端默认触摸屏滑动页面事件
         pointer: { preventDefaultMenu: true }, // 阻止浏览器默认菜单事件，改为 true
@@ -219,7 +217,7 @@ onMounted(() => {
     }
 
     // 获取插件
-    void handle_get_plugins()
+    await handle_get_plugins()
 })
 
 const createNodeRect = (plugin: PluginResponse) => {
