@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-12 11:49:16
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-14 11:58:18
+ * @LastEditTime: 2026-01-20 16:40:28
  * @FilePath: /web/src/components/workflows/ShowWorkflowCp.vue
  * @Description: 展示当前的工作空间的工作流
  *
@@ -12,6 +12,8 @@
 import { v1_delete_workflow } from 'src/apis/workflow_api'
 import { useWorkspaceStore } from 'src/stores/workspace-store'
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+const router = useRouter()
 const workspace_store = useWorkspaceStore()
 
 const delete_workflow_id = ref('')
@@ -26,6 +28,10 @@ const handle_delete_workflow = async () => {
         // TOOD 全局刷新不友好，后期需要改为局部刷新
         location.reload()
     }
+}
+
+const to_wordflow = (id: string) => {
+    void router.push(`/workflow/${id}`)
 }
 </script>
 <template>
@@ -66,7 +72,11 @@ const handle_delete_workflow = async () => {
                             </div>
 
                             <div class="col-2">
-                                <q-btn color="primary" label="查看" />
+                                <q-btn
+                                    color="primary"
+                                    label="查看"
+                                    @click="to_wordflow(workflows.id)"
+                                />
                                 <q-btn
                                     color="negative"
                                     label="删除"
