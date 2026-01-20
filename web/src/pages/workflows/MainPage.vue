@@ -2,16 +2,16 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-14 15:07:09
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-19 17:02:53
+ * @LastEditTime: 2026-01-20 11:32:29
  * @FilePath: /web/src/pages/workflows/MainPage.vue
  * @Description:
  *
  * Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 -->
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import type { IUI } from 'leafer-ui'
-import { App, Rect } from 'leafer-ui'
+import { App } from 'leafer-ui'
 import { DotMatrix } from 'leafer-x-dotwuxian'
 // import { useWindowSize } from '@vueuse/core'
 // const { width, height } = useWindowSize()
@@ -21,13 +21,16 @@ import '@leafer-in/editor' // 导入图形编辑器插件
 import '@leafer-in/viewport' // 导入视口插件 (可选)
 import '@leafer-in/find' // 导入查找元素插件
 import type { IPageReq, IPageRes } from 'src/interfaces/Ipage'
-import type { IPluginBase } from 'src/interfaces/IPlugin'
+import type { PluginResponse } from 'src/interfaces/IPlugin'
 import { v1_plugins_list } from 'src/apis/plugin_api'
 import { NodeRect } from 'src/utils/nodeReact'
+import { Platform } from 'leafer-ui'
+// 允许跨域图片渲染，但不支持导出画板内容（浏览器的限制）。
+Platform.image.crossOrigin = 'anonymous'
 
 let app: App = null as unknown as App
 const add_node_visiable = ref(false)
-const page_res = ref<IPageRes<IPluginBase>>({
+const page_res = ref<IPageRes<PluginResponse>>({
     total: 0,
     size: 10,
     current: 1,
@@ -48,9 +51,16 @@ const handle_get_plugins = async () => {
     page_res.value.records = res.data.records
 }
 
+// 记录右键页面时候的xy的位置
+const click_xy = reactive({
+    x: 0,
+    y: 0,
+})
 const onContextMenu = (e: MouseEvent) => {
     // 阻止浏览器默认菜单
     e.preventDefault()
+    click_xy.x = e.x
+    click_xy.y = e.y
 
     // 显示自定义右键菜单
     ContextMenu.showContextMenu({
@@ -118,6 +128,7 @@ const onNodeMenu = (e: MouseEvent, node: IUI) => {
 onMounted(() => {
     app = new App({
         view: window,
+        fill: '#D3D3D3',
         editor: {},
         wheel: { preventDefault: true }, // 阻止浏览器默认滚动页面事件
         touch: { preventDefault: true }, // 阻止移动端默认触摸屏滑动页面事件
@@ -160,35 +171,68 @@ onMounted(() => {
         y: 580,
         editable: true,
     })
-    const edge = new Connector(app, { from: a, to: b, stroke: '#32cd79' })
+    const edge = new Connector(app, {
+        from: a.right_connect,
+        to: b.left_connect,
+        stroke: '#32cd79',
+    })
     const edge2 = new Connector(app, { from: c, to: b, stroke: '#32cd79' })
+
+    // 存储所有连接线，方便更新
+    const connectors = [edge, edge2]
+
+    // 监听节点拖动事件
+    const setupNodeDragListeners = (node: NodeRect) => {
+        node.on('drag.end', () => {
+            // 拖动结束时更新所有连接线
+            connectors.forEach((connector) => {
+                connector.update()
+            })
+        })
+    }
+
+    // 为所有节点设置拖动监听
+    setupNodeDragListeners(a)
+    setupNodeDragListeners(b)
+    setupNodeDragListeners(c)
+
     app.tree.add([a, b, c, edge, edge2])
 
     // 获取插件
     void handle_get_plugins()
 })
 
-const createRect = (x: number, y: number) => {
+const createNodeRect = (plugin: PluginResponse) => {
     let num = 0
     // TOOD 这样创建 rect 并不严谨 应该通过 NODE表
     // 继续去查询节点的名字是否存在重复
-    const rect = new Rect({
-        name: `rect${num}`,
-        x: x,
-        y: y,
+    const node = new NodeRect({
+        title: `${plugin.name}`,
+        icon: plugin.icon,
+        x: click_xy.x,
+        y: click_xy.y,
         editable: true,
-        width: 200,
-        height: 100,
-        fill: '#1E90FF',
-        draggable: true,
-        cornerRadius: 20,
     })
     do {
         num += 1
-        rect.name = `rect${num}`
+        node.name = `rect${num}`
     } while (num <= 3)
 
-    app.tree.add(rect)
+    // 为新节点添加拖动监听
+    node.on('drag.end', () => {
+        // 获取所有连接线并更新
+        const allConnectors = app.tree.children.filter(
+            (child) => child instanceof Connector
+        )
+        allConnectors.forEach((connector) => {
+            if (connector.update) {
+                connector.update()
+            }
+        })
+    })
+
+    app.tree.add(node)
+    add_node_visiable.value = false
 }
 
 onBeforeUnmount(() => {
@@ -212,7 +256,11 @@ onBeforeUnmount(() => {
                             v-for="(plugin, index) in page_res.records"
                             :key="index"
                         >
-                            <q-btn :label="plugin.name" color="primary" />
+                            <q-btn
+                                :label="plugin.name"
+                                color="primary"
+                                @click="createNodeRect(plugin)"
+                            />
                         </template>
                     </q-card-section>
 

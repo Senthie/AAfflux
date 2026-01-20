@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-19 15:49:12
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-19 17:04:35
+ * @LastEditTime: 2026-01-20 11:31:06
  * @FilePath: /web/src/utils/nodeReact.ts
  * @Description: 创建一个 node 的节点类型
  *
@@ -16,11 +16,9 @@ import {
     GroupData,
     dataType,
 } from '@leafer-ui/core' // 引入跨平台核心包
-import type { IGroupInputData, IGroupData } from '@leafer-ui/interface'
-import { Rect, Text } from 'leafer-ui'
-import { Platform } from 'leafer-ui'
-// 允许跨域图片渲染，但不支持导出画板内容（浏览器的限制）。
-Platform.image.crossOrigin = null
+import type { IGroupInputData, IGroupData, IUI } from '@leafer-ui/interface'
+import { Rect, Text, Ellipse } from 'leafer-ui'
+
 // 定义数据
 export interface INodeRectInputData extends IGroupInputData {
     title?: string
@@ -45,30 +43,36 @@ export class NodeRect extends Group {
     }
 
     @dataProcessor(NodeRectData)
-    public declare __: INodeRectData
+    declare public __: INodeRectData
 
-    @dataType('') public declare title: string // 增加自定义属性
-
-    @dataType('')
-    public declare desc: string // 增加自定义属性
+    @dataType('') declare public title: string // 增加自定义属性
 
     @dataType('')
-    public declare icon: string // 增加自定义属性
+    declare public desc: string // 增加自定义属性
+
+    @dataType('')
+    declare public icon: string // 增加自定义属性
+
+    public left_connect: IUI = null as unknown as IUI
+    public right_connect: IUI = null as unknown as IUI
 
     constructor(data: INodeRectInputData) {
         super(data)
+
         this.create_rect()
         this.create_title()
     }
 
     create_rect(): void {
+        // TOOD 计算更真实的尺寸
+        //  设置 stroke 后 rect的实际尺寸应该是 101 而不是 100
         const rect = new Rect({
             width: 100,
             height: 100,
             fill: [
                 {
                     type: 'solid',
-                    color: '#bfffdcff',
+                    color: '#FFFFFF',
                 },
                 {
                     type: 'image', // 图案填充
@@ -79,9 +83,36 @@ export class NodeRect extends Group {
                     opacity: 1,
                 },
             ],
+            stroke: {
+                type: 'solid',
+                color: '#32cd79',
+                style: {
+                    strokeWidth: 1,
+                    strokeAlign: 'center',
+                },
+            },
             cornerRadius: 20,
         })
+        this.left_connect = new Ellipse({
+            width: 10,
+            height: 10,
+            x: -5,
+            y: 45,
+            editable: true,
+            fill: '#ffffffff',
+            stroke: {
+                type: 'solid',
+                color: '#32cd79',
+                style: {
+                    strokeWidth: 1,
+                    strokeAlign: 'center',
+                },
+            },
+        })
+        this.right_connect = this.left_connect.clone({ x: 95 })
         this.add(rect)
+        this.add(this.left_connect)
+        this.add(this.right_connect)
     }
 
     create_title(): void {
