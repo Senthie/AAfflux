@@ -1,3 +1,13 @@
+/*
+ * @Author: Senthie seemoon2077@gmail.com
+ * @Date: 2026-01-08 14:12:08
+ * @LastEditors: Senthie seemoon2077@gmail.com
+ * @LastEditTime: 2026-01-20 18:03:23
+ * @FilePath: /web/src/router/index.ts
+ * @Description: 注册历史路由
+ *
+ * Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
+ */
 import { defineRouter } from '#q-app/wrappers'
 import {
     createMemoryHistory,
@@ -20,8 +30,8 @@ export default defineRouter(function (/* { store, ssrContext } */) {
     const createHistory = process.env.SERVER
         ? createMemoryHistory
         : process.env.VUE_ROUTER_MODE === 'history'
-        ? createWebHistory
-        : createWebHashHistory
+          ? createWebHistory
+          : createWebHashHistory
 
     const Router = createRouter({
         scrollBehavior: () => ({ left: 0, top: 0 }),
