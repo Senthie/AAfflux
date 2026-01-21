@@ -2,9 +2,9 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-14 15:07:09
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-20 15:41:14
+ * @LastEditTime: 2026-01-21 10:41:00
  * @FilePath: /web/src/pages/workflows/MainPage.vue
- * @Description:
+ * @Description: 工作流的主要页面
  *
  * Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 -->
@@ -25,7 +25,12 @@ import type { PluginResponse } from 'src/interfaces/IPlugin'
 import { v1_plugins_list } from 'src/apis/plugin_api'
 import { NodeRect } from 'src/utils/nodeReact'
 import { Platform } from 'leafer-ui'
+import { useRoute, useRouter } from 'vue-router'
+import { Notify } from 'quasar'
+import { v1_get_workflow } from 'src/apis/workflow_api'
 
+const route = useRoute()
+const router = useRouter()
 // 定义接口
 interface NodeListeners {
     setupConnectionListeners: (node: NodeRect) => void
@@ -132,9 +137,33 @@ const onNodeMenu = (e: MouseEvent, node: IUI) => {
         ],
     })
 }
+
+const get_workflow_by_workflow_id = async (workflow_id: string) => {
+    const res = await v1_get_workflow(workflow_id)
+    if (res.code === 200) {
+        console.log(res.data)
+    } else {
+        void router.push('/main')
+    }
+}
 onMounted(async () => {
+    // 获取传参
+    const workflowId = Array.isArray(route.params.id)
+        ? route.params.id[0]
+        : route.params.id
+    if (workflowId) {
+        await get_workflow_by_workflow_id(workflowId)
+    } else {
+        Notify.create({
+            type: 'negative',
+            message: '无法获取工作流',
+        })
+        void router.push('/main')
+    }
+
     app = new App({
         view: window,
+        editor: {},
         wheel: { preventDefault: true }, // 阻止浏览器默认滚动页面事件
         touch: { preventDefault: true }, // 阻止移动端默认触摸屏滑动页面事件
         pointer: { preventDefaultMenu: true }, // 阻止浏览器默认菜单事件，改为 true
