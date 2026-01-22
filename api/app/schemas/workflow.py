@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2026-01-08 14:12:08
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-12 10:37:46
+LastEditTime: 2026-01-22 15:34:59
 FilePath: /api/app/schemas/workflow.py
 Description:Workflow-related Pydantic schemas for request/response validation.
 
@@ -75,6 +75,7 @@ class NodePositionSchema(BaseModel):
 class NodeCreateRequest(BaseModel):
     """Request schema for creating a node."""
 
+    plugin_id: UUID = Field(..., description='Plugin ID that provides this node type')
     type: str = Field(..., description='Node type (LLM, CONDITION, CODE, HTTP, TRANSFORM)')
     config: Dict[str, Any] = Field(default_factory=dict, description='Node configuration')
     ui: Dict[str, Any] = Field(default_factory=dict, description='Node UI information (x, y, etc.)')
@@ -100,6 +101,7 @@ class NodeResponse(BaseModel):
     """Response schema for a node."""
 
     id: UUID
+    plugin_id: UUID
     workflow_id: UUID
     type: str
     config: Dict[str, Any]

@@ -20,6 +20,7 @@ from hypothesis import given, settings, strategies as st
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.plugin.plugin import Plugin
 from app.models.workflow.workflow import NodeModel, WorkflowModel
 from app.schemas.workflow import (
     ConnectionCreateRequest,
@@ -44,6 +45,44 @@ from app.utils.dag import (
 
 
 # ============ Workflow Service Tests ============
+@pytest.fixture
+async def test_plugin(test_session: AsyncSession):
+    """Create a test plugin for testing."""
+    plugin_name = f'test-llm-plugin-{uuid4().hex[:8]}'
+    plugin = Plugin(
+        name=plugin_name,
+        display_name='Test LLM Plugin',
+        description='A test plugin for LLM nodes',
+        version='1.0.0',
+        author='Test Author',
+        category='node',
+        plugin_type='builtin',
+        manifest={'node_types': ['LLM']},
+        is_active=True,
+        is_verified=True,
+    )
+    test_session.add(plugin)
+    await test_session.commit()
+    await test_session.refresh(plugin)
+    return plugin
+
+
+async def create_test_workflow(session: AsyncSession, name: str = 'Test Workflow') -> WorkflowModel:
+    """Create a workflow for testing without permission checks."""
+    workflow = WorkflowModel(
+        name=name,
+        description='A test workflow',
+        workspace_id=uuid4(),
+        input_schema={'type': 'object'},
+        output_schema={'type': 'object'},
+        created_by=uuid4(),
+    )
+    session.add(workflow)
+    await session.commit()
+    await session.refresh(workflow)
+    return workflow
+
+
 @pytest.mark.asyncio
 async def test_create_workflow(test_session):
     """Test creating a new workflow."""
@@ -56,8 +95,11 @@ async def test_create_workflow(test_session):
     )
 
     workspace_id = uuid4()
-    user_id = uuid4()
-    workflow = await service.create_workflow(workflow_data, workspace_id, user_id)
+    from app.models.auth.user import UserEntity
+
+    user = UserEntity(id=uuid4())
+
+    workflow = await service.create_workflow(workflow_data, workspace_id, user)
 
     assert workflow.id is not None
     assert workflow.name == 'Test Workflow'
@@ -69,9 +111,15 @@ async def test_get_workflow(test_session):
     """Test retrieving a workflow."""
     service = WorkflowService(test_session)
     workflow_data = WorkflowCreateRequest(name='Test Workflow')
-    workflow = await service.create_workflow(workflow_data, uuid4(), uuid4())
+    user_id = uuid4()
+    workflow = await service.create_workflow(workflow_data, uuid4(), user_id)
 
-    retrieved = await service.get_workflow(workflow.id)
+    # Create a mock user entity for get_workflow
+    from app.models.auth.user import UserEntity
+
+    user = UserEntity(id=user_id)
+
+    retrieved = await service.get_workflow(workflow.id, user)
     assert retrieved.id == workflow.id
 
 
@@ -79,8 +127,12 @@ async def test_get_workflow(test_session):
 async def test_get_nonexistent_workflow(test_session):
     """Test retrieving a non-existent workflow raises error."""
     service = WorkflowService(test_session)
+    from app.models.auth.user import UserEntity
+
+    user = UserEntity(id=uuid4())
+
     with pytest.raises(WorkflowNotFoundError):
-        await service.get_workflow(uuid4())
+        await service.get_workflow(uuid4(), user)
 
 
 @pytest.mark.asyncio
@@ -94,8 +146,11 @@ async def test_list_workflows(test_session):
         workflow_data = WorkflowCreateRequest(name=f'Workflow {i}')
         await service.create_workflow(workflow_data, workspace_id, user_id)
 
-    workflows, total = await service.list_workflows(workspace_id)
-    assert len(workflows) >= 3
+    from app.schemas.page_schemas import PageRequest
+
+    page_req = PageRequest(current=1, size=10)
+    page_response = await service.list_workflows(workspace_id, page_req)
+    assert len(page_response.records) >= 3
 
 
 @pytest.mark.asyncio
@@ -103,7 +158,8 @@ async def test_update_workflow(test_session):
     """Test updating a workflow."""
     service = WorkflowService(test_session)
     workflow_data = WorkflowCreateRequest(name='Original Name')
-    workflow = await service.create_workflow(workflow_data, uuid4(), uuid4())
+    user_id = uuid4()
+    workflow = await service.create_workflow(workflow_data, uuid4(), user_id)
 
     update_data = WorkflowUpdateRequest(name='Updated Name', description='Updated description')
     updated = await service.update_workflow(workflow.id, update_data)
@@ -116,47 +172,51 @@ async def test_delete_workflow(test_session):
     """Test deleting a workflow."""
     service = WorkflowService(test_session)
     workflow_data = WorkflowCreateRequest(name='To Delete')
-    workflow = await service.create_workflow(workflow_data, uuid4(), uuid4())
+    user_id = uuid4()
+    workflow = await service.create_workflow(workflow_data, uuid4(), user_id)
 
-    await service.delete_workflow(workflow.id)
+    from app.models.auth.user import UserEntity
+
+    user = UserEntity(id=user_id)
+
+    await service.delete_workflow(workflow.id, user)
 
     with pytest.raises(WorkflowNotFoundError):
-        await service.get_workflow(workflow.id)
+        await service.get_workflow(workflow.id, user)
 
 
 @pytest.mark.asyncio
-async def test_add_node(test_session):
+async def test_add_node(test_session, test_plugin):
     """Test adding a node to a workflow."""
     service = WorkflowService(test_session)
-    workflow_data = WorkflowCreateRequest(name='Test Workflow')
-    workflow = await service.create_workflow(workflow_data, uuid4(), uuid4())
+    workflow = await create_test_workflow(test_session)
 
     node_data = NodeCreateRequest(
+        plugin_id=test_plugin.id,
         type='LLM',
-        name='LLM Node',
         config={'model': 'llama2', 'prompt': 'Hello'},
-        position={'x': 100, 'y': 200},
+        ui={'x': 100, 'y': 200},
     )
     node = await service.add_node(workflow.id, node_data)
 
     assert node.id is not None
     assert node.type == 'LLM'
+    assert node.plugin_id == test_plugin.id
 
 
 @pytest.mark.asyncio
-async def test_connect_nodes(test_session):
+async def test_connect_nodes(test_session, test_plugin):
     """Test creating a connection between nodes."""
     service = WorkflowService(test_session)
-    workflow_data = WorkflowCreateRequest(name='Test Workflow')
-    workflow = await service.create_workflow(workflow_data, uuid4(), uuid4())
+    workflow = await create_test_workflow(test_session)
 
     node1_data = NodeCreateRequest(
-        type='LLM', name='Node 1', config={'model': 'llama2', 'prompt': 'Test'}
+        plugin_id=test_plugin.id, type='LLM', config={'model': 'llama2', 'prompt': 'Test'}
     )
     node1 = await service.add_node(workflow.id, node1_data)
 
     node2_data = NodeCreateRequest(
-        type='LLM', name='Node 2', config={'model': 'llama2', 'prompt': 'Test'}
+        plugin_id=test_plugin.id, type='LLM', config={'model': 'llama2', 'prompt': 'Test'}
     )
     node2 = await service.add_node(workflow.id, node2_data)
 
@@ -173,19 +233,18 @@ async def test_connect_nodes(test_session):
 
 
 @pytest.mark.asyncio
-async def test_connect_nodes_creates_cycle(test_session):
+async def test_connect_nodes_creates_cycle(test_session, test_plugin):
     """Test that creating a cyclic connection is rejected."""
     service = WorkflowService(test_session)
-    workflow_data = WorkflowCreateRequest(name='Test Workflow')
-    workflow = await service.create_workflow(workflow_data, uuid4(), uuid4())
+    workflow = await create_test_workflow(test_session)
 
     node1_data = NodeCreateRequest(
-        type='LLM', name='Node 1', config={'model': 'llama2', 'prompt': 'Test'}
+        plugin_id=test_plugin.id, type='LLM', config={'model': 'llama2', 'prompt': 'Test'}
     )
     node1 = await service.add_node(workflow.id, node1_data)
 
     node2_data = NodeCreateRequest(
-        type='LLM', name='Node 2', config={'model': 'llama2', 'prompt': 'Test'}
+        plugin_id=test_plugin.id, type='LLM', config={'model': 'llama2', 'prompt': 'Test'}
     )
     node2 = await service.add_node(workflow.id, node2_data)
 
@@ -284,14 +343,14 @@ class TestWorkflowValidator:
         return workflow
 
     @pytest.mark.asyncio
-    async def test_validate_node_config_llm_valid(self, test_session: AsyncSession):
+    async def test_validate_node_config_llm_valid(self, test_session: AsyncSession, test_plugin):
         """Test validating a valid LLM node configuration."""
         validator = WorkflowValidator(test_session)
 
         node = NodeModel(
+            plugin_id=test_plugin.id,
             workflow_id=uuid4(),
             type='LLM',
-            name='Test LLM Node',
             config={
                 'model': 'llama2',
                 'prompt': 'Test prompt',
@@ -304,14 +363,16 @@ class TestWorkflowValidator:
         assert result.is_valid
 
     @pytest.mark.asyncio
-    async def test_validate_node_config_llm_missing_required(self, test_session: AsyncSession):
+    async def test_validate_node_config_llm_missing_required(
+        self, test_session: AsyncSession, test_plugin
+    ):
         """Test validating an LLM node with missing required fields."""
         validator = WorkflowValidator(test_session)
 
         node = NodeModel(
+            plugin_id=test_plugin.id,
             workflow_id=uuid4(),
             type='LLM',
-            name='Test LLM Node',
             config={'model': 'llama2'},  # Missing 'prompt'
         )
 
@@ -341,17 +402,17 @@ class TestWorkflowSerializer:
 
     @pytest.mark.asyncio
     async def test_serialize_workflow(
-        self, test_session: AsyncSession, sample_workflow: WorkflowModel
+        self, test_session: AsyncSession, sample_workflow: WorkflowModel, test_plugin
     ):
         """Test serializing a workflow."""
         serializer = WorkflowSerializer(test_session)
 
         node = NodeModel(
+            plugin_id=test_plugin.id,
             workflow_id=sample_workflow.id,
             type='LLM',
-            name='Test Node',
             config={'model': 'llama2', 'prompt': 'test'},
-            position={'x': 100, 'y': 200},
+            ui={'x': 100, 'y': 200},
         )
         test_session.add(node)
         await test_session.commit()

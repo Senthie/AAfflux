@@ -95,7 +95,7 @@ class WorkflowService:
         Args:
             workflow_data: Workflow creation data
             workspace_id: ID of the workspace
-            created_by: ID of the user creating the workflow
+            user: User creating the workflow
 
         Returns:
             Created Workflow object
@@ -110,7 +110,7 @@ class WorkflowService:
         )
         workspace_account = result.scalars().first()
         # 2. Validate workspace 的权限
-        if workspace_account is NodeModel:
+        if workspace_account is None:
             raise WorkspaceException(CustomResponseCodeEnum.WORKSPACE_NOT_EXISTS)
 
         if TenantAccountRole.is_editing_role(workspace_account.role) is False:
@@ -132,11 +132,12 @@ class WorkflowService:
 
         return workflow
 
-    async def get_workflow(self, workflow_id: UUID, user: UserEntity) -> WorkflowModel:
+    async def get_workflow(self, workflow_id: UUID, user: UserEntity) -> WorkflowResponse:
         """Get a workflow by ID.
 
         Args:
             workflow_id: ID of the workflow
+            user: Current user
 
         Returns:
             Workflow object
@@ -158,12 +159,13 @@ class WorkflowService:
         )
         workspace_account = result.scalars().first()
         # 2. Validate workspace 的权限
-        if workspace_account is NodeModel:
+        if workspace_account is None:
             raise WorkspaceException(CustomResponseCodeEnum.WORKSPACE_NOT_EXISTS)
 
         if TenantAccountRole.is_editing_role(workspace_account.role) is False:
             raise WorkspaceException(CustomResponseCodeEnum.FORBIDDEN)
-        return workflow
+
+        return WorkflowResponse.model_validate(workflow)
 
     async def list_workflows(
         self, workspace_id: UUID, page_req: PageRequest
@@ -219,7 +221,7 @@ class WorkflowService:
         Raises:
             WorkflowNotFoundError: If workflow is not found
         """
-        workflow = await self.get_workflow(workflow_id)
+        workflow = await self._get_workflow_internal(workflow_id)
 
         # Update fields
         if workflow_data.name is not None:
@@ -238,6 +240,8 @@ class WorkflowService:
 
         return workflow
 
+        return workflow
+
     async def delete_workflow(self, workflow_id: UUID, user: UserEntity) -> None:
         """Delete a workflow and all its associated data.
 
@@ -252,7 +256,7 @@ class WorkflowService:
         Raises:
             WorkflowNotFoundError: If workflow is not found
         """
-        workflow = await self.get_workflow(workflow_id)
+        workflow = await self.get_workflow(workflow_id, user)
         # 1. get workspace
         result = await self.db.execute(
             select(WorkspaceAccountUser).where(
@@ -263,7 +267,7 @@ class WorkflowService:
         )
         workspace_account = result.scalars().first()
         # 2. Validate workspace 的权限
-        if workspace_account is NodeModel:
+        if workspace_account is None:
             raise WorkspaceException(CustomResponseCodeEnum.WORKSPACE_NOT_EXISTS)
 
         if TenantAccountRole.is_editing_role(workspace_account.role) is False:
@@ -297,6 +301,13 @@ class WorkflowService:
     # Node Management Operations
     # ========================================================================
 
+    async def _get_workflow_internal(self, workflow_id: UUID) -> WorkflowModel:
+        """Internal method to get workflow without permission checks."""
+        workflow = await self.db.get(WorkflowModel, workflow_id)
+        if not workflow or workflow.is_deleted:
+            raise WorkflowNotFoundError(f'Workflow {workflow_id} not found')
+        return workflow
+
     async def add_node(self, workflow_id: UUID, node_data: NodeCreateRequest) -> NodeModel:
         """Add a node to a workflow.
 
@@ -312,10 +323,16 @@ class WorkflowService:
             WorkflowValidationError: If node configuration is invalid
         """
         # Verify workflow exists
-        await self.get_workflow(workflow_id)
+        await self._get_workflow_internal(workflow_id)
+
+        # Validate plugin exists and is active
+        plugin_validation = await self.validator.validate_plugin_exists(node_data.plugin_id)
+        if not plugin_validation.is_valid:
+            raise WorkflowValidationError(plugin_validation)
 
         # Create node
         node = NodeModel(
+            plugin_id=node_data.plugin_id,
             workflow_id=workflow_id,
             type=node_data.type,
             config=node_data.config,
@@ -452,7 +469,7 @@ class WorkflowService:
             WorkflowValidationError: If connection would create a cycle
         """
         # Verify workflow exists
-        await self.get_workflow(workflow_id)
+        await self._get_workflow_internal(workflow_id)
 
         # Verify nodes exist
         await self.get_node(connection_data.source_node_id)
@@ -556,7 +573,7 @@ class WorkflowService:
             WorkflowNotFoundError: If workflow is not found
             WorkflowValidationError: If workflow validation fails
         """
-        workflow = await self.get_workflow(workflow_id)
+        workflow = await self._get_workflow_internal(workflow_id)
 
         # Validate workflow
         validation_result = await self.validate_workflow(workflow_id)

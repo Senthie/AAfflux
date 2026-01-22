@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-24 16:24:52
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-22 15:16:23
+LastEditTime: 2026-01-22 15:26:50
 FilePath: /api/app/models/workflow/workflow.py
 Description:工作流模型 - 5张表。
     本模块定义了DAG工作流相关的数据模型：
@@ -88,7 +88,7 @@ class NodeModel(BaseModel, SoftDeleteMixin, table=True):  # type: ignore
     """
 
     __tablename__ = 'nodes'  # type: ignore
-
+    plugin_id: UUID = Field(index=True)
     workflow_id: UUID = Field(index=True)  # Logical FK to workflows
     type: str = Field(max_length=50)  # LLM, CONDITION, CODE, HTTP, TRANSFORM
     config: dict = Field(default_factory=dict, sa_column=Column(JSONB))
@@ -156,7 +156,7 @@ class ExecutionRecordModel(BaseModel, table=True):  # type: ignore
     node_results: List['NodeExecutionResultModel'] = Relationship(
         back_populates='execution_record',
         sa_relationship_kwargs={
-            'primaryjoin': 'ExecutionRecord.id == foreign(NodeExecutionResult.execution_record_id)'
+            'primaryjoin': 'ExecutionRecordModel.id == foreign(NodeExecutionResultModel.execution_record_id)'
         },
     )
 
@@ -194,6 +194,6 @@ class NodeExecutionResultModel(BaseModel, table=True):  # type: ignore
     execution_record: Optional[ExecutionRecordModel] = Relationship(
         back_populates='node_results',
         sa_relationship_kwargs={
-            'primaryjoin': 'foreign(NodeExecutionResult.execution_record_id) == ExecutionRecord.id'
+            'primaryjoin': 'foreign(NodeExecutionResultModel.execution_record_id) == ExecutionRecordModel.id'
         },
     )
