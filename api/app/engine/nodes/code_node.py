@@ -20,7 +20,7 @@ from app.engine.nodes.base import (
     RetryConfig,
     register_node_executor,
 )
-from app.models.workflow.workflow import Node
+from app.models.workflow.workflow import NodeModel
 
 
 @register_node_executor('CODE')
@@ -99,7 +99,7 @@ class CodeNodeExecutor(BaseNode):
         """Initialize the code node executor."""
         super().__init__()
 
-    async def execute(self, node: Node, context: ExecutionContext) -> Dict[str, Any]:
+    async def execute(self, node: NodeModel, context: ExecutionContext) -> Dict[str, Any]:
         """Execute code node by running the Python code.
 
         Args:

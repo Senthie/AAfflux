@@ -23,14 +23,14 @@ from app.engine.nodes.base.registry import node_executor_registry
 from app.engine.nodes.chat.chat import ChatNode  # noqa: F401
 
 # 导入模型
-from app.models.workflow.workflow import ExecutionRecord, Node, Workflow
+from app.models.workflow.workflow import ExecutionRecordModel, NodeModel, WorkflowModel
 
 
 # ============ Fixtures ============
 @pytest.fixture
 def workflow():
     """创建测试工作流"""
-    return Workflow(
+    return WorkflowModel(
         id=uuid4(),
         name='Test Workflow',
         workspace_id=uuid4(),
@@ -41,7 +41,7 @@ def workflow():
 @pytest.fixture
 def execution_record(workflow):
     """创建执行记录"""
-    return ExecutionRecord(
+    return ExecutionRecordModel(
         id=uuid4(),
         workflow_id=workflow.id,
         inputs={},
@@ -63,7 +63,7 @@ class TestChatNode:
         context = ExecutionContext(workflow, execution_record, {})
 
         # 创建 Node 实体，使用 NodeTypeEnum.CHAT 与 ChatNode 注册的类型一致
-        chat_node = Node(
+        chat_node = NodeModel(
             id=uuid4(),
             workflow_id=workflow.id,
             type=NodeTypeEnum.CHAT.value,

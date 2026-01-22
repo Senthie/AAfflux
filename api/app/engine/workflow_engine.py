@@ -24,11 +24,11 @@ from app.engine.execution_context import ExecutionContext
 from app.engine.node_executor import node_executor_registry
 from app.engine.topological_sorter import TopologicalSorter
 from app.models.workflow.workflow import (
-    Connection,
-    ExecutionRecord,
-    Node,
-    NodeExecutionResult,
-    Workflow,
+    ConnectionModel,
+    ExecutionRecordModel,
+    NodeExecutionResultModel,
+    NodeModel,
+    WorkflowModel,
 )
 from app.utils.dag import CycleDetectedError
 
@@ -62,7 +62,7 @@ class WorkflowEngine:
         """
         self.db = db
 
-    async def execute(self, workflow_id: UUID, inputs: Dict[str, Any]) -> ExecutionRecord:
+    async def execute(self, workflow_id: UUID, inputs: Dict[str, Any]) -> ExecutionRecordModel:
         """Execute a workflow synchronously.
 
         Args:
@@ -131,7 +131,7 @@ class WorkflowEngine:
 
         return execution_record.id
 
-    async def get_execution_status(self, execution_id: UUID) -> ExecutionRecord:
+    async def get_execution_status(self, execution_id: UUID) -> ExecutionRecordModel:
         """Get the status of a workflow execution.
 
         Args:
@@ -143,13 +143,13 @@ class WorkflowEngine:
         Raises:
             ValueError: If execution record not found
         """
-        execution_record = await self.db.get(ExecutionRecord, execution_id)
+        execution_record = await self.db.get(ExecutionRecordModel, execution_id)
         if not execution_record:
             raise ValueError(f'Execution record {execution_id} not found')
 
         return execution_record
 
-    async def _load_workflow(self, workflow_id: UUID) -> Workflow:
+    async def _load_workflow(self, workflow_id: UUID) -> WorkflowModel:
         """Load workflow by ID.
 
         Args:
@@ -161,13 +161,13 @@ class WorkflowEngine:
         Raises:
             ValueError: If workflow not found
         """
-        workflow = await self.db.get(Workflow, workflow_id)
+        workflow = await self.db.get(WorkflowModel, workflow_id)
         if not workflow or workflow.is_deleted:
             raise ValueError(f'Workflow {workflow_id} not found')
 
         return workflow
 
-    async def _load_nodes(self, workflow_id: UUID) -> List[Node]:
+    async def _load_nodes(self, workflow_id: UUID) -> List[NodeModel]:
         """Load all nodes for a workflow.
 
         Args:
@@ -176,11 +176,13 @@ class WorkflowEngine:
         Returns:
             List of nodes
         """
-        statement = select(Node).where(Node.workflow_id == workflow_id, ~Node.is_deleted)
+        statement = select(NodeModel).where(
+            NodeModel.workflow_id == workflow_id, ~NodeModel.is_deleted
+        )
         result = await self.db.execute(statement)
         return list(result.scalars().all())
 
-    async def _load_connections(self, workflow_id: UUID) -> List[Connection]:
+    async def _load_connections(self, workflow_id: UUID) -> List[ConnectionModel]:
         """Load all connections for a workflow.
 
         Args:
@@ -189,11 +191,11 @@ class WorkflowEngine:
         Returns:
             List of connections
         """
-        statement = select(Connection).where(Connection.workflow_id == workflow_id)
+        statement = select(ConnectionModel).where(ConnectionModel.workflow_id == workflow_id)
         result = await self.db.execute(statement)
         return list(result.scalars().all())
 
-    def _validate_inputs(self, workflow: Workflow, inputs: Dict[str, Any]) -> None:
+    def _validate_inputs(self, workflow: WorkflowModel, inputs: Dict[str, Any]) -> None:
         """Validate inputs against workflow schema.
 
         Args:
@@ -211,8 +213,8 @@ class WorkflowEngine:
                 raise ValueError(f'Missing required input fields: {missing_fields}')
 
     async def _create_execution_record(
-        self, workflow: Workflow, inputs: Dict[str, Any]
-    ) -> ExecutionRecord:
+        self, workflow: WorkflowModel, inputs: Dict[str, Any]
+    ) -> ExecutionRecordModel:
         """Create an execution record.
 
         Args:
@@ -222,7 +224,7 @@ class WorkflowEngine:
         Returns:
             Created ExecutionRecord
         """
-        execution_record = ExecutionRecord(
+        execution_record = ExecutionRecordModel(
             workflow_id=workflow.id,
             inputs=inputs,
             status='PENDING',
@@ -237,9 +239,9 @@ class WorkflowEngine:
 
     async def _execute_workflow(
         self,
-        workflow: Workflow,
-        nodes: List[Node],
-        connections: List[Connection],
+        workflow: WorkflowModel,
+        nodes: List[NodeModel],
+        connections: List[ConnectionModel],
         context: ExecutionContext,
     ) -> None:
         """Execute the workflow nodes in topological order.
@@ -300,7 +302,7 @@ class WorkflowEngine:
             ) from e
 
     async def _finalize_execution_record(
-        self, execution_record: ExecutionRecord, context: ExecutionContext
+        self, execution_record: ExecutionRecordModel, context: ExecutionContext
     ) -> None:
         """Finalize the execution record with results.
 
@@ -323,7 +325,7 @@ class WorkflowEngine:
         await self.db.commit()
 
     async def _mark_execution_failed(
-        self, execution_record: ExecutionRecord, error_message: str
+        self, execution_record: ExecutionRecordModel, error_message: str
     ) -> None:
         """Mark execution as failed.
 
@@ -360,7 +362,7 @@ class WorkflowEngine:
         """
         try:
             # Load execution record
-            execution_record = await self.db.get(ExecutionRecord, execution_id)
+            execution_record = await self.db.get(ExecutionRecordModel, execution_id)
             if not execution_record:
                 return
 
@@ -369,7 +371,7 @@ class WorkflowEngine:
 
         except Exception as e:
             # Mark as failed
-            execution_record = await self.db.get(ExecutionRecord, execution_id)
+            execution_record = await self.db.get(ExecutionRecordModel, execution_id)
             if execution_record:
                 await self._mark_execution_failed(execution_record, str(e))
 
@@ -382,7 +384,7 @@ class WorkflowEngine:
         Returns:
             True if cancellation was successful, False otherwise
         """
-        execution_record = await self.db.get(ExecutionRecord, execution_id)
+        execution_record = await self.db.get(ExecutionRecordModel, execution_id)
         if not execution_record:
             return False
 
@@ -401,7 +403,7 @@ class WorkflowEngine:
 
         return False
 
-    async def get_execution_logs(self, execution_id: UUID) -> List[NodeExecutionResult]:
+    async def get_execution_logs(self, execution_id: UUID) -> List[NodeExecutionResultModel]:
         """Get detailed execution logs for a workflow execution.
 
         Args:
@@ -410,8 +412,8 @@ class WorkflowEngine:
         Returns:
             List of node execution results
         """
-        statement = select(NodeExecutionResult).where(
-            NodeExecutionResult.execution_record_id == execution_id
+        statement = select(NodeExecutionResultModel).where(
+            NodeExecutionResultModel.execution_record_id == execution_id
         )
         result = await self.db.execute(statement)
         return list(result.scalars().all())

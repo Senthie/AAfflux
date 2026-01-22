@@ -21,7 +21,7 @@ from pydantic import BaseModel, model_validator
 
 from app.engine.nodes.base.emum import ErrorStrategy, NodeExecutionTypeEnum
 from app.engine.nodes.base.exc import DefaultValueTypeError, NodeExecutionError
-from app.models.workflow.workflow import Node, NodeExecutionResult
+from app.models.workflow.workflow import NodeExecutionResultModel, NodeModel
 
 if TYPE_CHECKING:
     from app.engine.execution_context import ExecutionContext
@@ -190,7 +190,7 @@ class BaseNode(ABC):
         ...
 
     @abstractmethod
-    async def execute(self, node: Node, context: 'ExecutionContext') -> Dict[str, Any]:
+    async def execute(self, node: NodeModel, context: 'ExecutionContext') -> Dict[str, Any]:
         """Execute a node and return its outputs.
 
         Args:
@@ -234,8 +234,8 @@ class BaseNode(ABC):
         return {}
 
     async def execute_with_result(
-        self, node: Node, context: 'ExecutionContext', connections: list
-    ) -> NodeExecutionResult:
+        self, node: NodeModel, context: 'ExecutionContext', connections: list
+    ) -> NodeExecutionResultModel:
         """Execute a node and create a NodeExecutionResult.
 
         This method wraps the execute method and handles timing, error handling,
@@ -273,7 +273,7 @@ class BaseNode(ABC):
             duration_ms = int((end_time - start_time).total_seconds() * 1000)
 
             # Create successful result
-            result = NodeExecutionResult(
+            result = NodeExecutionResultModel(
                 execution_record_id=context.execution_record.id,
                 node_id=node.id,
                 status='SUCCESS',
@@ -293,7 +293,7 @@ class BaseNode(ABC):
             # Create failed result
             error_message = str(e)
 
-            result = NodeExecutionResult(
+            result = NodeExecutionResultModel(
                 execution_record_id=context.execution_record.id,
                 node_id=node.id,
                 status='FAILED',

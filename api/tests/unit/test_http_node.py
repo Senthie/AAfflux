@@ -19,14 +19,14 @@ from app.engine.execution_context import ExecutionContext
 from app.engine.nodes.base.emum import NodeTypeEnum
 from app.engine.nodes.base.exc import NodeExecutionError
 from app.engine.nodes.http.http_node import HTTPNodeExecutor
-from app.models.workflow.workflow import ExecutionRecord, Node, Workflow
+from app.models.workflow.workflow import ExecutionRecordModel, NodeModel, WorkflowModel
 
 
 # ============ Fixtures ============
 @pytest.fixture
 def workflow():
     """创建测试工作流"""
-    return Workflow(
+    return WorkflowModel(
         name='Test Workflow',
     )
 
@@ -34,7 +34,7 @@ def workflow():
 @pytest.fixture
 def execution_record(workflow):
     """创建执行记录"""
-    return ExecutionRecord(
+    return ExecutionRecordModel(
         workflow_id=workflow.id,
         inputs={},
         status='PENDING',
@@ -55,7 +55,7 @@ class TestHttpNode:
         """创建 HTTP 执行器实例"""
         return HTTPNodeExecutor()
 
-    def create_http_node(self, method: str, url: str, **kwargs) -> Node:
+    def create_http_node(self, method: str, url: str, **kwargs) -> NodeModel:
         """创建 HTTP 节点的辅助方法"""
         config = {
             'title': f'{method} Request',
@@ -67,7 +67,7 @@ class TestHttpNode:
             'timeout': kwargs.get('timeout', 30),
             'follow_redirects': kwargs.get('follow_redirects', True),
         }
-        return Node(
+        return NodeModel(
             workflow_id=uuid4(),
             type=NodeTypeEnum.HTTP.value,
             name=f'{method} Request',

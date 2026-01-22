@@ -34,7 +34,7 @@ from app.models.audit import AuditLog
 
 # 认证域
 from app.models.auth import APIKey, PasswordReset, RefreshToken, UserEntity
-from app.models.base import AuditMixin, BaseEntity, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
+from app.models.base import AuditMixin, BaseModel, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
 
 # 计费域
 from app.models.billing import Subscription, UsageRecord
@@ -81,16 +81,16 @@ from app.models.tenant import Organization, Team, TeamInvitation, TeamMember, Wo
 
 # 工作流域
 from app.models.workflow import (
-    Connection,
-    ExecutionRecord,
-    Node,
-    NodeExecutionResult,
-    Workflow,
+    ConnectionModel,
+    ExecutionRecordModel,
+    NodeExecutionResultModel,
+    NodeModel,
+    WorkflowModel,
 )
 
 __all__ = [
     # 基础模型
-    'BaseEntity',
+    'BaseModel',
     'TimestampMixin',
     'SoftDeleteMixin',
     'AuditMixin',
@@ -107,11 +107,11 @@ __all__ = [
     'TeamMember',
     'TeamInvitation',
     # 工作流域
-    'Workflow',
-    'Node',
-    'Connection',
-    'ExecutionRecord',
-    'NodeExecutionResult',
+    'WorkflowModel',
+    'NodeModel',
+    'ConnectionModel',
+    'ExecutionRecordModel',
+    'NodeExecutionResultModel',
     # 应用域
     'Application',
     'LLMProvider',

@@ -20,11 +20,11 @@ from jsonpath_ng import parse
 
 from app.engine.nodes.base.emum import NodeExecutionResultStatusEnum
 from app.models.workflow.workflow import (
-    Connection,
-    ExecutionRecord,
-    Node,
-    NodeExecutionResult,
-    Workflow,
+    ConnectionModel,
+    ExecutionRecordModel,
+    NodeExecutionResultModel,
+    NodeModel,
+    WorkflowModel,
 )
 
 
@@ -39,8 +39,8 @@ class ExecutionContext:
 
     def __init__(
         self,
-        workflow: Workflow,
-        execution_record: ExecutionRecord,
+        workflow: WorkflowModel,
+        execution_record: ExecutionRecordModel,
         initial_inputs: Dict[str, Any],
     ):
         """
@@ -64,7 +64,7 @@ class ExecutionContext:
 
         # Node execution state
         self.node_outputs: Dict[str, Dict[str, Dict[str, Any]]] = {'outputs': {}}
-        self.node_results: Dict[UUID, NodeExecutionResult] = {}
+        self.node_results: Dict[UUID, NodeExecutionResultModel] = {}
         self.completed_nodes: Set[UUID] = set()
         self.failed_nodes: Set[UUID] = set()
 
@@ -73,14 +73,14 @@ class ExecutionContext:
 
         # Execution metadata 执行元数据
         self.start_time = datetime.utcnow()
-        self.current_node: Optional[Node] = None
+        self.current_node: Optional[NodeModel] = None
 
         # workflow connect
         self.connections = []
 
         self.adjacency_list: Dict[UUID, List[UUID]] = {}
 
-    def set_node_output(self, node: Node | dict, outputs: Dict[str, Any]) -> None:
+    def set_node_output(self, node: NodeModel | dict, outputs: Dict[str, Any]) -> None:
         """
         Set the output data for a node.
         Args:
@@ -93,7 +93,7 @@ class ExecutionContext:
             outputs：节点的输出数据
         """
         # 判断 node 的类型
-        if isinstance(node, Node):
+        if isinstance(node, NodeModel):
             # 获取node 的原始数据
             node_title = node.config.get('title', str(node.id))
 
@@ -128,7 +128,7 @@ class ExecutionContext:
             return match.value
         return None
 
-    def get_node_input(self, node: Node, connections: List[Any]) -> Dict[str, Any]:
+    def get_node_input(self, node: NodeModel, connections: List[Any]) -> Dict[str, Any]:
         """Get input data for a node based on its connections.
 
         Args:
@@ -159,7 +159,7 @@ class ExecutionContext:
 
         return inputs
 
-    def set_node_result(self, node_result: NodeExecutionResult) -> None:
+    def set_node_result(self, node_result: NodeExecutionResultModel) -> None:
         """Set the execution result for a node.
 
         Args:
@@ -176,7 +176,7 @@ class ExecutionContext:
         elif node_result.status == 'FAILED':
             self.failed_nodes.add(node_result.node_id)
 
-    def get_node_result(self, node_id: UUID) -> Optional[NodeExecutionResult]:
+    def get_node_result(self, node_id: UUID) -> Optional[NodeExecutionResultModel]:
         """Get the execution result for a node.
 
         Args:
@@ -309,7 +309,7 @@ class ExecutionContext:
             'execution_summary': self.get_execution_summary(),
         }
 
-    def get_connections(self) -> List[Connection]:
+    def get_connections(self) -> List[ConnectionModel]:
         """Get the connections in the workflow.
 
         Returns:
@@ -317,7 +317,7 @@ class ExecutionContext:
         """
         return self.connections
 
-    def set_connections(self, connections: List[Connection]) -> None:
+    def set_connections(self, connections: List[ConnectionModel]) -> None:
         """Set the connections in the workflow.
 
         Args:

@@ -22,7 +22,7 @@ from app.engine.nodes.base import (
     register_node_executor,
 )
 from app.engine.nodes.provider.ollama_node import OllamaNode
-from app.models.workflow import Node
+from app.models.workflow import NodeModel
 from app.utils.json_path import JsonPathUtil
 
 from .entities import AgentNodeData
@@ -105,7 +105,7 @@ class AgentNode(BaseNode):
         return result
 
     def _find_provider_from_connections(
-        self, node: Node, context: ExecutionContext
+        self, node: NodeModel, context: ExecutionContext
     ) -> OllamaNode | None:
         """
         从连接关系中查找 provider 节点
@@ -148,7 +148,7 @@ class AgentNode(BaseNode):
 
         return None
 
-    async def execute(self, node: Node, context: ExecutionContext) -> Dict[str, Any]:
+    async def execute(self, node: NodeModel, context: ExecutionContext) -> Dict[str, Any]:
         """执行Agent节点"""
         config = node.config
         # 初始化节点数据

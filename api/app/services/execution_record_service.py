@@ -8,15 +8,17 @@ Description:记录创建、查询、清理
 """
 
 from datetime import datetime, timedelta
-from typing import Optional, List, Tuple
+from typing import List, Optional, Tuple
 from uuid import UUID
-from sqlmodel import select, func, and_, or_
+
+from sqlmodel import and_, func, or_, select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from app.models.workflow.workflow import ExecutionRecord, NodeExecutionResult
+
+from app.models.workflow.workflow import ExecutionRecordModel, NodeExecutionResultModel
 from app.schemas.execution import (
     ExecutionRecordCreate,
-    ExecutionRecordUpdate,
     ExecutionRecordQuery,
+    ExecutionRecordUpdate,
     ExecutionStatistics,
 )
 
@@ -27,9 +29,9 @@ class ExecutionRecordService:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def create_execution_record(self, data: ExecutionRecordCreate) -> ExecutionRecord:
+    async def create_execution_record(self, data: ExecutionRecordCreate) -> ExecutionRecordModel:
         """创建执行记录"""
-        execution_record = ExecutionRecord(
+        execution_record = ExecutionRecordModel(
             workflow_id=data.workflow_id,
             inputs=data.inputs,
             status='PENDING',
@@ -40,15 +42,15 @@ class ExecutionRecordService:
         await self.session.refresh(execution_record)
         return execution_record
 
-    async def get_execution_record(self, execution_id: UUID) -> Optional[ExecutionRecord]:
+    async def get_execution_record(self, execution_id: UUID) -> Optional[ExecutionRecordModel]:
         """获取单个执行记录"""
-        statement = select(ExecutionRecord).where(ExecutionRecord.id == execution_id)
+        statement = select(ExecutionRecordModel).where(ExecutionRecordModel.id == execution_id)
         result = await self.session.execute(statement)
         return result.scalar_one_or_none()
 
     async def update_execution_record(
         self, execution_id: UUID, data: ExecutionRecordUpdate
-    ) -> Optional[ExecutionRecord]:
+    ) -> Optional[ExecutionRecordModel]:
         """更新执行记录"""
         execution_record = await self.get_execution_record(execution_id)
         if not execution_record:
@@ -75,33 +77,33 @@ class ExecutionRecordService:
 
     async def list_execution_records(
         self, query: ExecutionRecordQuery
-    ) -> Tuple[List[ExecutionRecord], int]:
+    ) -> Tuple[List[ExecutionRecordModel], int]:
         """分页查询执行记录列表"""
-        statement = select(ExecutionRecord)
+        statement = select(ExecutionRecordModel)
 
         # 构建查询条件
         conditions = []
         if query.workflow_id:
-            conditions.append(ExecutionRecord.workflow_id == query.workflow_id)
+            conditions.append(ExecutionRecordModel.workflow_id == query.workflow_id)
         if query.status:
-            conditions.append(ExecutionRecord.status == query.status)
+            conditions.append(ExecutionRecordModel.status == query.status)
         if query.start_date:
-            conditions.append(ExecutionRecord.started_at >= query.start_date)
+            conditions.append(ExecutionRecordModel.started_at >= query.start_date)
         if query.end_date:
-            conditions.append(ExecutionRecord.started_at <= query.end_date)
+            conditions.append(ExecutionRecordModel.started_at <= query.end_date)
 
         if conditions:
             statement = statement.where(and_(*conditions))
 
         # 获取总数
-        count_statement = select(func.count()).select_from(ExecutionRecord)
+        count_statement = select(func.count()).select_from(ExecutionRecordModel)
         if conditions:
             count_statement = count_statement.where(and_(*conditions))
         total_result = await self.session.execute(count_statement)
         total = total_result.scalar_one()
 
         # 分页
-        statement = statement.order_by(ExecutionRecord.started_at.desc())
+        statement = statement.order_by(ExecutionRecordModel.started_at.desc())
         statement = statement.offset((query.page - 1) * query.page_size)
         statement = statement.limit(query.page_size)
 
@@ -111,12 +113,12 @@ class ExecutionRecordService:
 
     async def get_execution_records_by_workflow(
         self, workflow_id: UUID, limit: int = 50
-    ) -> List[ExecutionRecord]:
+    ) -> List[ExecutionRecordModel]:
         """按工作流查询执行记录"""
         statement = (
-            select(ExecutionRecord)
-            .where(ExecutionRecord.workflow_id == workflow_id)
-            .order_by(ExecutionRecord.started_at.desc())
+            select(ExecutionRecordModel)
+            .where(ExecutionRecordModel.workflow_id == workflow_id)
+            .order_by(ExecutionRecordModel.started_at.desc())
             .limit(limit)
         )
 
@@ -125,16 +127,19 @@ class ExecutionRecordService:
 
     async def get_execution_records_by_date_range(
         self, start_date: datetime, end_date: datetime, workflow_id: Optional[UUID] = None
-    ) -> List[ExecutionRecord]:
+    ) -> List[ExecutionRecordModel]:
         """按时间范围查询执行记录"""
-        statement = select(ExecutionRecord).where(
-            and_(ExecutionRecord.started_at >= start_date, ExecutionRecord.started_at <= end_date)
+        statement = select(ExecutionRecordModel).where(
+            and_(
+                ExecutionRecordModel.started_at >= start_date,
+                ExecutionRecordModel.started_at <= end_date,
+            )
         )
 
         if workflow_id:
-            statement = statement.where(ExecutionRecord.workflow_id == workflow_id)
+            statement = statement.where(ExecutionRecordModel.workflow_id == workflow_id)
 
-        statement = statement.order_by(ExecutionRecord.started_at.desc())
+        statement = statement.order_by(ExecutionRecordModel.started_at.desc())
         result = await self.session.execute(statement)
         return list(result.scalars().all())
 
@@ -144,10 +149,12 @@ class ExecutionRecordService:
         """获取执行统计信息"""
         start_date = datetime.utcnow() - timedelta(days=days)
 
-        statement = select(ExecutionRecord).where(ExecutionRecord.started_at >= start_date)
+        statement = select(ExecutionRecordModel).where(
+            ExecutionRecordModel.started_at >= start_date
+        )
 
         if workflow_id:
-            statement = statement.where(ExecutionRecord.workflow_id == workflow_id)
+            statement = statement.where(ExecutionRecordModel.workflow_id == workflow_id)
 
         result = await self.session.execute(statement)
         records = list(result.scalars().all())
@@ -179,10 +186,12 @@ class ExecutionRecordService:
             success_rate=success_rate,
         )
 
-    async def get_node_execution_results(self, execution_id: UUID) -> List[NodeExecutionResult]:
+    async def get_node_execution_results(
+        self, execution_id: UUID
+    ) -> List[NodeExecutionResultModel]:
         """获取执行记录的节点结果"""
-        statement = select(NodeExecutionResult).where(
-            NodeExecutionResult.execution_record_id == execution_id
+        statement = select(NodeExecutionResultModel).where(
+            NodeExecutionResultModel.execution_record_id == execution_id
         )
         result = await self.session.execute(statement)
         return list(result.scalars().all())
@@ -191,10 +200,13 @@ class ExecutionRecordService:
         """清理过期的执行记录"""
         cutoff_date = datetime.utcnow() - timedelta(days=days)
 
-        statement = select(ExecutionRecord).where(
+        statement = select(ExecutionRecordModel).where(
             and_(
-                ExecutionRecord.started_at < cutoff_date,
-                or_(ExecutionRecord.status == 'SUCCESS', ExecutionRecord.status == 'FAILED'),
+                ExecutionRecordModel.started_at < cutoff_date,
+                or_(
+                    ExecutionRecordModel.status == 'SUCCESS',
+                    ExecutionRecordModel.status == 'FAILED',
+                ),
             )
         )
 
@@ -212,8 +224,11 @@ class ExecutionRecordService:
         """清理失败的执行记录"""
         cutoff_date = datetime.utcnow() - timedelta(days=days)
 
-        statement = select(ExecutionRecord).where(
-            and_(ExecutionRecord.started_at < cutoff_date, ExecutionRecord.status == 'FAILED')
+        statement = select(ExecutionRecordModel).where(
+            and_(
+                ExecutionRecordModel.started_at < cutoff_date,
+                ExecutionRecordModel.status == 'FAILED',
+            )
         )
 
         result = await self.session.execute(statement)

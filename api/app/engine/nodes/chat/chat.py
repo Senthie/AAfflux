@@ -22,7 +22,7 @@ from app.engine.nodes.base import (
     register_node_executor,
 )
 from app.engine.nodes.chat.entities import ChatNodeData
-from app.models.workflow import Node
+from app.models.workflow import NodeModel
 
 
 @register_node_executor(NodeTypeEnum.CHAT)
@@ -61,7 +61,7 @@ class ChatNode(BaseNode):
         required_fields = ['agent_strategy_name']
         return all(field in config for field in required_fields)
 
-    async def execute(self, node: Node, context: ExecutionContext) -> Dict[str, Any]:
+    async def execute(self, node: NodeModel, context: ExecutionContext) -> Dict[str, Any]:
         # 记录运行时间
         self.init_node_data(node.config)
         return {'prompt': self._node_data.prompt}

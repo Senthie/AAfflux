@@ -26,7 +26,7 @@ from app.engine.nodes.base import (
     RetryConfig,
     register_node_executor,
 )
-from app.models.workflow.workflow import Node
+from app.models.workflow.workflow import NodeModel
 
 
 @register_node_executor(NodeTypeEnum.LLM)
@@ -56,7 +56,7 @@ class LLMNodeExecutor(BaseNode):
     def _get_description(self) -> Optional[str]:
         return None
 
-    async def execute(self, node: Node, context: ExecutionContext) -> Dict[str, Any]:
+    async def execute(self, node: NodeModel, context: ExecutionContext) -> Dict[str, Any]:
         """Execute LLM node by calling the configured language model.
 
         Args:

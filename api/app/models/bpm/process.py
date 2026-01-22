@@ -7,11 +7,11 @@ from uuid import UUID
 
 from sqlmodel import JSON, Column, Field
 
-from app.models.base import AuditMixin, BaseEntity, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
+from app.models.base import AuditMixin, BaseModel, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
 
 
 class ProcessDefinition(
-    BaseEntity, WorkspaceMixin, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True
+    BaseModel, WorkspaceMixin, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True
 ):
     """流程定义表 - 定义可重用的流程模板"""
 
@@ -84,7 +84,7 @@ class ProcessStatus(str, Enum):
     FAILED = 'failed'  # 失败
 
 
-class ProcessInstance(BaseEntity, WorkspaceMixin, TimestampMixin, table=True):
+class ProcessInstance(BaseModel, WorkspaceMixin, TimestampMixin, table=True):
     """流程定义表 - 定义可重用的流程模板
 
     已经继承

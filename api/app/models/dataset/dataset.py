@@ -11,10 +11,10 @@ from uuid import UUID
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Column, Field
 
-from app.models.base import AuditMixin, BaseEntity, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
+from app.models.base import AuditMixin, BaseModel, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
 
 
-class Dataset(BaseEntity, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin, table=True):
+class Dataset(BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin, table=True):
     """知识库表 - 数据集管理。
 
     存储知识库的基本信息和配置。
@@ -60,7 +60,7 @@ class Dataset(BaseEntity, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDelete
     word_count: int = Field(default=0)
 
 
-class Document(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):
+class Document(BaseModel, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):
     """文档表 - 知识库文档。
 
     存储上传到知识库的文档信息。
@@ -117,7 +117,7 @@ class Document(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=Tr
     archived: bool = Field(default=False, index=True)
 
 
-class DocumentSegment(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):
+class DocumentSegment(BaseModel, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):
     """文档段落表 - 文档分段。
 
     存储文档分段后的段落信息。
@@ -177,7 +177,7 @@ class DocumentSegment(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, t
     error: Optional[str] = None
 
 
-class DatasetApplicationJoin(BaseEntity, TimestampMixin, table=True):
+class DatasetApplicationJoin(BaseModel, TimestampMixin, table=True):
     """知识库应用关联表 - 多对多关系。
 
     建立知识库和应用之间的关联关系。

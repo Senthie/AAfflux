@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-10 15:59:26
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-24 16:46:56
+LastEditTime: 2026-01-22 10:58:29
 FilePath: /api/app/engine/nodes/base/node.py
 Description: Node executor base class and registry.
 
@@ -15,17 +15,17 @@ Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
-from app.engine.nodes.base.emum import ErrorStrategy
+from app.engine.nodes.base.emum import ErrorStrategy, NodeTypeEnum
 from app.engine.nodes.base.entities import BaseNode, RetryConfig
 from app.engine.nodes.base.registry import register_node_executor
-from app.models.workflow.workflow import Node
+from app.models.workflow.workflow import NodeModel
 
 if TYPE_CHECKING:
     from app.engine.execution_context import ExecutionContext
 
 
 # Basic node executors for common types
-@register_node_executor('START')
+@register_node_executor(NodeTypeEnum.ROOT)
 class StartNodeExecutor(BaseNode):
     """Executor for START nodes that pass through initial inputs."""
 
@@ -52,7 +52,7 @@ class StartNodeExecutor(BaseNode):
     def _get_description(self) -> Optional[str]:
         return None
 
-    async def execute(self, node: Node, context: 'ExecutionContext') -> Dict[str, Any]:
+    async def execute(self, node: NodeModel, context: 'ExecutionContext') -> Dict[str, Any]:
         """Execute start node by returning initial inputs.
 
         Args:
@@ -103,7 +103,7 @@ class EndNodeExecutor(BaseNode):
     def _get_description(self) -> Optional[str]:
         return None
 
-    async def execute(self, node: Node, context: 'ExecutionContext') -> Dict[str, Any]:
+    async def execute(self, node: NodeModel, context: 'ExecutionContext') -> Dict[str, Any]:
         """Execute end node by collecting inputs as final outputs.
 
         Args:
@@ -159,7 +159,7 @@ class PassthroughNodeExecutor(BaseNode):
     def _get_description(self) -> Optional[str]:
         return None
 
-    async def execute(self, node: Node, context: 'ExecutionContext') -> Dict[str, Any]:
+    async def execute(self, node: NodeModel, context: 'ExecutionContext') -> Dict[str, Any]:
         """Execute passthrough node by returning inputs unchanged.
 
         Args:

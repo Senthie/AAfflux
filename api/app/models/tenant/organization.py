@@ -27,10 +27,10 @@ from sqlalchemy import UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Column, Field
 
-from app.models.base import AuditMixin, BaseEntity, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
+from app.models.base import AuditMixin, BaseModel, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
 
 
-class Organization(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):  # type: ignore
+class Organization(BaseModel, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):  # type: ignore
     """企业表 - 顶层组织实体。
 
     企业是系统中的最高层级组织单位，可以包含多个团队。
@@ -58,7 +58,7 @@ class Organization(BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, tabl
     settings: dict = Field(default_factory=dict, sa_column=Column(JSONB))
 
 
-class Team(WorkspaceMixin, BaseEntity, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):  # type: ignore
+class Team(WorkspaceMixin, BaseModel, TimestampMixin, AuditMixin, SoftDeleteMixin, table=True):  # type: ignore
     """团队表 - 中层组织实体。
 
     团队是协作的基本单位，可以属于企业或独立存在。
@@ -165,7 +165,7 @@ class WorkspaceStatus(enum.StrEnum):
     ARCHIVE = 'archive'
 
 
-class Workspace(BaseEntity, TimestampMixin, SoftDeleteMixin, table=True):  # type: ignore
+class Workspace(BaseModel, TimestampMixin, SoftDeleteMixin, table=True):  # type: ignore
     """工作空间表 - 资源隔离单元。
 
     工作空间是资源隔离的基本单位，所有业务资源（工作流、应用等）都关联到工作空间。
@@ -242,7 +242,7 @@ class Workspace(BaseEntity, TimestampMixin, SoftDeleteMixin, table=True):  # typ
 
 class WorkspaceAccountUser(
     WorkspaceMixin,
-    BaseEntity,
+    BaseModel,
     TimestampMixin,
     SoftDeleteMixin,
     table=True,  # type: ignore
@@ -273,7 +273,7 @@ class WorkspaceAccountUser(
     invited_by: UUID | None = Field(default=None)
 
 
-class TeamMember(BaseEntity, table=True):  # type: ignore
+class TeamMember(BaseModel, table=True):  # type: ignore
     """团队成员表 - 用户与团队的关联关系。
 
     建立用户和团队之间的多对多关系，并定义用户在团队中的角色。

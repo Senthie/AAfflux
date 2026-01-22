@@ -18,7 +18,7 @@ from uuid import UUID
 from app.core.celery import celery_app
 from app.core.database import get_async_session
 from app.engine.workflow_engine import WorkflowEngine
-from app.models.workflow.workflow import ExecutionRecord
+from app.models.workflow.workflow import ExecutionRecordModel
 
 
 @celery_app.task(bind=True, name='execute_workflow')
@@ -177,7 +177,7 @@ def batch_execute_workflows_task(workflow_executions: list[Dict[str, Any]]) -> D
 
 async def _execute_workflow_async(
     workflow_id: UUID, inputs: Dict[str, Any], task=None
-) -> ExecutionRecord:
+) -> ExecutionRecordModel:
     """Execute workflow asynchronously with database session.
 
     Args:

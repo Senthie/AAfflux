@@ -7,7 +7,7 @@ from uuid import UUID
 
 from sqlmodel import JSON, Column, Field
 
-from app.models.base import BaseEntity, TimestampMixin, WorkspaceMixin
+from app.models.base import BaseModel, TimestampMixin, WorkspaceMixin
 
 
 class TaskStatus(StrEnum):
@@ -31,7 +31,7 @@ class TaskType(StrEnum):
     APPROVAL_TASK = 'approval_task'  # 审批任务
 
 
-class Task(BaseEntity, TimestampMixin, WorkspaceMixin, table=True):
+class Task(BaseModel, TimestampMixin, WorkspaceMixin, table=True):
     """任务表 - 流程中的具体任务（待办事项）
 
     已经继承

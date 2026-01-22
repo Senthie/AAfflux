@@ -7,7 +7,7 @@ from uuid import UUID
 
 from sqlmodel import JSON, Column, Field, Relationship
 
-from app.models.base import AuditMixin, BaseEntity, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
+from app.models.base import AuditMixin, BaseModel, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
 
 
 class ModelStatus(str, Enum):
@@ -46,7 +46,7 @@ class FieldType(str, Enum):
 
 
 class MetadataModel(
-    BaseEntity, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin, table=True
+    BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin, table=True
 ):
     """数据模型元数据表
 
@@ -128,7 +128,7 @@ class MetadataModel(
     fields: List['MetadataField'] = Relationship(back_populates='model')
 
 
-class MetadataField(BaseEntity, TimestampMixin, SoftDeleteMixin, table=True):
+class MetadataField(BaseModel, TimestampMixin, SoftDeleteMixin, table=True):
     """字段元数据表
 
     存储数据模型中每个字段的详细配置信息。
@@ -232,7 +232,7 @@ class MetadataField(BaseEntity, TimestampMixin, SoftDeleteMixin, table=True):
     model: MetadataModel = Relationship(back_populates='fields')
 
 
-class MetadataRelation(BaseEntity, TimestampMixin, table=True):
+class MetadataRelation(BaseModel, TimestampMixin, table=True):
     """关系元数据表
 
     存储模型之间的关系定义，支持一对一、一对多、多对多关系。
@@ -282,7 +282,7 @@ class MetadataRelation(BaseEntity, TimestampMixin, table=True):
     junction_table: Optional[str] = Field(default=None, max_length=255, description='中间表名')
 
 
-class MetadataIndex(BaseEntity, TimestampMixin, table=True):
+class MetadataIndex(BaseModel, TimestampMixin, table=True):
     """索引元数据表
 
     存储自定义索引配置，支持单字段和复合索引。
@@ -316,7 +316,7 @@ class MetadataIndex(BaseEntity, TimestampMixin, table=True):
     is_unique: bool = Field(default=False, description='是否唯一索引')
 
 
-class MetadataVersion(BaseEntity, TimestampMixin, AuditMixin, table=True):
+class MetadataVersion(BaseModel, TimestampMixin, AuditMixin, table=True):
     """元数据版本表
 
     存储元数据的版本历史，支持版本回滚和变更追踪。
@@ -355,7 +355,7 @@ class MetadataVersion(BaseEntity, TimestampMixin, AuditMixin, table=True):
 
 
 class MetadataPage(
-    BaseEntity, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin, table=True
+    BaseModel, TimestampMixin, AuditMixin, WorkspaceMixin, SoftDeleteMixin, table=True
 ):
     """页面元数据表
 

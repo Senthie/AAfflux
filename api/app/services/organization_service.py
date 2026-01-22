@@ -9,12 +9,12 @@ Description:企业服务管理
 
 from typing import List, Optional
 from uuid import UUID
-from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlmodel import select
 
-from app.models.tenant.organization import Organization, Team
+from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
+
+from app.models.tenant.organization import Organization, Team, Workspace
 from app.schemas.organization import OrganizationCreate, OrganizationUpdate
-from app.models.tenant.organization import Workspace
 
 
 class OrganizationService:
@@ -85,9 +85,10 @@ class OrganizationService:
     async def get_usage_stats(self, org_id: UUID) -> dict:
         """获取企业使用统计"""
         from sqlmodel import func
-        from app.models.tenant.organization import TeamMember
-        from app.models.workflow.workflow import Workflow
+
         from app.models.application.application import Application
+        from app.models.tenant.organization import TeamMember
+        from app.models.workflow.workflow import WorkflowModel
 
         # 统计团队数量
         team_count = await self.session.scalar(
@@ -118,15 +119,15 @@ class OrganizationService:
 
         # 统计工作流数量
         workflow_count = await self.session.scalar(
-            select(func.count(Workflow.id))
+            select(func.count(WorkflowModel.id))
             .select_from(Team)
             .join(Workspace, Team.id == Workspace.team_id)
-            .join(Workflow, Workspace.id == Workflow.workspace_id)
+            .join(WorkflowModel, Workspace.id == WorkflowModel.workspace_id)
             .where(
                 Team.organization_id == org_id,
                 Team.is_deleted.is_(False),
                 Workspace.is_deleted.is_(False),
-                Workflow.is_deleted.is_(False),
+                WorkflowModel.is_deleted.is_(False),
             )
         )
 

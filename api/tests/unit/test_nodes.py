@@ -32,7 +32,12 @@ from app.engine.nodes.provider.ollama_node import (
 )
 from app.engine.nodes.transform_node import TransformNodeExecutor
 from app.engine.topological_sorter import TopologicalSorter
-from app.models.workflow.workflow import Connection, ExecutionRecord, Node, Workflow
+from app.models.workflow.workflow import (
+    ConnectionModel,
+    ExecutionRecordModel,
+    NodeModel,
+    WorkflowModel,
+)
 
 # ============ Ollama 配置 ============
 OLLAMA_API_KEY = 'ollama'
@@ -44,7 +49,7 @@ OLLAMA_MODEL_ID = 'deepseek-r1:14b'
 @pytest.fixture
 def workflow():
     """创建测试工作流"""
-    return Workflow(
+    return WorkflowModel(
         id=uuid4(),
         name='Test Workflow',
         workspace_id=uuid4(),
@@ -55,7 +60,7 @@ def workflow():
 @pytest.fixture
 def execution_record(workflow):
     """创建执行记录"""
-    return ExecutionRecord(
+    return ExecutionRecordModel(
         id=uuid4(),
         workflow_id=workflow.id,
         inputs={},
@@ -158,7 +163,7 @@ class TestOllamaNode:
     async def test_execute_stores_provider_in_context(self, workflow, execution_record, context):
         """测试执行后将provider存储到context"""
         ollama_node = OllamaNode()
-        node = Node(
+        node = NodeModel(
             id=uuid4(),
             workflow_id=workflow.id,
             type='OLLAMA',
@@ -227,7 +232,7 @@ class TestAgentNode:
     async def test_execute_without_provider(self, workflow, execution_record, context):
         """测试没有provider时执行失败"""
         agent = AgentNode()
-        node = Node(
+        node = NodeModel(
             id=uuid4(),
             workflow_id=workflow.id,
             type='LLM',
@@ -251,18 +256,18 @@ class TestConditionNodeExecutor:
     async def test_basic_condition_evaluation(self):
         """Test basic condition evaluation functionality."""
         executor = ConditionNodeExecutor()
-        workflow = Workflow(
+        workflow = WorkflowModel(
             id=uuid4(),
             name='Test Workflow',
             workspace_id=uuid4(),
             created_by=uuid4(),
         )
-        execution_record = ExecutionRecord(
+        execution_record = ExecutionRecordModel(
             id=uuid4(), workflow_id=workflow.id, inputs={}, status='PENDING'
         )
         context = ExecutionContext(workflow, execution_record, {'x': 5, 'y': 3})
 
-        node = Node(
+        node = NodeModel(
             id=uuid4(),
             workflow_id=workflow.id,
             type='CONDITION',
@@ -295,18 +300,18 @@ class TestCodeNodeExecutor:
     async def test_basic_code_execution(self):
         """Test basic code execution functionality."""
         executor = CodeNodeExecutor()
-        workflow = Workflow(
+        workflow = WorkflowModel(
             id=uuid4(),
             name='Test Workflow',
             workspace_id=uuid4(),
             created_by=uuid4(),
         )
-        execution_record = ExecutionRecord(
+        execution_record = ExecutionRecordModel(
             id=uuid4(), workflow_id=workflow.id, inputs={}, status='PENDING'
         )
         context = ExecutionContext(workflow, execution_record, {'x': 10, 'y': 5})
 
-        node = Node(
+        node = NodeModel(
             id=uuid4(),
             workflow_id=workflow.id,
             type='CODE',
@@ -334,13 +339,13 @@ class TestTransformNodeExecutor:
     async def test_basic_json_path_extraction(self):
         """Test basic JSON path extraction functionality."""
         executor = TransformNodeExecutor()
-        workflow = Workflow(
+        workflow = WorkflowModel(
             id=uuid4(),
             name='Test Workflow',
             workspace_id=uuid4(),
             created_by=uuid4(),
         )
-        execution_record = ExecutionRecord(
+        execution_record = ExecutionRecordModel(
             id=uuid4(), workflow_id=workflow.id, inputs={}, status='PENDING'
         )
         test_data = {
@@ -349,7 +354,7 @@ class TestTransformNodeExecutor:
         }
         context = ExecutionContext(workflow, execution_record, test_data)
 
-        node = Node(
+        node = NodeModel(
             id=uuid4(),
             workflow_id=workflow.id,
             type='TRANSFORM',
@@ -371,7 +376,7 @@ class TestRealOllamaIntegration:
         context = ExecutionContext(workflow, execution_record, {'question': '1+1等于几？'})
 
         ollama_node = OllamaNode()
-        ollama_config_node = Node(
+        ollama_config_node = NodeModel(
             id=uuid4(),
             workflow_id=workflow.id,
             type=NodeExecutionTypeEnum.MODEL_PROVIDE.value,
@@ -386,7 +391,7 @@ class TestRealOllamaIntegration:
         )
 
         agent = AgentNode()
-        agent_node = Node(
+        agent_node = NodeModel(
             id=uuid4(),
             workflow_id=workflow.id,
             type=NodeExecutionTypeEnum.EXECUTABLE.value,
@@ -401,7 +406,7 @@ class TestRealOllamaIntegration:
             },
         )
 
-        conn = Connection(
+        conn = ConnectionModel(
             id=uuid4(),
             workflow_id=workflow.id,
             source_node_id=ollama_config_node.id,

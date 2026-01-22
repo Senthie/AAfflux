@@ -23,19 +23,19 @@ from sqlmodel import SQLModel
 
 from app.models import (  # noqa: F401
     Application,
-    Connection,
-    ExecutionRecord,
+    ConnectionModel,
+    ExecutionRecordModel,
     FileReference,
     LLMProvider,
-    Node,
-    NodeExecutionResult,
+    NodeExecutionResultModel,
+    NodeModel,
     Organization,
     PromptTemplate,
     PromptTemplateVersion,
     Team,
     TeamMember,
     UserEntity,
-    Workflow,
+    WorkflowModel,
     Workspace,
 )
 

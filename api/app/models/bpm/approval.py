@@ -14,7 +14,7 @@ from uuid import UUID
 
 from sqlmodel import JSON, Column, Field
 
-from app.models.base import BaseEntity, WorkspaceMixin
+from app.models.base import BaseModel, WorkspaceMixin
 
 
 class ApprovalAction(str, Enum):
@@ -27,7 +27,7 @@ class ApprovalAction(str, Enum):
     RETURN = 'return'  # 退回
 
 
-class Approval(BaseEntity, WorkspaceMixin, table=True):
+class Approval(BaseModel, WorkspaceMixin, table=True):
     """审批记录表 - 记录每次审批操作
 
     已经继承

@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-08 14:12:08
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-20 17:32:07
+ * @LastEditTime: 2026-01-21 15:41:13
  * @FilePath: /web/src/apis/workflow_api.ts
  * @Description:
  *
@@ -15,6 +15,7 @@ import type { IResponse } from 'src/interfaces/IResponse'
 import type {
     IWorkflowResponse,
     IWorkflowCreateRequest,
+    IWorkflowDetailRes,
 } from 'src/interfaces/IWorkflows'
 import { extractErrorMessage } from 'src/utils/errorHandler'
 
@@ -132,9 +133,9 @@ export async function v1_delete_workflow(
 
 export async function v1_get_workflow(
     workflow_id: string
-): Promise<IResponse<IWorkflowResponse>> {
+): Promise<IResponse<IWorkflowDetailRes>> {
     try {
-        const response = await api.get<IResponse<IWorkflowResponse>>(
+        const response = await api.get<IResponse<IWorkflowDetailRes>>(
             `/v1/workflows/${workflow_id}`
         )
 
@@ -159,7 +160,7 @@ export async function v1_get_workflow(
         return {
             code: 500,
             msg: errorMessage,
-            data: {} as IWorkflowResponse,
+            data: {} as IWorkflowDetailRes,
             timestamp: new Date().toISOString(),
         }
     }

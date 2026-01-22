@@ -10,10 +10,10 @@ from uuid import UUID
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Column, Field
 
-from app.models.base import BaseEntity, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
+from app.models.base import BaseModel, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
 
 
-class Conversation(BaseEntity, WorkspaceMixin, TimestampMixin, SoftDeleteMixin, table=True):
+class Conversation(BaseModel, WorkspaceMixin, TimestampMixin, SoftDeleteMixin, table=True):
     """对话表 - 会话管理。
 
     存储终端用户与AI应用的对话会话。
@@ -54,7 +54,7 @@ class Conversation(BaseEntity, WorkspaceMixin, TimestampMixin, SoftDeleteMixin, 
     custom_metadata: Optional[dict] = Field(default=None, sa_column=Column(JSONB))
 
 
-class Message(BaseEntity, TimestampMixin, SoftDeleteMixin, table=True):
+class Message(BaseModel, TimestampMixin, SoftDeleteMixin, table=True):
     """消息表 - 对话消息。
 
     存储对话中的每条消息，包括用户输入和AI回复。

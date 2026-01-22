@@ -27,7 +27,7 @@ from app.engine.nodes.base import (
     RetryConfig,
     register_node_executor,
 )
-from app.models.workflow import Node
+from app.models.workflow import NodeModel
 
 # ============ 数据模型 ============
 
@@ -243,7 +243,7 @@ class OllamaNode(BaseNode):
 
     # ============ Node Execution ============
 
-    async def execute(self, node: Node, context: ExecutionContext) -> Dict[str, Any]:
+    async def execute(self, node: NodeModel, context: ExecutionContext) -> Dict[str, Any]:
         """
         执行Ollama节点
 

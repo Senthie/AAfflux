@@ -25,7 +25,12 @@ from app.engine.node_executor import (
 from app.engine.nodes.base.exc import NodeRegistrationError
 from app.engine.topological_sorter import TopologicalSorter
 from app.engine.workflow_engine import WorkflowEngine
-from app.models.workflow.workflow import Connection, ExecutionRecord, Node, Workflow
+from app.models.workflow.workflow import (
+    ConnectionModel,
+    ExecutionRecordModel,
+    NodeModel,
+    WorkflowModel,
+)
 
 
 class TestTopologicalSorter:
@@ -33,7 +38,7 @@ class TestTopologicalSorter:
 
     def test_sort_simple_workflow(self):
         """Test sorting a simple linear workflow."""
-        node1 = Node(
+        node1 = NodeModel(
             id=uuid4(),
             workflow_id=uuid4(),
             type='START',
@@ -41,7 +46,7 @@ class TestTopologicalSorter:
             config={},
             position={'x': 0, 'y': 0},
         )
-        node2 = Node(
+        node2 = NodeModel(
             id=uuid4(),
             workflow_id=node1.workflow_id,
             type='PROCESS',
@@ -49,7 +54,7 @@ class TestTopologicalSorter:
             config={},
             position={'x': 100, 'y': 0},
         )
-        node3 = Node(
+        node3 = NodeModel(
             id=uuid4(),
             workflow_id=node1.workflow_id,
             type='END',
@@ -58,7 +63,7 @@ class TestTopologicalSorter:
             position={'x': 200, 'y': 0},
         )
 
-        conn1 = Connection(
+        conn1 = ConnectionModel(
             id=uuid4(),
             workflow_id=node1.workflow_id,
             source_node_id=node1.id,
@@ -66,7 +71,7 @@ class TestTopologicalSorter:
             source_output='output',
             target_input='input',
         )
-        conn2 = Connection(
+        conn2 = ConnectionModel(
             id=uuid4(),
             workflow_id=node1.workflow_id,
             source_node_id=node2.id,
@@ -85,7 +90,7 @@ class TestTopologicalSorter:
 
     def test_get_execution_levels(self):
         """Test getting execution levels for parallel execution."""
-        node1 = Node(
+        node1 = NodeModel(
             id=uuid4(),
             workflow_id=uuid4(),
             type='START',
@@ -93,7 +98,7 @@ class TestTopologicalSorter:
             config={},
             position={'x': 0, 'y': 0},
         )
-        node2 = Node(
+        node2 = NodeModel(
             id=uuid4(),
             workflow_id=node1.workflow_id,
             type='PROCESS',
@@ -101,7 +106,7 @@ class TestTopologicalSorter:
             config={},
             position={'x': 100, 'y': 0},
         )
-        node3 = Node(
+        node3 = NodeModel(
             id=uuid4(),
             workflow_id=node1.workflow_id,
             type='PROCESS',
@@ -109,7 +114,7 @@ class TestTopologicalSorter:
             config={},
             position={'x': 100, 'y': 100},
         )
-        node4 = Node(
+        node4 = NodeModel(
             id=uuid4(),
             workflow_id=node1.workflow_id,
             type='END',
@@ -119,7 +124,7 @@ class TestTopologicalSorter:
         )
 
         connections = [
-            Connection(
+            ConnectionModel(
                 id=uuid4(),
                 workflow_id=node1.workflow_id,
                 source_node_id=node1.id,
@@ -127,7 +132,7 @@ class TestTopologicalSorter:
                 source_output='output',
                 target_input='input',
             ),
-            Connection(
+            ConnectionModel(
                 id=uuid4(),
                 workflow_id=node1.workflow_id,
                 source_node_id=node1.id,
@@ -135,7 +140,7 @@ class TestTopologicalSorter:
                 source_output='output',
                 target_input='input',
             ),
-            Connection(
+            ConnectionModel(
                 id=uuid4(),
                 workflow_id=node1.workflow_id,
                 source_node_id=node2.id,
@@ -143,7 +148,7 @@ class TestTopologicalSorter:
                 source_output='output',
                 target_input='input1',
             ),
-            Connection(
+            ConnectionModel(
                 id=uuid4(),
                 workflow_id=node1.workflow_id,
                 source_node_id=node3.id,
@@ -167,7 +172,7 @@ class TestExecutionContext:
 
     def test_context_initialization(self):
         """Test execution context initialization."""
-        workflow = Workflow(
+        workflow = WorkflowModel(
             id=uuid4(),
             name='Test Workflow',
             workspace_id=uuid4(),
@@ -176,7 +181,7 @@ class TestExecutionContext:
             output_schema={'type': 'object'},
         )
 
-        execution_record = ExecutionRecord(
+        execution_record = ExecutionRecordModel(
             id=uuid4(), workflow_id=workflow.id, inputs={'test': 'value'}, status='PENDING'
         )
 
@@ -190,10 +195,10 @@ class TestExecutionContext:
 
     def test_node_output_management(self):
         """Test node output setting and getting."""
-        workflow = Workflow(
+        workflow = WorkflowModel(
             id=uuid4(), name='Test Workflow', workspace_id=uuid4(), created_by=uuid4()
         )
-        execution_record = ExecutionRecord(
+        execution_record = ExecutionRecordModel(
             id=uuid4(), workflow_id=workflow.id, inputs={}, status='PENDING'
         )
         context = ExecutionContext(workflow, execution_record, {})
@@ -316,14 +321,14 @@ class TestBuiltinExecutors:
         from app.engine.node_executor import StartNodeExecutor
 
         executor = StartNodeExecutor()
-        workflow = Workflow(id=uuid4(), name='Test', workspace_id=uuid4(), created_by=uuid4())
-        execution_record = ExecutionRecord(
+        workflow = WorkflowModel(id=uuid4(), name='Test', workspace_id=uuid4(), created_by=uuid4())
+        execution_record = ExecutionRecordModel(
             id=uuid4(), workflow_id=workflow.id, inputs={}, status='PENDING'
         )
         initial_inputs = {'start_data': 'test'}
         context = ExecutionContext(workflow, execution_record, initial_inputs)
 
-        node = Node(id=uuid4(), workflow_id=workflow.id, type='START', name='Start', config={})
+        node = NodeModel(id=uuid4(), workflow_id=workflow.id, type='START', name='Start', config={})
         result = await executor.execute(node, context)
         assert result == initial_inputs
 
@@ -333,13 +338,15 @@ class TestBuiltinExecutors:
         from app.engine.node_executor import PassthroughNodeExecutor
 
         executor = PassthroughNodeExecutor()
-        workflow = Workflow(id=uuid4(), name='Test', workspace_id=uuid4(), created_by=uuid4())
-        execution_record = ExecutionRecord(
+        workflow = WorkflowModel(id=uuid4(), name='Test', workspace_id=uuid4(), created_by=uuid4())
+        execution_record = ExecutionRecordModel(
             id=uuid4(), workflow_id=workflow.id, inputs={}, status='PENDING'
         )
         context = ExecutionContext(workflow, execution_record, {'input': 'test'})
 
-        node = Node(id=uuid4(), workflow_id=workflow.id, type='PASSTHROUGH', name='Pass', config={})
+        node = NodeModel(
+            id=uuid4(), workflow_id=workflow.id, type='PASSTHROUGH', name='Pass', config={}
+        )
         result = await executor.execute(node, context)
         assert result == context.global_variables
 
@@ -374,7 +381,7 @@ class TestWorkflowEngineProperties:
         self, required_fields: List[str], provided_inputs: Dict[str, Any]
     ):
         """Property 32: Input parameter validation"""
-        workflow = Workflow(
+        workflow = WorkflowModel(
             id=uuid4(),
             name='Test Workflow',
             workspace_id=uuid4(),

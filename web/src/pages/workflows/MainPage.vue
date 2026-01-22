@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-14 15:07:09
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-21 10:41:00
+ * @LastEditTime: 2026-01-22 15:05:13
  * @FilePath: /web/src/pages/workflows/MainPage.vue
  * @Description: 工作流的主要页面
  *
@@ -28,6 +28,9 @@ import { Platform } from 'leafer-ui'
 import { useRoute, useRouter } from 'vue-router'
 import { Notify } from 'quasar'
 import { v1_get_workflow } from 'src/apis/workflow_api'
+import { useWorkflowStore } from 'src/stores/workflow-store'
+
+const workflow_store = useWorkflowStore()
 
 const route = useRoute()
 const router = useRouter()
@@ -41,7 +44,7 @@ interface NodeListeners {
 Platform.image.crossOrigin = 'anonymous'
 
 let app: App = null as unknown as App
-const add_node_visiable = ref(false)
+const add_node_dialog_visiable = ref(false)
 const page_res = ref<IPageRes<PluginResponse>>({
     total: 0,
     size: 10,
@@ -82,7 +85,8 @@ const onContextMenu = (e: MouseEvent) => {
             {
                 label: '添加节点',
                 onClick: () => {
-                    add_node_visiable.value = !add_node_visiable.value
+                    add_node_dialog_visiable.value =
+                        !add_node_dialog_visiable.value
                     // createRect(e.x, e.y)
                 },
             },
@@ -141,7 +145,7 @@ const onNodeMenu = (e: MouseEvent, node: IUI) => {
 const get_workflow_by_workflow_id = async (workflow_id: string) => {
     const res = await v1_get_workflow(workflow_id)
     if (res.code === 200) {
-        console.log(res.data)
+        workflow_store.set_workflow(res.data)
     } else {
         void router.push('/main')
     }
@@ -274,7 +278,7 @@ const createNodeRect = (plugin: PluginResponse) => {
     }
 
     app.tree.add(node)
-    add_node_visiable.value = false
+    add_node_dialog_visiable.value = false
 }
 
 onBeforeUnmount(() => {
@@ -287,7 +291,7 @@ onBeforeUnmount(() => {
 <template>
     <div>
         <template>
-            <q-dialog v-model="add_node_visiable">
+            <q-dialog v-model="add_node_dialog_visiable">
                 <q-card style="min-width: 350px">
                     <q-card-section>
                         <div class="text-h6">创建节点</div>

@@ -20,7 +20,7 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
-from app.models.workflow.workflow import Connection, Node, Workflow
+from app.models.workflow.workflow import ConnectionModel, NodeModel, WorkflowModel
 from app.utils.dag import build_adjacency_list, detect_cycle
 
 
@@ -96,13 +96,13 @@ class WorkflowValidator:
         result = ValidationResult(is_valid=True)
 
         # Check workflow exists
-        workflow = await self.db.get(Workflow, workflow_id)
+        workflow = await self.db.get(WorkflowModel, workflow_id)
         if not workflow:
             result.add_error(f'Workflow {workflow_id} not found')
             return result
 
         # Get all nodes for this workflow
-        nodes_statement = select(Node).where(Node.workflow_id == workflow_id)
+        nodes_statement = select(NodeModel).where(NodeModel.workflow_id == workflow_id)
         nodes_result = await self.db.execute(nodes_statement)
         nodes = nodes_result.scalars().all()
 
@@ -120,7 +120,9 @@ class WorkflowValidator:
                     result.add_error(f'Node {node_title} ({node.id}): {error}')
 
         # Get all connections
-        connections_statement = select(Connection).where(Connection.workflow_id == workflow_id)
+        connections_statement = select(ConnectionModel).where(
+            ConnectionModel.workflow_id == workflow_id
+        )
         connections_result = await self.db.execute(connections_statement)
         connections = connections_result.scalars().all()
 
@@ -152,7 +154,9 @@ class WorkflowValidator:
             True if no cycles detected, False if cycles exist
         """
         # Get all connections for this workflow
-        connections_statement = select(Connection).where(Connection.workflow_id == workflow_id)
+        connections_statement = select(ConnectionModel).where(
+            ConnectionModel.workflow_id == workflow_id
+        )
         connections_result = await self.db.execute(connections_statement)
         connections = connections_result.scalars().all()
 
@@ -165,7 +169,7 @@ class WorkflowValidator:
 
         return not has_cycle
 
-    def validate_node_config(self, node: Node) -> ValidationResult:
+    def validate_node_config(self, node: NodeModel) -> ValidationResult:
         """Validate a node's configuration.
 
         Checks:
@@ -329,8 +333,8 @@ class WorkflowValidator:
         result = ValidationResult(is_valid=True)
 
         # Check nodes exist
-        source_node = await self.db.get(Node, source_node_id)
-        target_node = await self.db.get(Node, target_node_id)
+        source_node = await self.db.get(NodeModel, source_node_id)
+        target_node = await self.db.get(NodeModel, target_node_id)
 
         if not source_node:
             result.add_error(f'Source node {source_node_id} not found')
@@ -351,7 +355,9 @@ class WorkflowValidator:
 
         # Check if connection would create a cycle
         # Get existing connections
-        connections_statement = select(Connection).where(Connection.workflow_id == workflow_id)
+        connections_statement = select(ConnectionModel).where(
+            ConnectionModel.workflow_id == workflow_id
+        )
         connections_result = await self.db.execute(connections_statement)
         connections = connections_result.scalars().all()
 

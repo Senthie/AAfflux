@@ -15,14 +15,14 @@ Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 from typing import Dict, List, Set
 from uuid import UUID
 
-from app.models.workflow.workflow import Connection, Node
+from app.models.workflow.workflow import ConnectionModel, NodeModel
 from app.utils.dag import build_adjacency_list, topological_sort as dag_topological_sort
 
 
 class TopologicalSorter:
     """Topological sorter for workflow nodes."""
 
-    def __init__(self, nodes: List[Node], connections: List[Connection]):
+    def __init__(self, nodes: List[NodeModel], connections: List[ConnectionModel]):
         """Initialize the topological sorter.
 
         Args:
@@ -54,7 +54,7 @@ class TopologicalSorter:
 
         return adjacency_list
 
-    def sort(self) -> List[Node]:
+    def sort(self) -> List[NodeModel]:
         """Sort nodes in topological order.
 
         Returns:
@@ -74,7 +74,7 @@ class TopologicalSorter:
 
         return sorted_nodes
 
-    def get_execution_levels(self) -> List[List[Node]]:
+    def get_execution_levels(self) -> List[List[NodeModel]]:
         """Get nodes grouped by execution level.
 
         Nodes at the same level can be executed in parallel.
@@ -93,7 +93,7 @@ class TopologicalSorter:
                 if target_id in in_degree:
                     in_degree[target_id] += 1
 
-        levels: List[List[Node]] = []
+        levels: List[List[NodeModel]] = []
         remaining_nodes = set(self.nodes.keys())
 
         while remaining_nodes:
@@ -118,7 +118,7 @@ class TopologicalSorter:
 
         return levels
 
-    def get_dependencies(self, node_id: UUID) -> List[Node]:
+    def get_dependencies(self, node_id: UUID) -> List[NodeModel]:
         """Get all nodes that the given node depends on.
 
         Args:
@@ -138,7 +138,7 @@ class TopologicalSorter:
 
         return dependencies
 
-    def get_dependents(self, node_id: UUID) -> List[Node]:
+    def get_dependents(self, node_id: UUID) -> List[NodeModel]:
         """Get all nodes that depend on the given node.
 
         Args:
@@ -176,7 +176,7 @@ class TopologicalSorter:
         # Node is ready if all dependencies are completed
         return dependency_ids.issubset(completed_nodes)
 
-    def get_next_executable_nodes(self, completed_nodes: Set[UUID]) -> List[Node]:
+    def get_next_executable_nodes(self, completed_nodes: Set[UUID]) -> List[NodeModel]:
         """Get all nodes that are ready to execute.
 
         Args:

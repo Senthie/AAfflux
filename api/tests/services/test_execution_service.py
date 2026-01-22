@@ -20,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.auth.user import UserEntity
 from app.models.tenant.organization import Organization
-from app.models.workflow.workflow import Workflow
+from app.models.workflow.workflow import WorkflowModel
 from app.schemas.execution import ExecutionRecordCreate, ExecutionRecordQuery, ExecutionRecordUpdate
 from app.services.execution_record_service import ExecutionRecordService
 from app.utils.migration import DataMigrator
@@ -62,7 +62,7 @@ class TestExecutionRecordService:
         self, test_session: AsyncSession, test_user: UserEntity, test_organization: Organization
     ):
         """创建测试工作流"""
-        workflow = Workflow(
+        workflow = WorkflowModel(
             id=uuid4(),
             name='Test Workflow',
             description='Test workflow for execution',
@@ -80,7 +80,7 @@ class TestExecutionRecordService:
         return ExecutionRecordService(test_session)
 
     async def test_create_execution_record(
-        self, execution_service: ExecutionRecordService, test_workflow: Workflow
+        self, execution_service: ExecutionRecordService, test_workflow: WorkflowModel
     ):
         """测试创建执行记录"""
         record_data = ExecutionRecordCreate(
@@ -95,7 +95,7 @@ class TestExecutionRecordService:
         assert record.status == 'PENDING'
 
     async def test_query_execution_records_by_filters(
-        self, execution_service: ExecutionRecordService, test_workflow: Workflow
+        self, execution_service: ExecutionRecordService, test_workflow: WorkflowModel
     ):
         """测试按条件查询执行记录"""
         for i in range(3):
@@ -117,7 +117,7 @@ class TestExecutionRecordService:
         assert len(completed_records) == 2
 
     async def test_time_range_filtering(
-        self, execution_service: ExecutionRecordService, test_workflow: Workflow
+        self, execution_service: ExecutionRecordService, test_workflow: WorkflowModel
     ):
         """测试时间范围筛选"""
         now = datetime.utcnow()
@@ -145,7 +145,7 @@ class TestExecutionRecordService:
         assert len(recent_records) >= 1
 
     async def test_cleanup_expired_records(
-        self, execution_service: ExecutionRecordService, test_workflow: Workflow
+        self, execution_service: ExecutionRecordService, test_workflow: WorkflowModel
     ):
         """测试过期记录清理"""
         # 创建记录
@@ -166,7 +166,7 @@ class TestExecutionRecordService:
         assert cleanup_count >= 0
 
     async def test_update_execution_record(
-        self, execution_service: ExecutionRecordService, test_workflow: Workflow
+        self, execution_service: ExecutionRecordService, test_workflow: WorkflowModel
     ):
         """测试更新执行记录"""
         record_data = ExecutionRecordCreate(
@@ -238,7 +238,7 @@ class TestDataMigration:
             'connections': [],
         }
 
-        workflow = Workflow(
+        workflow = WorkflowModel(
             id=uuid4(),
             name='Legacy Workflow',
             description='Test legacy workflow',

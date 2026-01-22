@@ -9,10 +9,10 @@ from uuid import UUID
 
 from sqlmodel import Field
 
-from app.models.base import BaseEntity, TimestampMixin
+from app.models.base import BaseModel, TimestampMixin
 
 
-class MessageAnnotation(BaseEntity, TimestampMixin, table=True):
+class MessageAnnotation(BaseModel, TimestampMixin, table=True):
     """消息标注表 - 人工标注和修正。
 
     允许租户用户对AI回复进行标注和修正。
@@ -49,7 +49,7 @@ class MessageAnnotation(BaseEntity, TimestampMixin, table=True):
     annotated_by: UUID = Field(index=True)  # Logical FK to users (租户用户)
 
 
-class MessageFeedback(BaseEntity, TimestampMixin, table=True):
+class MessageFeedback(BaseModel, TimestampMixin, table=True):
     """消息反馈表 - 用户评价。
 
     收集终端用户对AI回复的反馈（点赞/点踩）。

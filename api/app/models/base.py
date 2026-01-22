@@ -16,7 +16,7 @@ from uuid import UUID, uuid4
 from sqlmodel import Field, SQLModel
 
 
-class BaseEntity(SQLModel):
+class BaseModel(SQLModel):
     """Abstract base class for all data models.
 
     Provides common fields and behaviors that all models should have.

@@ -20,7 +20,7 @@ from hypothesis import given, settings, strategies as st
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.workflow.workflow import Node, Workflow
+from app.models.workflow.workflow import NodeModel, WorkflowModel
 from app.schemas.workflow import (
     ConnectionCreateRequest,
     NodeCreateRequest,
@@ -270,7 +270,7 @@ class TestWorkflowValidator:
         workspace_id = uuid4()
         user_id = uuid4()
 
-        workflow = Workflow(
+        workflow = WorkflowModel(
             name='Test Workflow',
             description='A test workflow',
             workspace_id=workspace_id,
@@ -288,7 +288,7 @@ class TestWorkflowValidator:
         """Test validating a valid LLM node configuration."""
         validator = WorkflowValidator(test_session)
 
-        node = Node(
+        node = NodeModel(
             workflow_id=uuid4(),
             type='LLM',
             name='Test LLM Node',
@@ -308,7 +308,7 @@ class TestWorkflowValidator:
         """Test validating an LLM node with missing required fields."""
         validator = WorkflowValidator(test_session)
 
-        node = Node(
+        node = NodeModel(
             workflow_id=uuid4(),
             type='LLM',
             name='Test LLM Node',
@@ -326,7 +326,7 @@ class TestWorkflowSerializer:
     @pytest.fixture
     async def sample_workflow(self, test_session: AsyncSession):
         """Create a sample workflow for testing."""
-        workflow = Workflow(
+        workflow = WorkflowModel(
             name='Test Workflow',
             description='A test workflow',
             workspace_id=uuid4(),
@@ -340,11 +340,13 @@ class TestWorkflowSerializer:
         return workflow
 
     @pytest.mark.asyncio
-    async def test_serialize_workflow(self, test_session: AsyncSession, sample_workflow: Workflow):
+    async def test_serialize_workflow(
+        self, test_session: AsyncSession, sample_workflow: WorkflowModel
+    ):
         """Test serializing a workflow."""
         serializer = WorkflowSerializer(test_session)
 
-        node = Node(
+        node = NodeModel(
             workflow_id=sample_workflow.id,
             type='LLM',
             name='Test Node',

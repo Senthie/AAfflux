@@ -22,7 +22,12 @@ from app.core.exceptions import WorkspaceException
 from app.enums.custom_response_code_enum import CustomResponseCodeEnum
 from app.models.auth.user import UserEntity
 from app.models.tenant.organization import TenantAccountRole, WorkspaceAccountUser
-from app.models.workflow.workflow import Connection, ExecutionRecord, Node, Workflow
+from app.models.workflow.workflow import (
+    ConnectionModel,
+    ExecutionRecordModel,
+    NodeModel,
+    WorkflowModel,
+)
 from app.schemas.page_schemas import PageRequest, PageResponse
 from app.schemas.workflow import (
     ConnectionCreateRequest,
@@ -84,7 +89,7 @@ class WorkflowService:
 
     async def create_workflow(
         self, workflow_data: WorkflowCreateRequest, workspace_id: UUID, user: UserEntity
-    ) -> Workflow:
+    ) -> WorkflowModel:
         """Create a new workflow.
 
         Args:
@@ -105,14 +110,14 @@ class WorkflowService:
         )
         workspace_account = result.scalars().first()
         # 2. Validate workspace 的权限
-        if workspace_account is Node:
+        if workspace_account is NodeModel:
             raise WorkspaceException(CustomResponseCodeEnum.WORKSPACE_NOT_EXISTS)
 
         if TenantAccountRole.is_editing_role(workspace_account.role) is False:
             raise WorkspaceException(CustomResponseCodeEnum.FORBIDDEN)
 
         # 3. ceate workflow
-        workflow = Workflow(
+        workflow = WorkflowModel(
             name=workflow_data.name,
             description=workflow_data.description,
             workspace_id=workspace_id,  # type: ignore
@@ -127,7 +132,7 @@ class WorkflowService:
 
         return workflow
 
-    async def get_workflow(self, workflow_id: UUID, user: UserEntity) -> Workflow:
+    async def get_workflow(self, workflow_id: UUID, user: UserEntity) -> WorkflowModel:
         """Get a workflow by ID.
 
         Args:
@@ -140,7 +145,7 @@ class WorkflowService:
             WorkflowNotFoundError: If workflow is not found
         """
         # 1. get workflow
-        workflow = await self.db.get(Workflow, workflow_id)
+        workflow = await self.db.get(WorkflowModel, workflow_id)
         if not workflow or workflow.is_deleted:
             raise WorkflowNotFoundError(f'Workflow {workflow_id} not found')
         # 2. get workspace by workflow_id
@@ -153,7 +158,7 @@ class WorkflowService:
         )
         workspace_account = result.scalars().first()
         # 2. Validate workspace 的权限
-        if workspace_account is Node:
+        if workspace_account is NodeModel:
             raise WorkspaceException(CustomResponseCodeEnum.WORKSPACE_NOT_EXISTS)
 
         if TenantAccountRole.is_editing_role(workspace_account.role) is False:
@@ -177,9 +182,9 @@ class WorkflowService:
         # 计算跳过值
         skip = (page_req.current - 1) * page_req.size
         statement = (
-            select(Workflow)
-            .where(Workflow.workspace_id == workspace_id)
-            .where(~Workflow.is_deleted)
+            select(WorkflowModel)
+            .where(WorkflowModel.workspace_id == workspace_id)
+            .where(~WorkflowModel.is_deleted)
             .offset(skip)
             .limit(page_req.size)
         )
@@ -188,9 +193,9 @@ class WorkflowService:
         workflows = [WorkflowResponse.model_validate(workflow) for workflow in workflows]
         # Count total
         count_statement = (
-            select(Workflow)
-            .where(Workflow.workspace_id == workspace_id)
-            .where(~Workflow.is_deleted)
+            select(WorkflowModel)
+            .where(WorkflowModel.workspace_id == workspace_id)
+            .where(~WorkflowModel.is_deleted)
         )
         count_result = await self.db.execute(count_statement)
         total = len(count_result.scalars().all())
@@ -201,7 +206,7 @@ class WorkflowService:
 
     async def update_workflow(
         self, workflow_id: UUID, workflow_data: WorkflowUpdateRequest
-    ) -> Workflow:
+    ) -> WorkflowModel:
         """Update a workflow.
 
         Args:
@@ -258,7 +263,7 @@ class WorkflowService:
         )
         workspace_account = result.scalars().first()
         # 2. Validate workspace 的权限
-        if workspace_account is Node:
+        if workspace_account is NodeModel:
             raise WorkspaceException(CustomResponseCodeEnum.WORKSPACE_NOT_EXISTS)
 
         if TenantAccountRole.is_editing_role(workspace_account.role) is False:
@@ -268,7 +273,7 @@ class WorkflowService:
         workflow.soft_delete()
 
         # Soft delete all nodes
-        nodes_statement = select(Node).where(Node.workflow_id == workflow_id)
+        nodes_statement = select(NodeModel).where(NodeModel.workflow_id == workflow_id)
         nodes_result = await self.db.execute(nodes_statement)
         nodes = nodes_result.scalars().all()
 
@@ -277,7 +282,9 @@ class WorkflowService:
                 node.soft_delete()
 
         # Delete all execution records (hard delete)
-        exec_statement = select(ExecutionRecord).where(ExecutionRecord.workflow_id == workflow_id)
+        exec_statement = select(ExecutionRecordModel).where(
+            ExecutionRecordModel.workflow_id == workflow_id
+        )
         exec_result = await self.db.execute(exec_statement)
         exec_records = exec_result.scalars().all()
 
@@ -290,7 +297,7 @@ class WorkflowService:
     # Node Management Operations
     # ========================================================================
 
-    async def add_node(self, workflow_id: UUID, node_data: NodeCreateRequest) -> Node:
+    async def add_node(self, workflow_id: UUID, node_data: NodeCreateRequest) -> NodeModel:
         """Add a node to a workflow.
 
         Args:
@@ -308,7 +315,7 @@ class WorkflowService:
         await self.get_workflow(workflow_id)
 
         # Create node
-        node = Node(
+        node = NodeModel(
             workflow_id=workflow_id,
             type=node_data.type,
             config=node_data.config,
@@ -326,7 +333,7 @@ class WorkflowService:
 
         return node
 
-    async def get_node(self, node_id: UUID) -> Node:
+    async def get_node(self, node_id: UUID) -> NodeModel:
         """Get a node by ID.
 
         Args:
@@ -338,13 +345,13 @@ class WorkflowService:
         Raises:
             NodeNotFoundError: If node is not found
         """
-        node = await self.db.get(Node, node_id)
+        node = await self.db.get(NodeModel, node_id)
         if not node or node.is_deleted:
             raise NodeNotFoundError(f'Node {node_id} not found')
 
         return node
 
-    async def list_nodes(self, workflow_id: UUID) -> List[Node]:
+    async def list_nodes(self, workflow_id: UUID) -> List[NodeModel]:
         """List all nodes in a workflow.
 
         Args:
@@ -353,11 +360,15 @@ class WorkflowService:
         Returns:
             List of Node objects
         """
-        statement = select(Node).where(Node.workflow_id == workflow_id).where(~Node.is_deleted)
+        statement = (
+            select(NodeModel)
+            .where(NodeModel.workflow_id == workflow_id)
+            .where(~NodeModel.is_deleted)
+        )
         result = await self.db.execute(statement)
         return list(result.scalars().all())
 
-    async def update_node(self, node_id: UUID, node_data: NodeUpdateRequest) -> Node:
+    async def update_node(self, node_id: UUID, node_data: NodeUpdateRequest) -> NodeModel:
         """Update a node.
 
         Args:
@@ -407,8 +418,9 @@ class WorkflowService:
         node.soft_delete()
 
         # Delete all connections involving this node
-        connections_statement = select(Connection).where(
-            (Connection.source_node_id == node_id) | (Connection.target_node_id == node_id)
+        connections_statement = select(ConnectionModel).where(
+            (ConnectionModel.source_node_id == node_id)
+            | (ConnectionModel.target_node_id == node_id)
         )
         connections_result = await self.db.execute(connections_statement)
         connections = connections_result.scalars().all()
@@ -424,7 +436,7 @@ class WorkflowService:
 
     async def connect_nodes(
         self, workflow_id: UUID, connection_data: ConnectionCreateRequest
-    ) -> Connection:
+    ) -> ConnectionModel:
         """Create a connection between two nodes.
 
         Args:
@@ -454,7 +466,7 @@ class WorkflowService:
             raise WorkflowValidationError(validation_result)
 
         # Create connection
-        connection = Connection(
+        connection = ConnectionModel(
             workflow_id=workflow_id,
             source_node_id=connection_data.source_node_id,
             target_node_id=connection_data.target_node_id,
@@ -468,7 +480,7 @@ class WorkflowService:
 
         return connection
 
-    async def get_connection(self, connection_id: UUID) -> Connection:
+    async def get_connection(self, connection_id: UUID) -> ConnectionModel:
         """Get a connection by ID.
 
         Args:
@@ -480,13 +492,13 @@ class WorkflowService:
         Raises:
             ConnectionNotFoundError: If connection is not found
         """
-        connection = await self.db.get(Connection, connection_id)
+        connection = await self.db.get(ConnectionModel, connection_id)
         if not connection:
             raise ConnectionNotFoundError(f'Connection {connection_id} not found')
 
         return connection
 
-    async def list_connections(self, workflow_id: UUID) -> List[Connection]:
+    async def list_connections(self, workflow_id: UUID) -> List[ConnectionModel]:
         """List all connections in a workflow.
 
         Args:
@@ -495,7 +507,7 @@ class WorkflowService:
         Returns:
             List of Connection objects
         """
-        statement = select(Connection).where(Connection.workflow_id == workflow_id)
+        statement = select(ConnectionModel).where(ConnectionModel.workflow_id == workflow_id)
         result = await self.db.execute(statement)
         return list(result.scalars().all())
 
@@ -528,7 +540,7 @@ class WorkflowService:
         """
         return await self.validator.validate_workflow(workflow_id)
 
-    async def save_workflow(self, workflow_id: UUID) -> Workflow:
+    async def save_workflow(self, workflow_id: UUID) -> WorkflowModel:
         """Save and validate a workflow.
 
         This method validates the workflow before saving to ensure it's in a

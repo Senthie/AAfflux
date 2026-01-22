@@ -26,7 +26,7 @@ from app.models.audit.audit_log import AuditLog
 from app.models.auth.token import RefreshToken
 from app.models.auth.user import UserEntity
 from app.models.tenant.organization import Organization, Team, Workspace
-from app.models.workflow.workflow import Workflow
+from app.models.workflow.workflow import WorkflowModel
 
 
 @pytest.fixture(scope='function')
@@ -154,7 +154,7 @@ class TestWorkflowCRUD:
         user_id = uuid4()
         unique_id = str(uuid4())[:8]
 
-        workflow = Workflow(
+        workflow = WorkflowModel(
             name=f'Test Workflow {unique_id}',
             description='Test workflow description',
             workspace_id=workspace_id,
@@ -166,7 +166,7 @@ class TestWorkflowCRUD:
         await test_db_session.commit()
         await test_db_session.refresh(workflow)
 
-        stmt = select(Workflow).where(Workflow.name == f'Test Workflow {unique_id}')
+        stmt = select(WorkflowModel).where(WorkflowModel.name == f'Test Workflow {unique_id}')
         result = await test_db_session.execute(stmt)
         found_workflow = result.scalar_one_or_none()
         assert found_workflow is not None
@@ -345,7 +345,7 @@ class TestIntegrationScenarios:
         await test_db_session.refresh(workspace)
 
         # Create workflow
-        workflow = Workflow(
+        workflow = WorkflowModel(
             name=f'Integration Test Workflow {unique_id}',
             workspace_id=workspace.id,
             created_by=user.id,

@@ -10,10 +10,10 @@ from uuid import UUID
 
 from sqlmodel import Field
 
-from app.models.base import BaseEntity, TimestampMixin
+from app.models.base import BaseModel, TimestampMixin
 
 
-class TeamInvitation(BaseEntity, TimestampMixin, table=True):
+class TeamInvitation(BaseModel, TimestampMixin, table=True):
     """团队邀请表 - 管理团队成员邀请。
 
     存储团队邀请信息，支持邀请流程管理。

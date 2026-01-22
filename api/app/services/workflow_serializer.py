@@ -19,7 +19,7 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
-from app.models.workflow.workflow import Connection, Node, Workflow
+from app.models.workflow.workflow import ConnectionModel, NodeModel, WorkflowModel
 
 
 class SerializationError(Exception):
@@ -61,17 +61,19 @@ class WorkflowSerializer:
             SerializationError: If workflow cannot be serialized
         """
         # Get workflow
-        workflow = await self.db.get(Workflow, workflow_id)
+        workflow = await self.db.get(WorkflowModel, workflow_id)
         if not workflow:
             raise SerializationError(f'Workflow {workflow_id} not found')
 
         # Get all nodes
-        nodes_statement = select(Node).where(Node.workflow_id == workflow_id)
+        nodes_statement = select(NodeModel).where(NodeModel.workflow_id == workflow_id)
         nodes_result = await self.db.execute(nodes_statement)
         nodes = nodes_result.scalars().all()
 
         # Get all connections
-        connections_statement = select(Connection).where(Connection.workflow_id == workflow_id)
+        connections_statement = select(ConnectionModel).where(
+            ConnectionModel.workflow_id == workflow_id
+        )
         connections_result = await self.db.execute(connections_statement)
         connections = connections_result.scalars().all()
 
@@ -95,7 +97,7 @@ class WorkflowSerializer:
 
         return workflow_data
 
-    def _serialize_node(self, node: Node) -> Dict[str, Any]:
+    def _serialize_node(self, node: NodeModel) -> Dict[str, Any]:
         """Serialize a single node.
 
         Args:
@@ -112,7 +114,7 @@ class WorkflowSerializer:
             'ui': node.ui,
         }
 
-    def _serialize_connection(self, connection: Connection) -> Dict[str, Any]:
+    def _serialize_connection(self, connection: ConnectionModel) -> Dict[str, Any]:
         """Serialize a single connection.
 
         Args:
@@ -132,7 +134,7 @@ class WorkflowSerializer:
 
     async def deserialize_workflow(
         self, workflow_data: Dict[str, Any], workspace_id: UUID, created_by: UUID
-    ) -> Workflow:
+    ) -> WorkflowModel:
         """Deserialize a workflow from JSON format.
 
         Args:
@@ -174,7 +176,7 @@ class WorkflowSerializer:
                 raise DeserializationError(f'Missing required workflow field: {field}')
 
         # Create workflow
-        workflow = Workflow(
+        workflow = WorkflowModel(
             name=workflow_info['name'],
             description=workflow_info.get('description'),
             workspace_id=workspace_id,
@@ -217,7 +219,7 @@ class WorkflowSerializer:
 
         return workflow
 
-    def _deserialize_node(self, node_data: Dict[str, Any], workflow_id: UUID) -> Node:
+    def _deserialize_node(self, node_data: Dict[str, Any], workflow_id: UUID) -> NodeModel:
         """Deserialize a single node.
 
         Args:
@@ -237,7 +239,7 @@ class WorkflowSerializer:
                 raise DeserializationError(f'Missing required node field: {field}')
 
         # Create node
-        node = Node(
+        node = NodeModel(
             workflow_id=workflow_id,
             type=node_data['type'],
             config=node_data.get('config', {}),
@@ -251,7 +253,7 @@ class WorkflowSerializer:
         conn_data: Dict[str, Any],
         workflow_id: UUID,
         node_id_map: Dict[str, UUID],
-    ) -> Connection:
+    ) -> ConnectionModel:
         """Deserialize a single connection.
 
         Args:
@@ -289,7 +291,7 @@ class WorkflowSerializer:
         target_node_id = node_id_map[target_node_id_str]
 
         # Create connection
-        connection = Connection(
+        connection = ConnectionModel(
             workflow_id=workflow_id,
             source_node_id=source_node_id,
             target_node_id=target_node_id,
@@ -387,7 +389,7 @@ class WorkflowSerializer:
 
     async def import_workflow_from_json(
         self, json_str: str, workspace_id: UUID, created_by: UUID
-    ) -> Workflow:
+    ) -> WorkflowModel:
         """Import a workflow from JSON string.
 
         Args:

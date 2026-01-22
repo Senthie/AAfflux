@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.auth.user import UserEntity
 from app.models.tenant.organization import Organization
-from app.models.workflow.workflow import Workflow
+from app.models.workflow.workflow import WorkflowModel
 from app.schemas.application import (
     APIKeyCreate,
     ApplicationCreate,
@@ -62,7 +62,7 @@ class TestApplicationService:
         self, test_session: AsyncSession, test_user: UserEntity, test_organization: Organization
     ):
         """创建测试工作流"""
-        workflow = Workflow(
+        workflow = WorkflowModel(
             id=uuid4(),
             name='Test Workflow',
             description='Test workflow for application',
@@ -82,7 +82,7 @@ class TestApplicationService:
     async def test_application_workflow_association(
         self,
         application_service: ApplicationService,
-        test_workflow: Workflow,
+        test_workflow: WorkflowModel,
         test_user: UserEntity,
     ):
         """测试应用与工作流关联"""
@@ -99,7 +99,7 @@ class TestApplicationService:
     async def test_api_endpoint_generation(
         self,
         application_service: ApplicationService,
-        test_workflow: Workflow,
+        test_workflow: WorkflowModel,
         test_user: UserEntity,
     ):
         """测试API端点生成"""
@@ -116,7 +116,7 @@ class TestApplicationService:
     async def test_api_key_validation(
         self,
         application_service: ApplicationService,
-        test_workflow: Workflow,
+        test_workflow: WorkflowModel,
         test_user: UserEntity,
     ):
         """测试API密钥验证"""
@@ -144,7 +144,7 @@ class TestApplicationService:
     async def test_application_config_immediate_effect(
         self,
         application_service: ApplicationService,
-        test_workflow: Workflow,
+        test_workflow: WorkflowModel,
         test_user: UserEntity,
     ):
         """测试应用配置立即生效"""
@@ -169,7 +169,7 @@ class TestApplicationService:
     async def test_application_deletion_endpoint_revocation(
         self,
         application_service: ApplicationService,
-        test_workflow: Workflow,
+        test_workflow: WorkflowModel,
         test_user: UserEntity,
     ):
         """测试应用删除时端点撤销"""
@@ -197,7 +197,7 @@ class TestApplicationService:
     async def test_application_list_and_pagination(
         self,
         application_service: ApplicationService,
-        test_workflow: Workflow,
+        test_workflow: WorkflowModel,
         test_user: UserEntity,
     ):
         """测试应用列表和分页"""
@@ -221,7 +221,7 @@ class TestApplicationService:
     async def test_api_key_management(
         self,
         application_service: ApplicationService,
-        test_workflow: Workflow,
+        test_workflow: WorkflowModel,
         test_user: UserEntity,
     ):
         """测试API密钥管理"""

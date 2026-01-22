@@ -15,10 +15,10 @@ from typing import Optional
 
 from sqlmodel import Field
 
-from app.models.base import BaseEntity, SoftDeleteMixin, TimestampMixin
+from app.models.base import BaseModel, SoftDeleteMixin, TimestampMixin
 
 
-class UserEntity(BaseEntity, TimestampMixin, SoftDeleteMixin, table=True):
+class UserEntity(BaseModel, TimestampMixin, SoftDeleteMixin, table=True):
     """用户表 - 系统用户账户。
 
     存储系统用户的基本信息和认证凭证。

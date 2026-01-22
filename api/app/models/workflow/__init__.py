@@ -1,17 +1,17 @@
 """工作流域模型"""
 
 from app.models.workflow.workflow import (
-    Workflow,
-    Node,
-    Connection,
-    ExecutionRecord,
-    NodeExecutionResult,
+    ConnectionModel,
+    ExecutionRecordModel,
+    NodeExecutionResultModel,
+    NodeModel,
+    WorkflowModel,
 )
 
 __all__ = [
-    'Workflow',
-    'Node',
-    'Connection',
-    'ExecutionRecord',
-    'NodeExecutionResult',
+    'WorkflowModel',
+    'NodeModel',
+    'ConnectionModel',
+    'ExecutionRecordModel',
+    'NodeExecutionResultModel',
 ]

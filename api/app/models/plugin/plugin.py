@@ -11,10 +11,10 @@ from uuid import UUID
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Column, Field
 
-from app.models.base import BaseEntity, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
+from app.models.base import BaseModel, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
 
 
-class Plugin(BaseEntity, TimestampMixin, SoftDeleteMixin, table=True):
+class Plugin(BaseModel, TimestampMixin, SoftDeleteMixin, table=True):
     """插件表 - 插件定义。
 
     存储可用插件的信息和配置。
@@ -71,7 +71,7 @@ class Plugin(BaseEntity, TimestampMixin, SoftDeleteMixin, table=True):
     is_verified: bool = Field(default=False, index=True)
 
 
-class InstalledPlugin(BaseEntity, TimestampMixin, WorkspaceMixin, SoftDeleteMixin, table=True):
+class InstalledPlugin(BaseModel, TimestampMixin, WorkspaceMixin, SoftDeleteMixin, table=True):
     """已安装插件表 - 工作空间插件。
 
     记录工作空间安装的插件及其配置。

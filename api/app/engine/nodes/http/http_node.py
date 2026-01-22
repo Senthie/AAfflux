@@ -21,7 +21,7 @@ from app.engine.nodes.base import (
 )
 from app.engine.nodes.base.emum import NodeExecutionTypeEnum, NodeTypeEnum
 from app.engine.nodes.http.entities import HttpNodeData
-from app.models.workflow.workflow import Node
+from app.models.workflow.workflow import NodeModel
 from app.utils.json_path import JsonPathUtil
 
 
@@ -73,7 +73,7 @@ class HTTPNodeExecutor(BaseNode):
         except Exception:
             return False
 
-    async def execute(self, node: Node, context: ExecutionContext) -> Dict[str, Any]:
+    async def execute(self, node: NodeModel, context: ExecutionContext) -> Dict[str, Any]:
         """Execute HTTP node by making an HTTP request.
 
         Args:

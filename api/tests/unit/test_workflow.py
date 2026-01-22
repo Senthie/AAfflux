@@ -37,7 +37,12 @@ from app.engine.topological_sorter import TopologicalSorter
 register_all_nodes()
 
 # 导入模型
-from app.models.workflow.workflow import Connection, ExecutionRecord, Node, Workflow
+from app.models.workflow.workflow import (
+    ConnectionModel,
+    ExecutionRecordModel,
+    NodeModel,
+    WorkflowModel,
+)
 
 # ============ Ollama 配置 ============
 OLLAMA_API_KEY = 'ollama'
@@ -48,7 +53,7 @@ OLLAMA_MODEL_ID = 'qwen3:8b'
 @pytest.fixture
 def workflow():
     """创建测试工作流"""
-    return Workflow(
+    return WorkflowModel(
         id=uuid4(),
         name='Test Workflow',
         workspace_id=uuid4(),
@@ -59,7 +64,7 @@ def workflow():
 @pytest.fixture
 def execution_record(workflow):
     """创建执行记录"""
-    return ExecutionRecord(
+    return ExecutionRecordModel(
         id=uuid4(),
         workflow_id=workflow.id,
         inputs={},
@@ -74,7 +79,7 @@ def context(workflow, execution_record):
 
 
 class TestWorkflow:
-    def create_http_node(self, method: str, url: str, **kwargs) -> Node:
+    def create_http_node(self, method: str, url: str, **kwargs) -> NodeModel:
         """创建 HTTP 节点的辅助方法"""
         config = {
             'title': 'Http Request',
@@ -87,7 +92,7 @@ class TestWorkflow:
             'timeout': kwargs.get('timeout', 30),
             'follow_redirects': kwargs.get('follow_redirects', True),
         }
-        return Node(
+        return NodeModel(
             workflow_id=uuid4(),
             type=NodeTypeEnum.HTTP.value,
             name='Http Request',
@@ -107,14 +112,14 @@ class TestWorkflow:
         测试节点是否能如期运行
         """
         # 创建工作流
-        workflow = Workflow(
+        workflow = WorkflowModel(
             id=uuid4(),
             name='Test Workflow',
             workspace_id=uuid4(),
             created_by=uuid4(),
         )
         # 创建执行记录
-        execution_record = ExecutionRecord(
+        execution_record = ExecutionRecordModel(
             id=uuid4(),
             workflow_id=workflow.id,
             inputs={},
@@ -124,7 +129,7 @@ class TestWorkflow:
         context = ExecutionContext(workflow, execution_record, {})
 
         # 创建 ChatNode 实例
-        chat_node = Node(
+        chat_node = NodeModel(
             id=uuid4(),
             workflow_id=workflow.id,
             type=NodeTypeEnum.CHAT.value,
@@ -132,7 +137,7 @@ class TestWorkflow:
             config={'prompt': f'{left} + {right} = ?', 'title': 'Test Chat Node'},
         )
         # 创建 Ollama provider 示例
-        ollama_node = Node(
+        ollama_node = NodeModel(
             id=uuid4(),
             workflow_id=workflow.id,
             type=NodeTypeEnum.OLLAMA.value,
@@ -145,7 +150,7 @@ class TestWorkflow:
                 'timeout': 120,
             },
         )
-        agent_node = Node(
+        agent_node = NodeModel(
             id=uuid4(),
             workflow_id=workflow.id,
             type=NodeTypeEnum.AGENT.value,
@@ -160,7 +165,7 @@ class TestWorkflow:
                 'temperature': 0.1,
             },
         )
-        conn1 = Connection(
+        conn1 = ConnectionModel(
             id=uuid4(),
             workflow_id=workflow.id,
             source_node_id=ollama_node.id,
@@ -169,7 +174,7 @@ class TestWorkflow:
             target_input='input',
         )
 
-        conn2 = Connection(
+        conn2 = ConnectionModel(
             id=uuid4(),
             workflow_id=workflow.id,
             source_node_id=chat_node.id,
@@ -205,14 +210,14 @@ class TestWorkflow:
         测试节点是否能如期运行
         """
         # 创建工作流
-        workflow = Workflow(
+        workflow = WorkflowModel(
             id=uuid4(),
             name='Test Workflow',
             workspace_id=uuid4(),
             created_by=uuid4(),
         )
         # 创建执行记录
-        execution_record = ExecutionRecord(
+        execution_record = ExecutionRecordModel(
             id=uuid4(),
             workflow_id=workflow.id,
             inputs={},
@@ -222,7 +227,7 @@ class TestWorkflow:
         context = ExecutionContext(workflow, execution_record, {})
 
         # 创建 ChatNode 实例
-        chat_node = Node(
+        chat_node = NodeModel(
             id=uuid4(),
             workflow_id=workflow.id,
             type=NodeTypeEnum.CHAT.value,
@@ -230,7 +235,7 @@ class TestWorkflow:
             config={'prompt': '一个女孩站在公交车站', 'title': 'Test Chat Node'},
         )
         # 创建 Ollama provider 示例
-        ollama_node = Node(
+        ollama_node = NodeModel(
             id=uuid4(),
             workflow_id=workflow.id,
             type=NodeTypeEnum.OLLAMA.value,
@@ -243,7 +248,7 @@ class TestWorkflow:
                 'timeout': 120,
             },
         )
-        agent_node = Node(
+        agent_node = NodeModel(
             id=uuid4(),
             workflow_id=workflow.id,
             type=NodeTypeEnum.AGENT.value,
@@ -314,7 +319,7 @@ class TestWorkflow:
                 },
             },
         )
-        conn1 = Connection(
+        conn1 = ConnectionModel(
             id=uuid4(),
             workflow_id=workflow.id,
             source_node_id=ollama_node.id,
@@ -323,7 +328,7 @@ class TestWorkflow:
             target_input='input',
         )
 
-        conn2 = Connection(
+        conn2 = ConnectionModel(
             id=uuid4(),
             workflow_id=workflow.id,
             source_node_id=chat_node.id,
@@ -332,7 +337,7 @@ class TestWorkflow:
             target_input='input',
         )
 
-        conn3 = Connection(
+        conn3 = ConnectionModel(
             id=uuid4(),
             workflow_id=workflow.id,
             source_node_id=agent_node.id,

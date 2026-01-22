@@ -12,10 +12,10 @@ from uuid import UUID
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Column, Field
 
-from app.models.base import BaseEntity, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
+from app.models.base import BaseModel, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
 
 
-class Subscription(BaseEntity, TimestampMixin, WorkspaceMixin, SoftDeleteMixin, table=True):
+class Subscription(BaseModel, TimestampMixin, WorkspaceMixin, SoftDeleteMixin, table=True):
     """订阅表 - 租户订阅管理。
 
     管理工作空间的订阅计划和配额限制。
@@ -75,7 +75,7 @@ class Subscription(BaseEntity, TimestampMixin, WorkspaceMixin, SoftDeleteMixin, 
     cancelled_at: Optional[datetime] = None
 
 
-class UsageRecord(BaseEntity, WorkspaceMixin, table=True):
+class UsageRecord(BaseModel, WorkspaceMixin, table=True):
     """用量记录表 - 资源使用追踪。
 
     记录工作空间的资源使用情况，用于计费和配额控制。

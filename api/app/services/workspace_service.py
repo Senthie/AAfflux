@@ -17,7 +17,7 @@ from app.core.response import ResponseSchemaModel, response_base
 from app.models.application.application import Application
 from app.models.file.reference import FileReference
 from app.models.tenant.organization import Workspace, WorkspaceAccountUser
-from app.models.workflow.workflow import Workflow
+from app.models.workflow.workflow import WorkflowModel
 from app.schemas.workspace import WorkspaceCreate, WorkspaceResponse, WorkspaceUpdate
 
 
@@ -82,7 +82,7 @@ class WorkspaceService:
         """级联删除工作空间下的所有资源"""
         # 软删除工作流
         workflows = await self.session.execute(
-            select(Workflow).where(Workflow.workspace_id == workspace_id)
+            select(WorkflowModel).where(WorkflowModel.workspace_id == workspace_id)
         )
         for workflow in workflows.scalars():
             workflow.soft_delete()
@@ -106,7 +106,7 @@ class WorkspaceService:
     ) -> bool:
         """移动资源到其他工作空间"""
         resource_models = {
-            'workflow': Workflow,
+            'workflow': WorkflowModel,
             'application': Application,
             'file': FileReference,
         }
@@ -128,8 +128,8 @@ class WorkspaceService:
         """获取工作空间资源列表"""
         # 查询工作流
         workflows = await self.session.execute(
-            select(Workflow).where(
-                Workflow.workspace_id == workspace_id, Workflow.is_deleted.is_(False)
+            select(WorkflowModel).where(
+                WorkflowModel.workspace_id == workspace_id, WorkflowModel.is_deleted.is_(False)
             )
         )
 

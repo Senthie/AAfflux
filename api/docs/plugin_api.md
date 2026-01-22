@@ -35,7 +35,7 @@ POST /api/v1/plugins/
     "internal": [
        {
       "type": "textinput",
-      "key": "title",
+      "`key`": "title",
       "label": "标题",
       "placeholder": "请输入标题",
       "default": "默认标题",
