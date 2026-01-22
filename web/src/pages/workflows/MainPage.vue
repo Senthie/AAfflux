@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-14 15:07:09
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-22 15:05:13
+ * @LastEditTime: 2026-01-22 17:31:48
  * @FilePath: /web/src/pages/workflows/MainPage.vue
  * @Description: 工作流的主要页面
  *
@@ -21,7 +21,7 @@ import '@leafer-in/editor' // 导入图形编辑器插件
 import '@leafer-in/viewport' // 导入视口插件 (可选)
 import '@leafer-in/find' // 导入查找元素插件
 import type { IPageReq, IPageRes } from 'src/interfaces/Ipage'
-import type { PluginResponse } from 'src/interfaces/IPlugin'
+import type { PluginConfigRecord, PluginResponse } from 'src/interfaces/IPlugin'
 import { v1_plugins_list } from 'src/apis/plugin_api'
 import { NodeRect } from 'src/utils/nodeReact'
 import { Platform } from 'leafer-ui'
@@ -29,6 +29,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { Notify } from 'quasar'
 import { v1_get_workflow } from 'src/apis/workflow_api'
 import { useWorkflowStore } from 'src/stores/workflow-store'
+import type { INodeRes } from 'src/interfaces/IWorkflows'
+import { PluginUtil } from 'src/utils/PluginUtil'
 
 const workflow_store = useWorkflowStore()
 
@@ -254,30 +256,40 @@ onMounted(async () => {
 })
 
 const createNodeRect = (plugin: PluginResponse) => {
-    let num = 0
     // TOOD 这样创建 rect 并不严谨 应该通过 NODE表
     // 继续去查询节点的名字是否存在重复
-    const node = new NodeRect({
+    const ui = {
         title: `${plugin.name}`,
         icon: plugin.icon,
         x: click_xy.x,
         y: click_xy.y,
         editable: true,
-    })
-    do {
-        num += 1
-        node.name = `rect${num}`
-    } while (num <= 3)
+    }
+    const config: PluginConfigRecord =
+        PluginUtil.createPluginConfigRecord(plugin)
+
+    const node: INodeRes = {
+        id: '',
+        plugin_id: '',
+        workflow_id: '',
+        type: '',
+        config: config,
+        ui: ui,
+        is_deleted: false,
+    }
+    const node_ui = new NodeRect(ui)
 
     // 使用全局设置函数为新节点添加监听器
     const setupFunctions = (window as { setupNodeListeners?: NodeListeners })
         .setupNodeListeners
     if (setupFunctions) {
-        setupFunctions.setupNodeDragListeners(node)
-        setupFunctions.setupConnectionListeners(node)
+        setupFunctions.setupNodeDragListeners(node_ui)
+        setupFunctions.setupConnectionListeners(node_ui)
     }
 
-    app.tree.add(node)
+    app.tree.add(node_ui)
+    workflow_store.add_node(node)
+    console.log(workflow_store.workflow)
     add_node_dialog_visiable.value = false
 }
 
