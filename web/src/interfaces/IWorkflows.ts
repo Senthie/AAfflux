@@ -2,13 +2,15 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-10 16:06:42
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-22 15:12:15
+ * @LastEditTime: 2026-01-22 17:08:35
  * @FilePath: /web/src/interfaces/IWorkflows.ts
  * @Description:
  *
  * Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+import type { PluginConfigRecord } from './IPlugin'
 
 /**
  * Request schema for creating a workflow.
@@ -45,7 +47,7 @@ export interface INodeRes {
     plugin_id: string
     workflow_id: string
     type: string
-    config: Record<string, any>
+    config: PluginConfigRecord
     ui: Record<string, any>
     is_deleted: boolean
 }
