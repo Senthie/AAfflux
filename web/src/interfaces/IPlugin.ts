@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-19 14:51:12
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-22 16:45:42
+ * @LastEditTime: 2026-01-26 14:32:36
  * @FilePath: /web/src/interfaces/IPlugin.ts
  * @Description: plugin 的请求和返回值的抽象
  *
@@ -95,7 +95,8 @@ export type ManifestTypeMapping<T extends string> = T extends 'textinput'
       : T extends 'number'
         ? number
         : T extends 'array'
-          ? any[]
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            any[]
           : T extends 'file'
             ? File | File[]
             : T extends 'boolean'

@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-08 14:12:08
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-21 15:41:13
+ * @LastEditTime: 2026-01-26 14:32:06
  * @FilePath: /web/src/apis/workflow_api.ts
  * @Description:
  *
@@ -15,7 +15,6 @@ import type { IResponse } from 'src/interfaces/IResponse'
 import type {
     IWorkflowResponse,
     IWorkflowCreateRequest,
-    IWorkflowDetailRes,
 } from 'src/interfaces/IWorkflows'
 import { extractErrorMessage } from 'src/utils/errorHandler'
 
@@ -133,9 +132,9 @@ export async function v1_delete_workflow(
 
 export async function v1_get_workflow(
     workflow_id: string
-): Promise<IResponse<IWorkflowDetailRes>> {
+): Promise<IResponse<IWorkflowResponse>> {
     try {
-        const response = await api.get<IResponse<IWorkflowDetailRes>>(
+        const response = await api.get<IResponse<IWorkflowResponse>>(
             `/v1/workflows/${workflow_id}`
         )
 
@@ -160,7 +159,44 @@ export async function v1_get_workflow(
         return {
             code: 500,
             msg: errorMessage,
-            data: {} as IWorkflowDetailRes,
+            data: {} as IWorkflowResponse,
+            timestamp: new Date().toISOString(),
+        }
+    }
+}
+
+export async function v1_update_workflow(
+    workflow_id: string,
+    workflow: IWorkflowResponse
+) {
+    try {
+        const response = await api.put<IResponse<null>>(
+            `/v1/workflows/${workflow_id}`,
+            workflow
+        )
+
+        // 无论成功还是失败都显示消息
+        if (response.data.code !== 200) {
+            Notify.create({
+                type: 'negative',
+                message: response.data.msg || '更新工作流失败',
+            })
+        }
+
+        return response.data
+    } catch (error) {
+        const errorMessage = extractErrorMessage(error)
+
+        Notify.create({
+            type: 'negative',
+            message: errorMessage,
+        })
+
+        // 返回一个错误响应格式
+        return {
+            code: 500,
+            msg: errorMessage,
+            data: {},
             timestamp: new Date().toISOString(),
         }
     }
