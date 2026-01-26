@@ -2,19 +2,21 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-12 11:07:19
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-22 12:20:34
+ * @LastEditTime: 2026-01-26 15:02:29
  * @FilePath: /web/src/stores/workflow-store.ts
  * @Description: 用户当前打开的 workflow
  *
  * Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
  */
 import { defineStore } from 'pinia'
-import type { INodeRes, IWorkflowDetailRes } from 'src/interfaces/IWorkflows'
+import type { INode, IWorkflowResponse } from 'src/interfaces/IWorkflows'
 import { ref } from 'vue'
-export const useWorkflowStore = defineStore('workspaceStore', () => {
-    const workflow = ref<IWorkflowDetailRes>({
-        nodes: [],
-        connections: [],
+export const useWorkflowStore = defineStore('workflowStore', () => {
+    const workflow = ref<IWorkflowResponse>({
+        graph: {
+            nodes: [],
+            connections: [],
+        },
         id: '',
         name: '',
         workspace_id: '',
@@ -27,21 +29,24 @@ export const useWorkflowStore = defineStore('workspaceStore', () => {
     })
 
     // 添加 node 节点
-    function add_node(node: INodeRes) {
-        workflow.value.nodes.push(node)
+    function add_node(node: INode) {
+        workflow.value.graph.nodes.push(node)
+        console.log(workflow.value)
     }
 
-    function get_node_by_id(id: string): INodeRes | undefined {
-        return workflow.value.nodes.find((node) => node.id === id)
+    function get_node_by_id(id: string): INode | undefined {
+        return workflow.value.graph.nodes.find((node) => node.id === id)
     }
 
     // 删除节点通过id
     function del_node_by_id(id: string) {
         // 获取index
-        const index = workflow.value.nodes.findIndex((node) => node.id === id)
+        const index = workflow.value.graph.nodes.findIndex(
+            (node) => node.id === id
+        )
         if (index !== -1) {
             // 删除节点
-            workflow.value.nodes.splice(index, 1)
+            workflow.value.graph.nodes.splice(index, 1)
         }
     }
 
@@ -53,7 +58,7 @@ export const useWorkflowStore = defineStore('workspaceStore', () => {
         }
     }
 
-    function set_workflow(workflow_data: IWorkflowDetailRes) {
+    function set_workflow(workflow_data: IWorkflowResponse) {
         workflow.value = workflow_data
     }
 
@@ -66,7 +71,7 @@ export const useWorkflowStore = defineStore('workspaceStore', () => {
             source_output: 'output',
             target_input: 'input',
         }
-        workflow.value.connections.push(connection)
+        workflow.value.graph.connections.push(connection)
     }
 
     return {
