@@ -12,7 +12,7 @@ export class PluginUtil {
         ]
 
         // 创建初始配置对象
-        const config: Record<string, any> = {}
+        const config: Record<string, unknown> = {}
 
         allManifestItems.forEach((item) => {
             const { key, type, default: defaultValue } = item
@@ -54,7 +54,7 @@ export class PluginUtil {
         config: PluginConfigRecord,
         key: K
     ): PluginConfigRecord[K] {
-        return config[key]
+        return config[key] as PluginConfigRecord[K]
     }
 
     // 设置配置值
