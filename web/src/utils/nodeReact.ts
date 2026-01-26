@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-19 15:49:12
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-20 14:59:41
+ * @LastEditTime: 2026-01-26 15:47:39
  * @FilePath: /web/src/utils/nodeReact.ts
  * @Description: 创建一个 node 的节点类型
  *
@@ -68,7 +68,7 @@ export class NodeRect extends Group {
 
     constructor(data: INodeRectInputData) {
         super(data)
-
+        this.editable = true
         this.create_rect()
         this.create_title()
         // TOOD Node之间会形成回环，需要添加条件进行控制
