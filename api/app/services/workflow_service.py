@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-09 03:25:28
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-20 17:14:59
+LastEditTime: 2026-01-26 14:06:21
 FilePath: /api/app/services/workflow_service.py
 Description:Workflow management service.
 
@@ -12,63 +12,29 @@ including validation and serialization functionality.
 Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
-from typing import List
+import hashlib
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
-from app.core.exceptions import WorkspaceException
+from app.core.exceptions import WorkflowError, WorkspaceException
 from app.enums.custom_response_code_enum import CustomResponseCodeEnum
 from app.models.auth.user import UserEntity
 from app.models.tenant.organization import TenantAccountRole, WorkspaceAccountUser
 from app.models.workflow.workflow import (
-    ConnectionModel,
     ExecutionRecordModel,
-    NodeModel,
     WorkflowModel,
 )
 from app.schemas.page_schemas import PageRequest, PageResponse
 from app.schemas.workflow import (
-    ConnectionCreateRequest,
-    NodeCreateRequest,
-    NodeUpdateRequest,
+    GraphModel,
     WorkflowCreateRequest,
+    WorkflowDetailResponse,
     WorkflowResponse,
     WorkflowUpdateRequest,
 )
-from app.services.workflow_validator import ValidationResult, WorkflowValidator
-
-
-class WorkflowNotFoundError(Exception):
-    """Exception raised when workflow is not found."""
-
-    pass
-
-
-class NodeNotFoundError(Exception):
-    """Exception raised when node is not found."""
-
-    pass
-
-
-class ConnectionNotFoundError(Exception):
-    """Exception raised when connection is not found."""
-
-    pass
-
-
-class WorkflowValidationError(Exception):
-    """Exception raised when workflow validation fails."""
-
-    def __init__(self, validation_result: ValidationResult):
-        """Initialize with validation result.
-
-        Args:
-            validation_result: The validation result containing errors
-        """
-        self.validation_result = validation_result
-        super().__init__(str(validation_result))
+from app.utils.json_serializer import json_dumps_sorted, serialize_for_db
 
 
 class WorkflowService:
@@ -81,7 +47,28 @@ class WorkflowService:
             db: Async database session
         """
         self.db = db
-        self.validator = WorkflowValidator(db)
+
+    def _calculate_data_hash(self, graph: dict) -> str:
+        """Calculate hash for workflow graph data."""
+        graph_json = json_dumps_sorted(graph)
+        return hashlib.sha256(graph_json.encode()).hexdigest()
+
+    def _get_workflow_graph(self, workflow: WorkflowModel | WorkflowUpdateRequest) -> GraphModel:
+        """Get the graph model from workflow."""
+        if not workflow.graph:
+            return GraphModel(nodes=[], connections=[])
+        return GraphModel.model_validate(workflow.graph)
+
+    def _serialize_graph_for_db(self, graph: GraphModel) -> dict:
+        """Serialize graph model for database storage, handling UUID conversion."""
+        return serialize_for_db(graph.model_dump())
+
+    def _update_workflow_graph(self, workflow: WorkflowModel, graph: GraphModel) -> None:
+        """Update workflow graph and increment version."""
+        workflow.graph = self._serialize_graph_for_db(graph)
+        workflow.data_hash = self._calculate_data_hash(workflow.graph)
+        workflow.version += 1
+        workflow.touch()
 
     # ========================================================================
     # Workflow CRUD Operations
@@ -132,7 +119,7 @@ class WorkflowService:
 
         return workflow
 
-    async def get_workflow(self, workflow_id: UUID, user: UserEntity) -> WorkflowResponse:
+    async def get_workflow(self, workflow_id: UUID, user: UserEntity) -> WorkflowDetailResponse:
         """Get a workflow by ID.
 
         Args:
@@ -148,7 +135,7 @@ class WorkflowService:
         # 1. get workflow
         workflow = await self.db.get(WorkflowModel, workflow_id)
         if not workflow or workflow.is_deleted:
-            raise WorkflowNotFoundError(f'Workflow {workflow_id} not found')
+            raise WorkflowError(CustomResponseCodeEnum.WORKFLOW_NOT_EXISTS)
         # 2. get workspace by workflow_id
         result = await self.db.execute(
             select(WorkspaceAccountUser).where(
@@ -165,7 +152,7 @@ class WorkflowService:
         if TenantAccountRole.is_editing_role(workspace_account.role) is False:
             raise WorkspaceException(CustomResponseCodeEnum.FORBIDDEN)
 
-        return WorkflowResponse.model_validate(workflow)
+        return WorkflowDetailResponse.model_validate(workflow)
 
     async def list_workflows(
         self, workspace_id: UUID, page_req: PageRequest
@@ -186,7 +173,7 @@ class WorkflowService:
         statement = (
             select(WorkflowModel)
             .where(WorkflowModel.workspace_id == workspace_id)
-            .where(~WorkflowModel.is_deleted)
+            .where(WorkflowModel.is_deleted == False)
             .offset(skip)
             .limit(page_req.size)
         )
@@ -197,7 +184,7 @@ class WorkflowService:
         count_statement = (
             select(WorkflowModel)
             .where(WorkflowModel.workspace_id == workspace_id)
-            .where(~WorkflowModel.is_deleted)
+            .where(WorkflowModel.is_deleted == False)
         )
         count_result = await self.db.execute(count_statement)
         total = len(count_result.scalars().all())
@@ -207,8 +194,8 @@ class WorkflowService:
         return page_res
 
     async def update_workflow(
-        self, workflow_id: UUID, workflow_data: WorkflowUpdateRequest
-    ) -> WorkflowModel:
+        self, workflow_id: UUID, workflow_data: WorkflowUpdateRequest, user: UserEntity
+    ) -> None:
         """Update a workflow.
 
         Args:
@@ -220,8 +207,26 @@ class WorkflowService:
 
         Raises:
             WorkflowNotFoundError: If workflow is not found
+
+        TOOD：Lacking about Group validation
         """
+        # 1. get workflow
         workflow = await self._get_workflow_internal(workflow_id)
+        # 2. get workspace by workflow_id
+        result = await self.db.execute(
+            select(WorkspaceAccountUser).where(
+                WorkspaceAccountUser.user_id == user.id,  # type: ignore
+                WorkspaceAccountUser.workspace_id == workflow.workspace_id,  # type: ignore
+                WorkspaceAccountUser.is_deleted.is_(False),  # type: ignore
+            )
+        )
+        workspace_account = result.scalars().first()
+        # 2. Validate workspace 的权限
+        if workspace_account is None:
+            raise WorkspaceException(CustomResponseCodeEnum.WORKSPACE_NOT_EXISTS)
+
+        if TenantAccountRole.is_editing_role(workspace_account.role) is False:
+            raise WorkspaceException(CustomResponseCodeEnum.FORBIDDEN)
 
         # Update fields
         if workflow_data.name is not None:
@@ -233,22 +238,18 @@ class WorkflowService:
         if workflow_data.output_schema is not None:
             workflow.output_schema = workflow_data.output_schema
 
+        # 验证 grap
+        graph = self._get_workflow_graph(workflow_data)
+        self._update_workflow_graph(workflow, graph)
         workflow.touch()
 
         await self.db.commit()
         await self.db.refresh(workflow)
 
-        return workflow
-
-        return workflow
-
     async def delete_workflow(self, workflow_id: UUID, user: UserEntity) -> None:
         """Delete a workflow and all its associated data.
 
-        This performs a soft delete on the workflow and cascades to:
-        - All nodes in the workflow
-        - All connections in the workflow
-        - All execution records (hard delete)
+        This performs a soft delete on the workflow.
 
         Args:
             workflow_id: ID of the workflow
@@ -256,12 +257,14 @@ class WorkflowService:
         Raises:
             WorkflowNotFoundError: If workflow is not found
         """
-        workflow = await self.get_workflow(workflow_id, user)
+        workflow_response = await self.get_workflow(workflow_id, user)
+        workflow = await self._get_workflow_internal(workflow_id)
+
         # 1. get workspace
         result = await self.db.execute(
             select(WorkspaceAccountUser).where(
                 WorkspaceAccountUser.user_id == user.id,  # type: ignore
-                WorkspaceAccountUser.workspace_id == workflow.workspace_id,
+                WorkspaceAccountUser.workspace_id == workflow_response.workspace_id,
                 WorkspaceAccountUser.is_deleted.is_(False),  # type: ignore
             )
         )
@@ -276,15 +279,6 @@ class WorkflowService:
         # Soft delete the workflow
         workflow.soft_delete()
 
-        # Soft delete all nodes
-        nodes_statement = select(NodeModel).where(NodeModel.workflow_id == workflow_id)
-        nodes_result = await self.db.execute(nodes_statement)
-        nodes = nodes_result.scalars().all()
-
-        for node in nodes:
-            if not node.is_deleted:
-                node.soft_delete()
-
         # Delete all execution records (hard delete)
         exec_statement = select(ExecutionRecordModel).where(
             ExecutionRecordModel.workflow_id == workflow_id
@@ -297,292 +291,9 @@ class WorkflowService:
 
         await self.db.commit()
 
-    # ========================================================================
-    # Node Management Operations
-    # ========================================================================
-
     async def _get_workflow_internal(self, workflow_id: UUID) -> WorkflowModel:
         """Internal method to get workflow without permission checks."""
         workflow = await self.db.get(WorkflowModel, workflow_id)
         if not workflow or workflow.is_deleted:
-            raise WorkflowNotFoundError(f'Workflow {workflow_id} not found')
-        return workflow
-
-    async def add_node(self, workflow_id: UUID, node_data: NodeCreateRequest) -> NodeModel:
-        """Add a node to a workflow.
-
-        Args:
-            workflow_id: ID of the workflow
-            node_data: Node creation data
-
-        Returns:
-            Created Node object
-
-        Raises:
-            WorkflowNotFoundError: If workflow is not found
-            WorkflowValidationError: If node configuration is invalid
-        """
-        # Verify workflow exists
-        await self._get_workflow_internal(workflow_id)
-
-        # Validate plugin exists and is active
-        plugin_validation = await self.validator.validate_plugin_exists(node_data.plugin_id)
-        if not plugin_validation.is_valid:
-            raise WorkflowValidationError(plugin_validation)
-
-        # Create node
-        node = NodeModel(
-            plugin_id=node_data.plugin_id,
-            workflow_id=workflow_id,
-            type=node_data.type,
-            config=node_data.config,
-            ui=node_data.ui,
-        )
-
-        # Validate node configuration
-        validation_result = self.validator.validate_node_config(node)
-        if not validation_result.is_valid:
-            raise WorkflowValidationError(validation_result)
-
-        self.db.add(node)
-        await self.db.commit()
-        await self.db.refresh(node)
-
-        return node
-
-    async def get_node(self, node_id: UUID) -> NodeModel:
-        """Get a node by ID.
-
-        Args:
-            node_id: ID of the node
-
-        Returns:
-            Node object
-
-        Raises:
-            NodeNotFoundError: If node is not found
-        """
-        node = await self.db.get(NodeModel, node_id)
-        if not node or node.is_deleted:
-            raise NodeNotFoundError(f'Node {node_id} not found')
-
-        return node
-
-    async def list_nodes(self, workflow_id: UUID) -> List[NodeModel]:
-        """List all nodes in a workflow.
-
-        Args:
-            workflow_id: ID of the workflow
-
-        Returns:
-            List of Node objects
-        """
-        statement = (
-            select(NodeModel)
-            .where(NodeModel.workflow_id == workflow_id)
-            .where(~NodeModel.is_deleted)
-        )
-        result = await self.db.execute(statement)
-        return list(result.scalars().all())
-
-    async def update_node(self, node_id: UUID, node_data: NodeUpdateRequest) -> NodeModel:
-        """Update a node.
-
-        Args:
-            node_id: ID of the node
-            node_data: Node update data
-
-        Returns:
-            Updated Node object
-
-        Raises:
-            NodeNotFoundError: If node is not found
-            WorkflowValidationError: If updated configuration is invalid
-        """
-        node = await self.get_node(node_id)
-
-        # Update fields
-        if node_data.config is not None:
-            node.config = node_data.config
-        if node_data.ui is not None:
-            node.ui = node_data.ui
-
-        # Validate updated configuration
-        validation_result = self.validator.validate_node_config(node)
-        if not validation_result.is_valid:
-            raise WorkflowValidationError(validation_result)
-
-        await self.db.commit()
-        await self.db.refresh(node)
-
-        return node
-
-    async def delete_node(self, node_id: UUID) -> None:
-        """Delete a node from a workflow.
-
-        This performs a soft delete on the node and removes all connections
-        involving this node.
-
-        Args:
-            node_id: ID of the node
-
-        Raises:
-            NodeNotFoundError: If node is not found
-        """
-        node = await self.get_node(node_id)
-
-        # Soft delete the node
-        node.soft_delete()
-
-        # Delete all connections involving this node
-        connections_statement = select(ConnectionModel).where(
-            (ConnectionModel.source_node_id == node_id)
-            | (ConnectionModel.target_node_id == node_id)
-        )
-        connections_result = await self.db.execute(connections_statement)
-        connections = connections_result.scalars().all()
-
-        for connection in connections:
-            await self.db.delete(connection)
-
-        await self.db.commit()
-
-    # ========================================================================
-    # Connection Management Operations
-    # ========================================================================
-
-    async def connect_nodes(
-        self, workflow_id: UUID, connection_data: ConnectionCreateRequest
-    ) -> ConnectionModel:
-        """Create a connection between two nodes.
-
-        Args:
-            workflow_id: ID of the workflow
-            connection_data: Connection creation data
-
-        Returns:
-            Created Connection object
-
-        Raises:
-            WorkflowNotFoundError: If workflow is not found
-            NodeNotFoundError: If either node is not found
-            WorkflowValidationError: If connection would create a cycle
-        """
-        # Verify workflow exists
-        await self._get_workflow_internal(workflow_id)
-
-        # Verify nodes exist
-        await self.get_node(connection_data.source_node_id)
-        await self.get_node(connection_data.target_node_id)
-
-        # Validate connection
-        validation_result = await self.validator.validate_connection(
-            connection_data.source_node_id, connection_data.target_node_id, workflow_id
-        )
-        if not validation_result.is_valid:
-            raise WorkflowValidationError(validation_result)
-
-        # Create connection
-        connection = ConnectionModel(
-            workflow_id=workflow_id,
-            source_node_id=connection_data.source_node_id,
-            target_node_id=connection_data.target_node_id,
-            source_output=connection_data.source_output,
-            target_input=connection_data.target_input,
-        )
-
-        self.db.add(connection)
-        await self.db.commit()
-        await self.db.refresh(connection)
-
-        return connection
-
-    async def get_connection(self, connection_id: UUID) -> ConnectionModel:
-        """Get a connection by ID.
-
-        Args:
-            connection_id: ID of the connection
-
-        Returns:
-            Connection object
-
-        Raises:
-            ConnectionNotFoundError: If connection is not found
-        """
-        connection = await self.db.get(ConnectionModel, connection_id)
-        if not connection:
-            raise ConnectionNotFoundError(f'Connection {connection_id} not found')
-
-        return connection
-
-    async def list_connections(self, workflow_id: UUID) -> List[ConnectionModel]:
-        """List all connections in a workflow.
-
-        Args:
-            workflow_id: ID of the workflow
-
-        Returns:
-            List of Connection objects
-        """
-        statement = select(ConnectionModel).where(ConnectionModel.workflow_id == workflow_id)
-        result = await self.db.execute(statement)
-        return list(result.scalars().all())
-
-    async def delete_connection(self, connection_id: UUID) -> None:
-        """Delete a connection.
-
-        Args:
-            connection_id: ID of the connection
-
-        Raises:
-            ConnectionNotFoundError: If connection is not found
-        """
-        connection = await self.get_connection(connection_id)
-
-        await self.db.delete(connection)
-        await self.db.commit()
-
-    # ========================================================================
-    # Workflow Validation Operations
-    # ========================================================================
-
-    async def validate_workflow(self, workflow_id: UUID) -> ValidationResult:
-        """Validate a complete workflow.
-
-        Args:
-            workflow_id: ID of the workflow
-
-        Returns:
-            ValidationResult indicating if workflow is valid
-        """
-        return await self.validator.validate_workflow(workflow_id)
-
-    async def save_workflow(self, workflow_id: UUID) -> WorkflowModel:
-        """Save and validate a workflow.
-
-        This method validates the workflow before saving to ensure it's in a
-        consistent state.
-
-        Args:
-            workflow_id: ID of the workflow
-
-        Returns:
-            Workflow object
-
-        Raises:
-            WorkflowNotFoundError: If workflow is not found
-            WorkflowValidationError: If workflow validation fails
-        """
-        workflow = await self._get_workflow_internal(workflow_id)
-
-        # Validate workflow
-        validation_result = await self.validate_workflow(workflow_id)
-        if not validation_result.is_valid:
-            raise WorkflowValidationError(validation_result)
-
-        # Update timestamp
-        workflow.touch()
-        await self.db.commit()
-        await self.db.refresh(workflow)
-
+            raise WorkflowError(CustomResponseCodeEnum.WORKFLOW_NOT_EXISTS)
         return workflow

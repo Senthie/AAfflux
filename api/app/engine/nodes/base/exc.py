@@ -10,18 +10,17 @@ Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from typing import Any, Dict, Optional
-from uuid import UUID
 
 
 class NodeExecutionError(Exception):
     """Exception raised when node execution fails."""
 
-    def __init__(self, message: str, node_id: UUID, error_details: Optional[Dict[str, Any]] = None):
+    def __init__(self, message: str, node_id: str, error_details: Optional[Dict[str, Any]] = None):
         """Initialize node execution error.
 
         Args:
             message: Error message
-            node_id: ID of the node that failed
+            node_id: ID of the node that failed (string)
             error_details: Additional error details
         """
         super().__init__(message)

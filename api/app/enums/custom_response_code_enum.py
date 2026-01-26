@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2026-01-05 11:21:54
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-12 12:19:07
+LastEditTime: 2026-01-26 12:15:17
 FilePath: /api/app/enums/custom_response_code_enum.py
 Description: 自定义响应代码和信息
 
@@ -47,3 +47,6 @@ class CustomResponseCodeEnum(CustomCodeBase):
     # workspace
     WORKSPACE_ALREADY_EXISTS = (2001, '工作空间已存在')
     WORKSPACE_NOT_EXISTS = (2002, '工作空间不存在')
+
+    # workflow
+    WORKFLOW_NOT_EXISTS = (3001, '工作流不存在')

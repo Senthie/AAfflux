@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-10 15:59:26
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-22 10:58:29
+LastEditTime: 2026-01-26 11:19:26
 FilePath: /api/app/engine/nodes/base/node.py
 Description: Node executor base class and registry.
 
@@ -76,7 +76,7 @@ class StartNodeExecutor(BaseNode):
         return True
 
 
-@register_node_executor('END')
+@register_node_executor(NodeTypeEnum.END)
 class EndNodeExecutor(BaseNode):
     """Executor for END nodes that collect final outputs."""
 
@@ -129,7 +129,7 @@ class EndNodeExecutor(BaseNode):
         return True
 
 
-@register_node_executor('PASSTHROUGH')
+@register_node_executor(NodeTypeEnum.PASSTHROUGH)
 class PassthroughNodeExecutor(BaseNode):
     """
     Executor for PASSTHROUGH nodes that pass inputs to outputs unchanged.

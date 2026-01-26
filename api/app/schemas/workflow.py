@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2026-01-08 14:12:08
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-22 15:34:59
+LastEditTime: 2026-01-26 11:57:11
 FilePath: /api/app/schemas/workflow.py
 Description:Workflow-related Pydantic schemas for request/response validation.
 
@@ -97,46 +97,7 @@ class NodeUpdateRequest(BaseModel):
     ui: Optional[Dict[str, Any]] = Field(None, description='Node UI information (x, y, etc.)')
 
 
-class NodeResponse(BaseModel):
-    """Response schema for a node."""
-
-    id: UUID
-    plugin_id: UUID
-    workflow_id: UUID
-    type: str
-    config: Dict[str, Any]
-    ui: Dict[str, Any]
-    is_deleted: bool = False
-
-    model_config = {'from_attributes': True}
-
-
-# ============================================================================
-# Connection Schemas
-# ============================================================================
-
-
-class ConnectionCreateRequest(BaseModel):
-    """Request schema for creating a connection."""
-
-    source_node_id: UUID = Field(..., description='Source node ID')
-    target_node_id: UUID = Field(..., description='Target node ID')
-    source_output: str = Field(..., min_length=1, max_length=255, description='Source output port')
-    target_input: str = Field(..., min_length=1, max_length=255, description='Target input port')
-
-
-class ConnectionResponse(BaseModel):
-    """Response schema for a connection."""
-
-    id: UUID
-    workflow_id: UUID
-    source_node_id: UUID
-    target_node_id: UUID
-    source_output: str
-    target_input: str
-
-    model_config = {'from_attributes': True}
-
+from app.models.workflow.workflow import GraphModel
 
 # ============================================================================
 # Workflow Schemas
@@ -155,8 +116,9 @@ class WorkflowCreateRequest(BaseModel):
 class WorkflowUpdateRequest(BaseModel):
     """Request schema for updating a workflow."""
 
-    name: Optional[str] = Field(None, min_length=1, max_length=255, description='Workflow name')
+    name: str = Field(..., description='Workflow name')
     description: Optional[str] = Field(None, description='Workflow description')
+    graph: GraphModel
     input_schema: Optional[Dict[str, Any]] = Field(None, description='Input parameter schema')
     output_schema: Optional[Dict[str, Any]] = Field(None, description='Output result schema')
 
@@ -181,10 +143,7 @@ class WorkflowResponse(BaseModel):
 class WorkflowDetailResponse(WorkflowResponse):
     """Detailed response schema for a workflow including nodes and connections."""
 
-    nodes: List[NodeResponse] = Field(default_factory=list, description='Workflow nodes')
-    connections: List[ConnectionResponse] = Field(
-        default_factory=list, description='Node connections'
-    )
+    graph: GraphModel
 
 
 class WorkflowListResponse(BaseModel):

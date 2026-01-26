@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2026-01-02 17:14:49
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-19 11:12:40
+LastEditTime: 2026-01-23 17:15:51
 FilePath: /api/app/models/base.py
 Description: Base model classes and mixins for the application.
 
@@ -110,7 +110,12 @@ class SoftDeleteMixin:
 
 
 class AuditMixin:
-    """Mixin class providing audit fields for tracking who created/updated records."""
+    """
+    Mixin class providing audit fields for tracking who created/updated records.
+
+    :param {UUID} created_by: User who created the record
+    :param {UUID} updated_by: User who last updated the record
+    """
 
     created_by: UUID = Field()  # Logical FK to users
     updated_by: Optional[UUID] = Field(default=None)  # Logical FK to users

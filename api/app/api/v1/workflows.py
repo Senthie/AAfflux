@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-09 03:26:58
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-20 17:16:31
+LastEditTime: 2026-01-26 14:06:51
 FilePath: /api/app/api/v1/workflows.py
 Description:Workflow management API endpoints.
 
@@ -18,20 +18,13 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_session
-from app.core.exceptions import WorkspaceException
+from app.core.exceptions import WorkflowError, WorkspaceException
 from app.core.response import ResponseModel, ResponseSchemaModel, response_base
 from app.enums.custom_response_code_enum import CustomResponseCodeEnum
 from app.middleware.auth import get_current_user
 from app.models.auth.user import UserEntity
 from app.schemas.page_schemas import PageRequest, PageResponse
 from app.schemas.workflow import (
-    ConnectionCreateRequest,
-    ConnectionResponse,
-    NodeCreateRequest,
-    NodeResponse,
-    NodeUpdateRequest,
-    ValidationErrorDetail,
-    ValidationResultResponse,
     WorkflowCreateRequest,
     WorkflowDeleteResponse,
     WorkflowDetailResponse,
@@ -39,11 +32,7 @@ from app.schemas.workflow import (
     WorkflowUpdateRequest,
 )
 from app.services.workflow_service import (
-    ConnectionNotFoundError,
-    NodeNotFoundError,
-    WorkflowNotFoundError,
     WorkflowService,
-    WorkflowValidationError,
 )
 
 router = APIRouter(prefix='/workflows', tags=['Workflow Management'])
@@ -156,21 +145,10 @@ async def get_workflow(
 
     try:
         workflow = await service.get_workflow(workflow_id, current_user)
-        nodes = await service.list_nodes(workflow_id)
-        connections = await service.list_connections(workflow_id)
 
-        return response_base.success(
-            data=WorkflowDetailResponse(
-                **workflow.model_dump(),
-                nodes=[NodeResponse.model_validate(n) for n in nodes],
-                connections=[ConnectionResponse.model_validate(c) for c in connections],
-            )
-        )
-    except WorkflowNotFoundError as e:
-        return response_base.fail(
-            res=CustomResponseCodeEnum.NOT_FOUND,
-            data=str(e),
-        )
+        return response_base.success(data=workflow)
+    except WorkflowError as e:
+        return response_base.fail(res=e.response_code, data=e.message)
     except WorkspaceException as e:
         return response_base.fail(
             res=e.response_code,
@@ -203,12 +181,17 @@ async def update_workflow(
     service = WorkflowService(session)
 
     try:
-        workflow = await service.update_workflow(workflow_id, workflow_data)
-        return response_base.success(data=WorkflowResponse.model_validate(workflow))
-    except WorkflowNotFoundError as e:
+        await service.update_workflow(workflow_id, workflow_data, current_user)
+        return response_base.success()
+    except WorkflowError as e:
         return response_base.fail(
             res=CustomResponseCodeEnum.NOT_FOUND,
             data=str(e),
+        )
+    except Exception as e:
+        return response_base.fail(
+            res=CustomResponseCodeEnum.INTERNAL_SERVER_ERROR,
+            data=f'Failed to update workflow: {str(e)}',
         )
 
 
@@ -248,404 +231,8 @@ async def delete_workflow(
             res=e.response_code,
             data=f'Failed to create workflow: {str(e)}',
         )
-    except WorkflowNotFoundError as e:
+    except WorkflowError as e:
         return response_base.fail(
-            res=CustomResponseCodeEnum.NOT_FOUND,
-            data=str(e),
-        )
-
-
-@router.post(
-    '/{workflow_id}/validate',
-    summary='Validate workflow',
-)
-async def validate_workflow(
-    workflow_id: UUID,
-    current_user: CurrentUser,
-    session: DbSession,
-) -> ResponseSchemaModel[ValidationResultResponse] | ResponseModel:
-    """
-    Validate a workflow's completeness and correctness.
-
-    Args:
-        workflow_id: ID of the workflow
-        current_user: Current authenticated user
-        session: Database session
-
-    Returns:
-        Validation result
-    """
-    service = WorkflowService(session)
-
-    try:
-        validation_result = await service.validate_workflow(workflow_id)
-        return response_base.success(
-            data=ValidationResultResponse(
-                is_valid=validation_result.is_valid,
-                errors=[ValidationErrorDetail(message=error) for error in validation_result.errors],
-            )
-        )
-    except WorkflowNotFoundError as e:
-        return response_base.fail(
-            res=CustomResponseCodeEnum.NOT_FOUND,
-            data=str(e),
-        )
-
-
-@router.post(
-    '/{workflow_id}/save',
-    summary='Save and validate workflow',
-)
-async def save_workflow(
-    workflow_id: UUID,
-    current_user: CurrentUser,
-    session: DbSession,
-) -> ResponseSchemaModel[WorkflowResponse] | ResponseModel:
-    """
-    Save a workflow after validating its completeness.
-
-    Args:
-        workflow_id: ID of the workflow
-        current_user: Current authenticated user
-        session: Database session
-
-    Returns:
-        Saved workflow
-
-    Raises:
-        HTTPException: If workflow validation fails
-    """
-    service = WorkflowService(session)
-
-    try:
-        workflow = await service.save_workflow(workflow_id)
-        return response_base.success(data=WorkflowResponse.model_validate(workflow))
-    except WorkflowNotFoundError as e:
-        return response_base.fail(
-            res=CustomResponseCodeEnum.NOT_FOUND,
-            data=str(e),
-        )
-    except WorkflowValidationError as e:
-        return response_base.fail(
-            res=CustomResponseCodeEnum.BAD_REQUEST,
-            data={
-                'message': 'Workflow validation failed',
-                'errors': e.validation_result.errors,
-            },
-        )
-
-
-# ============================================================================
-# Node Endpoints
-# ============================================================================
-
-
-@router.post(
-    '/{workflow_id}/nodes',
-    summary='Add node to workflow',
-)
-async def add_node(
-    workflow_id: UUID,
-    node_data: NodeCreateRequest,
-    current_user: CurrentUser,
-    session: DbSession,
-) -> ResponseSchemaModel[NodeResponse] | ResponseModel:
-    """
-    Add a new node to a workflow.
-
-    Args:
-        workflow_id: ID of the workflow
-        node_data: Node creation data
-        current_user: Current authenticated user
-        session: Database session
-
-    Returns:
-        Created node
-    """
-    service = WorkflowService(session)
-
-    try:
-        node = await service.add_node(workflow_id, node_data)
-        return response_base.success(data=NodeResponse.model_validate(node))
-    except WorkflowNotFoundError as e:
-        return response_base.fail(
-            res=CustomResponseCodeEnum.NOT_FOUND,
-            data=str(e),
-        )
-    except WorkflowValidationError as e:
-        return response_base.fail(
-            res=CustomResponseCodeEnum.BAD_REQUEST,
-            data={
-                'message': 'Node validation failed',
-                'errors': e.validation_result.errors,
-            },
-        )
-
-
-@router.get(
-    '/{workflow_id}/nodes',
-    summary='List workflow nodes',
-)
-async def list_nodes(
-    workflow_id: UUID,
-    current_user: CurrentUser,
-    session: DbSession,
-) -> ResponseSchemaModel[list[NodeResponse]] | ResponseModel:
-    """
-    List all nodes in a workflow.
-
-    Args:
-        workflow_id: ID of the workflow
-        current_user: Current authenticated user
-        session: Database session
-
-    Returns:
-        List of nodes
-    """
-    service = WorkflowService(session)
-
-    nodes = await service.list_nodes(workflow_id)
-    return response_base.success(data=[NodeResponse.model_validate(n) for n in nodes])
-
-
-@router.get(
-    '/{workflow_id}/nodes/{node_id}',
-    summary='Get node details',
-)
-async def get_node(
-    workflow_id: UUID,
-    node_id: UUID,
-    current_user: CurrentUser,
-    session: DbSession,
-) -> ResponseSchemaModel[NodeResponse] | ResponseModel:
-    """
-    Get details of a specific node.
-
-    Args:
-        workflow_id: ID of the workflow
-        node_id: ID of the node
-        current_user: Current authenticated user
-        session: Database session
-
-    Returns:
-        Node details
-    """
-    service = WorkflowService(session)
-
-    try:
-        node = await service.get_node(node_id)
-        # Verify node belongs to the workflow
-        if node.workflow_id != workflow_id:
-            return response_base.fail(
-                res=CustomResponseCodeEnum.NOT_FOUND,
-                data=f'Node {node_id} not found in workflow {workflow_id}',
-            )
-        return response_base.success(data=NodeResponse.model_validate(node))
-    except NodeNotFoundError as e:
-        return response_base.fail(
-            res=CustomResponseCodeEnum.NOT_FOUND,
-            data=str(e),
-        )
-
-
-@router.put(
-    '/{workflow_id}/nodes/{node_id}',
-    summary='Update node',
-)
-async def update_node(
-    workflow_id: UUID,
-    node_id: UUID,
-    node_data: NodeUpdateRequest,
-    current_user: CurrentUser,
-    session: DbSession,
-) -> ResponseSchemaModel[NodeResponse] | ResponseModel:
-    """
-    Update a node's properties.
-
-    Args:
-        workflow_id: ID of the workflow
-        node_id: ID of the node
-        node_data: Node update data
-        current_user: Current authenticated user
-        session: Database session
-
-    Returns:
-        Updated node
-    """
-    service = WorkflowService(session)
-
-    try:
-        node = await service.get_node(node_id)
-        # Verify node belongs to the workflow
-        if node.workflow_id != workflow_id:
-            return response_base.fail(
-                res=CustomResponseCodeEnum.NOT_FOUND,
-                data=f'Node {node_id} not found in workflow {workflow_id}',
-            )
-
-        updated_node = await service.update_node(node_id, node_data)
-        return response_base.success(data=NodeResponse.model_validate(updated_node))
-    except NodeNotFoundError as e:
-        return response_base.fail(
-            res=CustomResponseCodeEnum.NOT_FOUND,
-            data=str(e),
-        )
-    except WorkflowValidationError as e:
-        return response_base.fail(
-            res=CustomResponseCodeEnum.BAD_REQUEST,
-            data={
-                'message': 'Node validation failed',
-                'errors': e.validation_result.errors,
-            },
-        )
-
-
-@router.delete(
-    '/{workflow_id}/nodes/{node_id}',
-    summary='Delete node',
-)
-async def delete_node(
-    workflow_id: UUID,
-    node_id: UUID,
-    current_user: CurrentUser,
-    session: DbSession,
-) -> ResponseModel:
-    """
-    Delete a node from a workflow.
-
-    Args:
-        workflow_id: ID of the workflow
-        node_id: ID of the node
-        current_user: Current authenticated user
-        session: Database session
-    """
-    service = WorkflowService(session)
-
-    try:
-        node = await service.get_node(node_id)
-        # Verify node belongs to the workflow
-        if node.workflow_id != workflow_id:
-            return response_base.fail(
-                res=CustomResponseCodeEnum.NOT_FOUND,
-                data=f'Node {node_id} not found in workflow {workflow_id}',
-            )
-
-        await service.delete_node(node_id)
-        return response_base.success()
-    except NodeNotFoundError as e:
-        return response_base.fail(
-            res=CustomResponseCodeEnum.NOT_FOUND,
-            data=str(e),
-        )
-
-
-# ============================================================================
-# Connection Endpoints
-# ============================================================================
-
-
-@router.post(
-    '/{workflow_id}/connections',
-    summary='Create connection between nodes',
-)
-async def create_connection(
-    workflow_id: UUID,
-    connection_data: ConnectionCreateRequest,
-    current_user: CurrentUser,
-    session: DbSession,
-) -> ResponseSchemaModel[ConnectionResponse] | ResponseModel:
-    """
-    Create a connection between two nodes in a workflow.
-
-    Args:
-        workflow_id: ID of the workflow
-        connection_data: Connection creation data
-        current_user: Current authenticated user
-        session: Database session
-
-    Returns:
-        Created connection
-    """
-    service = WorkflowService(session)
-
-    try:
-        connection = await service.connect_nodes(workflow_id, connection_data)
-        return response_base.success(data=ConnectionResponse.model_validate(connection))
-    except (WorkflowNotFoundError, NodeNotFoundError) as e:
-        return response_base.fail(
-            res=CustomResponseCodeEnum.NOT_FOUND,
-            data=str(e),
-        )
-    except WorkflowValidationError as e:
-        return response_base.fail(
-            res=CustomResponseCodeEnum.BAD_REQUEST,
-            data={
-                'message': 'Connection validation failed',
-                'errors': e.validation_result.errors,
-            },
-        )
-
-
-@router.get(
-    '/{workflow_id}/connections',
-    summary='List workflow connections',
-)
-async def list_connections(
-    workflow_id: UUID,
-    current_user: CurrentUser,
-    session: DbSession,
-) -> ResponseSchemaModel[list[ConnectionResponse]] | ResponseModel:
-    """
-    List all connections in a workflow.
-
-    Args:
-        workflow_id: ID of the workflow
-        current_user: Current authenticated user
-        session: Database session
-
-    Returns:
-        List of connections
-    """
-    service = WorkflowService(session)
-
-    connections = await service.list_connections(workflow_id)
-    return response_base.success(data=[ConnectionResponse.model_validate(c) for c in connections])
-
-
-@router.delete(
-    '/{workflow_id}/connections/{connection_id}',
-    summary='Delete connection',
-)
-async def delete_connection(
-    workflow_id: UUID,
-    connection_id: UUID,
-    current_user: CurrentUser,
-    session: DbSession,
-) -> ResponseModel:
-    """
-    Delete a connection between nodes.
-
-    Args:
-        workflow_id: ID of the workflow
-        connection_id: ID of the connection
-        current_user: Current authenticated user
-        session: Database session
-    """
-    service = WorkflowService(session)
-
-    try:
-        connection = await service.get_connection(connection_id)
-        # Verify connection belongs to the workflow
-        if connection.workflow_id != workflow_id:
-            return response_base.fail(
-                res=CustomResponseCodeEnum.NOT_FOUND,
-                data=f'Connection {connection_id} not found in workflow {workflow_id}',
-            )
-
-        await service.delete_connection(connection_id)
-        return response_base.success()
-    except ConnectionNotFoundError as e:
-        return response_base.fail(
-            res=CustomResponseCodeEnum.NOT_FOUND,
+            res=e.response_code,
             data=str(e),
         )

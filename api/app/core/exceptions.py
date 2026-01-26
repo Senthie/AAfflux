@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2026-01-05 15:02:39
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-12 12:24:52
+LastEditTime: 2026-01-26 12:11:53
 FilePath: /api/app/core/exceptions.py
 Description: Custom exceptions for the application.
 
@@ -47,6 +47,15 @@ class PasswordValidationException(AuthException):
 
 class WorkspaceException(Exception):
     """Business logic exception with custom response code."""
+
+    def __init__(self, response_code: CustomResponseCodeEnum, message: str | None = None):
+        self.response_code = response_code
+        self.message = message or response_code.msg
+        super().__init__(self.message)
+
+
+class WorkflowError(Exception):
+    """Exception raised when workflow is not found."""
 
     def __init__(self, response_code: CustomResponseCodeEnum, message: str | None = None):
         self.response_code = response_code

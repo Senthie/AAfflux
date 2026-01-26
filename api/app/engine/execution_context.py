@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-10 15:58:38
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-30 14:22:13
+LastEditTime: 2026-01-26 11:19:47
 FilePath: /api/app/engine/execution_context.py
 Description:Execution context management for workflow execution.
 
@@ -13,7 +13,7 @@ Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Union
 from uuid import UUID
 
 from jsonpath_ng import parse
@@ -80,7 +80,9 @@ class ExecutionContext:
 
         self.adjacency_list: Dict[UUID, List[UUID]] = {}
 
-    def set_node_output(self, node: NodeModel | dict, outputs: Dict[str, Any]) -> None:
+    def set_node_output(
+        self, node: Union[NodeModel, Dict[str, Any]], outputs: Dict[str, Any]
+    ) -> None:
         """
         Set the output data for a node.
         Args:
@@ -97,7 +99,7 @@ class ExecutionContext:
             # 获取node 的原始数据
             node_title = node.config.get('title', str(node.id))
 
-            _node = node.to_dict()
+            _node = node.model_dump()
 
         else:
             node_title: str = node.get('config', {}).get('title', 'unknown')

@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-24 16:24:52
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-22 15:26:50
+LastEditTime: 2026-01-26 11:51:40
 FilePath: /api/app/models/workflow/workflow.py
 Description:工作流模型 - 5张表。
     本模块定义了DAG工作流相关的数据模型：
@@ -18,13 +18,43 @@ Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
+from pydantic import BaseModel as PydanticBaseModel
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Column, Field, Relationship
 
 from app.models.base import AuditMixin, BaseModel, SoftDeleteMixin, TimestampMixin, WorkspaceMixin
+
+
+class NodeModel(PydanticBaseModel):
+    """节点数据结构"""
+
+    id: UUID  # 字符串ID，便于前端使用
+    plugin_id: UUID
+    type: str  # NodeTypeEnum as string to avoid circular import
+    config: Dict[str, Any]
+    ui: Dict[str, Any]  # {x, y, width, height, ...}
+
+
+class ConnectionModel(PydanticBaseModel):
+    """
+    连接数据结构
+    :param {str} id `source_node_id`_to_`target_node_id`
+        as 2a9919a2-547f-471c-a03f-c02294a1256c_to_e1668919-79bf-40e8-bdcf-788661689265
+    """
+
+    id: str
+    source_node_id: str
+    target_node_id: str
+
+
+class GraphModel(PydanticBaseModel):
+    """工作流完整数据"""
+
+    nodes: List[NodeModel]
+    connections: List[ConnectionModel]
 
 
 class WorkflowModel(
@@ -56,69 +86,19 @@ class WorkflowModel(
     """
 
     __tablename__ = 'workflows'  # type: ignore
-
     name: str = Field(max_length=255, index=True)
     description: Optional[str] = None
     input_schema: dict = Field(default_factory=dict, sa_column=Column(JSONB))
     output_schema: dict = Field(default_factory=dict, sa_column=Column(JSONB))
+    # 存储完整的节点和连接数据
+    graph: dict = Field(default_factory=dict, sa_column=Column(JSONB, nullable=False))
+    # 乐观锁版本
+    version: int = Field(default=1, sa_column_kwargs={'server_default': '1'})
+    # 数据hash，用于快速检测变更
+    data_hash: str = Field(max_length=64, nullable=True)
 
-
-class NodeModel(BaseModel, SoftDeleteMixin, table=True):  # type: ignore
-    """节点表 - 工作流中的处理节点。
-
-    定义工作流中的各个处理单元，包括类型、配置和位置信息。
-    节点类型包括：LLM、CONDITION、CODE、HTTP、TRANSFORM等。
-
-    Attributes:
-    已经继承
-        id: 节点唯一标识符（UUID）
-        deleted_at: Optional[datetime] = Field(default=None)
-        is_deleted: bool = Field(default=False)
-
-        workflow_id: 所属工作流ID（逻辑外键）
-        type: 节点类型（LLM/CONDITION/CODE/HTTP/TRANSFORM）
-
-        config: 节点配置（JSONB格式）
-        ui: 节点在页面的详细信息，用于记录和渲染ui（JSONB格式，包含x和y）
-
-    2026/01/16:
-        delete name: 节点名称 因为在config中已经包含了title的字段
-        update field position -> ui position只能标识 坐标，ui是用来对节点在画板中的记录
-
-    """
-
-    __tablename__ = 'nodes'  # type: ignore
-    plugin_id: UUID = Field(index=True)
-    workflow_id: UUID = Field(index=True)  # Logical FK to workflows
-    type: str = Field(max_length=50)  # LLM, CONDITION, CODE, HTTP, TRANSFORM
-    config: dict = Field(default_factory=dict, sa_column=Column(JSONB))
-    ui: dict = Field(default_factory=dict, sa_column=Column(JSONB))  # {x, y}
-
-
-class ConnectionModel(BaseModel, table=True):  # type: ignore
-    """连接表 - 节点之间的连接关系。
-
-    定义工作流中节点之间的数据流向。
-    连接指定了源节点的输出如何传递到目标节点的输入。
-
-    Attributes:
-    已经继承
-        id: 连接唯一标识符（UUID）
-
-        workflow_id: 所属工作流ID（逻辑外键）
-        source_node_id: 源节点ID（逻辑外键）
-        target_node_id: 目标节点ID（逻辑外键）
-        source_output: 源节点的输出端口名称
-        target_input: 目标节点的输入端口名称
-    """
-
-    __tablename__ = 'connections'  # type: ignore
-
-    workflow_id: UUID = Field(index=True)  # Logical FK to workflows
-    source_node_id: UUID = Field(index=True)  # Logical FK to nodes
-    target_node_id: UUID = Field(index=True)  # Logical FK to nodes
-    source_output: str = Field(max_length=255)
-    target_input: str = Field(max_length=255)
+    # ========== 索引配置 ==========
+    # Note: Removed invalid postgresql_ops configuration
 
 
 class ExecutionRecordModel(BaseModel, table=True):  # type: ignore
@@ -183,7 +163,7 @@ class NodeExecutionResultModel(BaseModel, table=True):  # type: ignore
     __tablename__ = 'node_execution_results'  # type: ignore
 
     execution_record_id: UUID = Field(index=True)  # Logical FK to execution_records
-    node_id: UUID = Field(index=True)  # Logical FK to nodes
+    node_id: str = Field(index=True)  # Logical FK to nodes (now string ID)
     status: str = Field(max_length=20)
     inputs: dict = Field(default_factory=dict, sa_column=Column(JSONB))
     outputs: Optional[dict] = Field(default=None, sa_column=Column(JSONB))

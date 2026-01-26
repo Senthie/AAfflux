@@ -25,6 +25,8 @@ class NodeTypeEnum(StrEnum):
     OLLAMA = 'ollama'
     CHAT = 'chat'
     HTTP = 'http'
+    END = 'END'
+    PASSTHROUGH = 'PASSTHROUGH'
 
 
 class NodeExecutionTypeEnum(StrEnum):

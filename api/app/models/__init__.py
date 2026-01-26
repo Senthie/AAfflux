@@ -81,10 +81,8 @@ from app.models.tenant import Organization, Team, TeamInvitation, TeamMember, Wo
 
 # 工作流域
 from app.models.workflow import (
-    ConnectionModel,
     ExecutionRecordModel,
     NodeExecutionResultModel,
-    NodeModel,
     WorkflowModel,
 )
 
@@ -108,8 +106,6 @@ __all__ = [
     'TeamInvitation',
     # 工作流域
     'WorkflowModel',
-    'NodeModel',
-    'ConnectionModel',
     'ExecutionRecordModel',
     'NodeExecutionResultModel',
     # 应用域
