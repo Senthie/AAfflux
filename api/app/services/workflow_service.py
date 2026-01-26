@@ -30,7 +30,6 @@ from app.schemas.page_schemas import PageRequest, PageResponse
 from app.schemas.workflow import (
     GraphModel,
     WorkflowCreateRequest,
-    WorkflowDetailResponse,
     WorkflowResponse,
     WorkflowUpdateRequest,
 )
@@ -119,7 +118,7 @@ class WorkflowService:
 
         return workflow
 
-    async def get_workflow(self, workflow_id: UUID, user: UserEntity) -> WorkflowDetailResponse:
+    async def get_workflow(self, workflow_id: UUID, user: UserEntity) -> WorkflowResponse:
         """Get a workflow by ID.
 
         Args:
@@ -152,7 +151,7 @@ class WorkflowService:
         if TenantAccountRole.is_editing_role(workspace_account.role) is False:
             raise WorkspaceException(CustomResponseCodeEnum.FORBIDDEN)
 
-        return WorkflowDetailResponse.model_validate(workflow)
+        return WorkflowResponse.model_validate(workflow)
 
     async def list_workflows(
         self, workspace_id: UUID, page_req: PageRequest

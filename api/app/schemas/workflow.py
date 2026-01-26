@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2026-01-08 14:12:08
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-26 11:57:11
+LastEditTime: 2026-01-26 14:24:02
 FilePath: /api/app/schemas/workflow.py
 Description:Workflow-related Pydantic schemas for request/response validation.
 
@@ -136,14 +136,12 @@ class WorkflowResponse(BaseModel):
     updated_at: datetime
     created_by: UUID
     is_deleted: bool = False
-
+    graph: GraphModel
     model_config = {'from_attributes': True}
 
 
 class WorkflowDetailResponse(WorkflowResponse):
     """Detailed response schema for a workflow including nodes and connections."""
-
-    graph: GraphModel
 
 
 class WorkflowListResponse(BaseModel):

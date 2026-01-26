@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-09 03:26:58
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-26 14:06:51
+LastEditTime: 2026-01-26 14:25:28
 FilePath: /api/app/api/v1/workflows.py
 Description:Workflow management API endpoints.
 
@@ -27,7 +27,6 @@ from app.schemas.page_schemas import PageRequest, PageResponse
 from app.schemas.workflow import (
     WorkflowCreateRequest,
     WorkflowDeleteResponse,
-    WorkflowDetailResponse,
     WorkflowResponse,
     WorkflowUpdateRequest,
 )
@@ -129,7 +128,7 @@ async def get_workflow(
     workflow_id: UUID,
     current_user: CurrentUser,
     session: DbSession,
-) -> ResponseSchemaModel[WorkflowDetailResponse] | ResponseModel:
+) -> ResponseSchemaModel[WorkflowResponse] | ResponseModel:
     """
     Get detailed information about a workflow including nodes and connections.
 
@@ -165,7 +164,7 @@ async def update_workflow(
     workflow_data: WorkflowUpdateRequest,
     current_user: CurrentUser,
     session: DbSession,
-) -> ResponseSchemaModel[WorkflowResponse] | ResponseModel:
+) -> ResponseSchemaModel | ResponseModel:
     """
     Update a workflow's properties.
 
