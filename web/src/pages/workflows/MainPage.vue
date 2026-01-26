@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-14 15:07:09
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-26 15:12:19
+ * @LastEditTime: 2026-01-26 16:17:41
  * @FilePath: /web/src/pages/workflows/MainPage.vue
  * @Description: 工作流的主要页面
  *
@@ -190,6 +190,86 @@ const get_workflow_by_workflow_id = async (workflow_id: string) => {
         void router.push('/main')
     }
 }
+
+// 连线状态管理
+const isDraggingConnection = ref(false)
+const draggingNode = ref<NodeRect>(null as unknown as NodeRect)
+const create_app = () => {
+    //TOOD 当 view设置为window的时候，后退的页面会失去所有点击事件
+    app = new App({
+        view: window,
+        editor: {},
+        wheel: { preventDefault: true }, // 阻止浏览器默认滚动页面事件
+        touch: { preventDefault: true }, // 阻止移动端默认触摸屏滑动页面事件
+        pointer: { preventDefaultMenu: true }, // 阻止浏览器默认菜单事件，改为 true
+    })
+    //  点阵图
+    const dot = new DotMatrix(app, {
+        dotColor: '#D2D4D7',
+        gridGap: 45,
+        gridType: 'dots', // 'dots' | 'lines'
+        maxSize: 10,
+        minSize: 0.1,
+    })
+    dot.enableDotMatrix(true)
+    // 监听 leafer-ui 的右键事件
+    app.on('pointer.menu', (e: { origin: MouseEvent }) => {
+        try {
+            if (app?.editor.single) {
+                const { element } = app.editor
+                onNodeMenu(e.origin, element as IUI)
+            } else {
+                onContextMenu(e.origin)
+            }
+        } catch (error) {
+            console.error('Error in pointer.menu handler:', error)
+        }
+    })
+
+    // 全局鼠标事件处理，用于连线功能
+    app.on('pointer.move', (e: IPointerEvent) => {
+        try {
+            if (isDraggingConnection.value && draggingNode) {
+                // 禁用编辑器选择功能
+                if (app.editor) {
+                    app.editor.cancel()
+                }
+                draggingNode.value.updateDragLineExternal(e)
+            }
+        } catch (error) {
+            console.error('Error in pointer.move handler:', error)
+        }
+    })
+
+    app.on('pointer.up', (e: IPointerEvent) => {
+        try {
+            if (isDraggingConnection.value && draggingNode) {
+                draggingNode.value.endDragConnectionExternal(e)
+                isDraggingConnection.value = false
+                draggingNode.value = null as unknown as NodeRect
+            }
+        } catch (error) {
+            console.error('Error in pointer.up handler:', error)
+        }
+    })
+}
+
+const load_ui = () => {
+    const nodes = workflow_store.get_node()
+    for (const node of nodes) {
+        const node_ui = new NodeRect(node.ui)
+        // 使用全局设置函数为新节点添加监听器
+        const setupFunctions = (
+            window as { setupNodeListeners?: NodeListeners }
+        ).setupNodeListeners
+        if (setupFunctions) {
+            setupFunctions.setupNodeDragListeners(node_ui)
+            setupFunctions.setupConnectionListeners(node_ui)
+        }
+        app.tree.add(node_ui)
+    }
+}
+
 onMounted(async () => {
     try {
         // Check if store is properly initialized
@@ -221,68 +301,7 @@ onMounted(async () => {
             return
         }
 
-        //TOOD 当 view设置为window的时候，后退的页面会失去所有点击事件
-        app = new App({
-            view: window,
-            editor: {},
-            wheel: { preventDefault: true }, // 阻止浏览器默认滚动页面事件
-            touch: { preventDefault: true }, // 阻止移动端默认触摸屏滑动页面事件
-            pointer: { preventDefaultMenu: true }, // 阻止浏览器默认菜单事件，改为 true
-        })
-
-        // 连线状态管理
-        let isDraggingConnection = false
-        let draggingNode: NodeRect | null = null
-
-        // 监听 leafer-ui 的右键事件
-        app.on('pointer.menu', (e: { origin: MouseEvent }) => {
-            try {
-                if (app?.editor.single) {
-                    const { element } = app.editor
-                    onNodeMenu(e.origin, element as IUI)
-                } else {
-                    onContextMenu(e.origin)
-                }
-            } catch (error) {
-                console.error('Error in pointer.menu handler:', error)
-            }
-        })
-
-        // 全局鼠标事件处理，用于连线功能
-        app.on('pointer.move', (e: IPointerEvent) => {
-            try {
-                if (isDraggingConnection && draggingNode) {
-                    // 禁用编辑器选择功能
-                    if (app.editor) {
-                        app.editor.cancel()
-                    }
-                    draggingNode.updateDragLineExternal(e)
-                }
-            } catch (error) {
-                console.error('Error in pointer.move handler:', error)
-            }
-        })
-
-        app.on('pointer.up', (e: IPointerEvent) => {
-            try {
-                if (isDraggingConnection && draggingNode) {
-                    draggingNode.endDragConnectionExternal(e)
-                    isDraggingConnection = false
-                    draggingNode = null
-                }
-            } catch (error) {
-                console.error('Error in pointer.up handler:', error)
-            }
-        })
-
-        const dot = new DotMatrix(app, {
-            dotColor: '#D2D4D7',
-            gridGap: 45,
-            gridType: 'dots', // 'dots' | 'lines'
-            maxSize: 10,
-            minSize: 0.1,
-        })
-        dot.enableDotMatrix(true)
+        create_app()
 
         // 将设置函数暴露给 createNodeRect 使用
         ;(window as { setupNodeListeners?: NodeListeners }).setupNodeListeners =
@@ -291,8 +310,8 @@ onMounted(async () => {
                     node.on('drag.connection.start', () => {
                         try {
                             console.log('连线拖拽开始')
-                            isDraggingConnection = true
-                            draggingNode = node
+                            isDraggingConnection.value = true
+                            draggingNode.value = node
 
                             // 禁用编辑器的选择功能
                             if (app.editor) {
@@ -336,7 +355,7 @@ onMounted(async () => {
                     })
                 },
             }
-
+        load_ui()
         // 获取插件
         await handle_get_plugins()
     } catch (error) {
@@ -367,7 +386,6 @@ const createNodeRect = (plugin: PluginResponse) => {
             icon: plugin.icon,
             x: click_xy.x,
             y: click_xy.y,
-            editable: true,
         }
         const config: PluginConfigRecord =
             PluginUtil.createPluginConfigRecord(plugin)
