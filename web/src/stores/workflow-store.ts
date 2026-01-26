@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-12 11:07:19
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-26 15:39:48
+ * @LastEditTime: 2026-01-26 16:35:42
  * @FilePath: /web/src/stores/workflow-store.ts
  * @Description: 用户当前打开的 workflow
  *
@@ -69,6 +69,10 @@ export const useWorkflowStore = defineStore('workflowStore', () => {
         workflow.value = workflow_data
     }
 
+    function get_connections(): IConnection[] {
+        return workflow.value.graph.connections
+    }
+
     function add_connection(source_node_id: string, target_node_id: string) {
         const connection = {
             id: `${source_node_id}_to_${target_node_id}`,
@@ -85,6 +89,7 @@ export const useWorkflowStore = defineStore('workflowStore', () => {
         get_node_by_id,
         del_node_by_id,
         update_node_config,
+        get_connections,
         add_connection,
         set_workflow,
     }

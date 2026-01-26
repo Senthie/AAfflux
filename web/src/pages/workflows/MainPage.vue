@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-14 15:07:09
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-26 16:17:41
+ * @LastEditTime: 2026-01-26 16:34:11
  * @FilePath: /web/src/pages/workflows/MainPage.vue
  * @Description: 工作流的主要页面
  *
@@ -254,10 +254,13 @@ const create_app = () => {
     })
 }
 
-const load_ui = () => {
+const load_ui = async () => {
     const nodes = workflow_store.get_node()
+    const nodeMap = new Map<string, NodeRect>()
+
+    // 首先创建所有节点
     for (const node of nodes) {
-        const node_ui = new NodeRect(node.ui)
+        const node_ui = new NodeRect({ id: node.id, ...node.ui })
         // 使用全局设置函数为新节点添加监听器
         const setupFunctions = (
             window as { setupNodeListeners?: NodeListeners }
@@ -267,6 +270,40 @@ const load_ui = () => {
             setupFunctions.setupConnectionListeners(node_ui)
         }
         app.tree.add(node_ui)
+        nodeMap.set(node.id, node_ui)
+    }
+
+    // 然后创建所有连线
+    const connections = workflow_store.get_connections()
+    for (const connection of connections) {
+        const sourceNode = nodeMap.get(connection.source_node_id)
+        const targetNode = nodeMap.get(connection.target_node_id)
+
+        if (sourceNode && targetNode) {
+            try {
+                // 动态导入 Connector
+                const { Connector } = await import('leafer-connector')
+
+                // 创建连接线：从源节点的 out 连接到目标节点的 in
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const connector = new Connector(app as any, {
+                    from: sourceNode.out,
+                    to: targetNode.in,
+                    stroke: '#32cd79',
+                })
+
+                app.tree.add(connector)
+                console.log(
+                    `连接已创建: ${connection.source_node_id} -> ${connection.target_node_id}`
+                )
+            } catch (error) {
+                console.error('创建连接失败:', error)
+            }
+        } else {
+            console.warn(
+                `无法找到连接的节点: ${connection.source_node_id} -> ${connection.target_node_id}`
+            )
+        }
     }
 }
 
@@ -325,17 +362,39 @@ onMounted(async () => {
                         }
                     })
 
-                    node.on('connection.created', (data: unknown) => {
-                        try {
-                            console.log('新连接已创建:', data)
-                            // 这里可以添加连接创建后的处理逻辑
-                        } catch (error) {
-                            console.error(
-                                'Error in connection.created handler:',
-                                error
-                            )
+                    node.on(
+                        'connection.created',
+                        (data: {
+                            from: NodeRect
+                            to: NodeRect
+                            connector: unknown
+                        }) => {
+                            try {
+                                console.log('新连接已创建:', data)
+                                // 保存连接到 store
+                                if (data && data.from && data.to) {
+                                    // 从连接数据中获取源节点和目标节点的ID
+                                    const fromNodeId = data.from.id
+                                    const toNodeId = data.to.id
+
+                                    if (fromNodeId && toNodeId) {
+                                        workflow_store.add_connection(
+                                            fromNodeId,
+                                            toNodeId
+                                        )
+                                        console.log(
+                                            `连接已保存到store: ${fromNodeId} -> ${toNodeId}`
+                                        )
+                                    }
+                                }
+                            } catch (error) {
+                                console.error(
+                                    'Error in connection.created handler:',
+                                    error
+                                )
+                            }
                         }
-                    })
+                    )
                 },
                 setupNodeDragListeners: (node: NodeRect) => {
                     node.on('drag.end', () => {
@@ -355,7 +414,7 @@ onMounted(async () => {
                     })
                 },
             }
-        load_ui()
+        await load_ui()
         // 获取插件
         await handle_get_plugins()
     } catch (error) {
