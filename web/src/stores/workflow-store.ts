@@ -2,14 +2,18 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-12 11:07:19
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-26 15:02:29
+ * @LastEditTime: 2026-01-26 15:39:48
  * @FilePath: /web/src/stores/workflow-store.ts
  * @Description: 用户当前打开的 workflow
  *
  * Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
  */
 import { defineStore } from 'pinia'
-import type { INode, IWorkflowResponse } from 'src/interfaces/IWorkflows'
+import type {
+    IConnection,
+    INode,
+    IWorkflowResponse,
+} from 'src/interfaces/IWorkflows'
 import { ref } from 'vue'
 export const useWorkflowStore = defineStore('workflowStore', () => {
     const workflow = ref<IWorkflowResponse>({
@@ -27,6 +31,9 @@ export const useWorkflowStore = defineStore('workflowStore', () => {
         created_by: '',
         is_deleted: false,
     })
+    function get_node(): INode[] {
+        return workflow.value.graph.nodes
+    }
 
     // 添加 node 节点
     function add_node(node: INode) {
@@ -64,19 +71,17 @@ export const useWorkflowStore = defineStore('workflowStore', () => {
 
     function add_connection(source_node_id: string, target_node_id: string) {
         const connection = {
-            id: `conn_${Date.now()}`,
-            workflow_id: workflow.value.id,
+            id: `${source_node_id}_to_${target_node_id}`,
             source_node_id: source_node_id,
             target_node_id: target_node_id,
-            source_output: 'output',
-            target_input: 'input',
-        }
+        } as IConnection
         workflow.value.graph.connections.push(connection)
     }
 
     return {
         workflow,
         add_node,
+        get_node,
         get_node_by_id,
         del_node_by_id,
         update_node_config,
