@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-12 11:07:19
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-27 15:19:26
+ * @LastEditTime: 2026-01-27 15:54:41
  * @FilePath: /web/src/stores/workflow-store.ts
  * @Description: 用户当前打开的 workflow
  *
@@ -62,6 +62,7 @@ export const useWorkflowStore = defineStore('workflowStore', () => {
             // 删除节点
             workflow.value.graph.nodes.splice(index, 1)
         }
+        update()
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

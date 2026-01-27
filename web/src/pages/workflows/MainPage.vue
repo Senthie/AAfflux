@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-14 15:07:09
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-27 15:21:52
+ * @LastEditTime: 2026-01-27 15:57:52
  * @FilePath: /web/src/pages/workflows/MainPage.vue
  * @Description: 工作流的主要页面
  *
@@ -207,7 +207,9 @@ const onNodeMenu = (e: MouseEvent, node: IUI) => {
                 {
                     label: '删除',
                     onClick: () => {
+                        console.log(node)
                         if (node && typeof node.remove === 'function') {
+                            workflow_store.del_node_by_id(node.id as string)
                             node.remove()
                         }
                     },
