@@ -32,6 +32,7 @@ import { useWorkflowStore } from 'src/stores/workflow-store'
 import type { INode } from 'src/interfaces/IWorkflows'
 import { PluginUtil } from 'src/utils/PluginUtil'
 import { v4 as uuid4 } from 'uuid'
+import MouseCoordinateDisplay from 'src/components/MouseCoordinateDisplay.vue'
 const workflow_store = useWorkflowStore()
 
 const route = useRoute()
@@ -602,6 +603,9 @@ onBeforeUnmount(() => {
 
 <template>
     <div>
+        <!-- 鼠标坐标显示组件 -->
+        <MouseCoordinateDisplay :app="app" />
+
         <template>
             <q-dialog v-model="add_node_dialog_visiable">
                 <q-card style="min-width: 350px">
