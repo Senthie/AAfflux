@@ -2,8 +2,8 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-27 15:00:00
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-27 14:52:47
- * @FilePath: /web/src/components/MouseCoordinateDisplay.vue
+ * @LastEditTime: 2026-01-27 15:58:15
+ * @FilePath: /web/src/components/workflows/MouseCoordinateDisplay.vue
  * @Description: 鼠标坐标显示组件
  *
  * Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
@@ -36,6 +36,7 @@ const handleMouseMove = (event: MouseEvent) => {
             })
             canvasX.value = Math.round(worldPoint.x)
             canvasY.value = Math.round(worldPoint.y)
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (error) {
             // 如果转换失败，使用屏幕坐标
             canvasX.value = event.clientX
