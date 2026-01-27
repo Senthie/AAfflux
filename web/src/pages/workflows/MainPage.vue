@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-14 15:07:09
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-26 16:34:11
+ * @LastEditTime: 2026-01-27 12:07:50
  * @FilePath: /web/src/pages/workflows/MainPage.vue
  * @Description: 工作流的主要页面
  *
@@ -122,6 +122,62 @@ const onContextMenu = (e: MouseEvent) => {
         })
     } catch (error) {
         console.error('Error in context menu:', error)
+    }
+}
+
+const onConnectorMenu = (
+    e: MouseEvent,
+    connectorData: {
+        connector: unknown
+        from: NodeRect | null
+        to: NodeRect | null
+    }
+) => {
+    try {
+        // 阻止浏览器默认菜单
+        e.preventDefault()
+
+        // 显示连线右键菜单
+        ContextMenu.showContextMenu({
+            x: e.x,
+            y: e.y,
+            items: [
+                {
+                    label: '删除连线',
+                    onClick: () => {
+                        if (
+                            connectorData.connector &&
+                            connectorData.from &&
+                            connectorData.to
+                        ) {
+                            // 从画布中移除连线
+                            const connector = connectorData.connector as {
+                                remove: () => void
+                            }
+                            connector.remove()
+
+                            // 从 store 中删除连接记录
+                            const fromNodeId = connectorData.from.id
+                            const toNodeId = connectorData.to.id
+
+                            if (fromNodeId && toNodeId) {
+                                workflow_store.del_connection_by_nodes(
+                                    fromNodeId,
+                                    toNodeId
+                                )
+
+                                Notify.create({
+                                    type: 'positive',
+                                    message: `连线已删除: ${fromNodeId} -> ${toNodeId}`,
+                                })
+                            }
+                        }
+                    },
+                },
+            ],
+        })
+    } catch (error) {
+        console.error('Error in connector menu:', error)
     }
 }
 
@@ -292,6 +348,26 @@ const load_ui = async () => {
                     stroke: '#32cd79',
                 })
 
+                // 为连线添加右键菜单事件
+                connector.on('pointer.menu', (e: IPointerEvent) => {
+                    // 阻止事件冒泡
+                    if (e.stopDefault) e.stopDefault()
+                    if (e.stop) e.stop()
+
+                    // 将 leafer 事件转换为 MouseEvent
+                    const mouseEvent = new MouseEvent('contextmenu', {
+                        clientX: e.x,
+                        clientY: e.y,
+                        bubbles: true,
+                        cancelable: true,
+                    })
+                    onConnectorMenu(mouseEvent, {
+                        connector,
+                        from: sourceNode,
+                        to: targetNode,
+                    })
+                })
+
                 app.tree.add(connector)
                 console.log(
                     `连接已创建: ${connection.source_node_id} -> ${connection.target_node_id}`
@@ -365,31 +441,63 @@ onMounted(async () => {
                     node.on(
                         'connection.created',
                         (data: {
-                            from: NodeRect
-                            to: NodeRect
                             connector: unknown
+                            source: NodeRect
+                            target: NodeRect
                         }) => {
                             try {
-                                console.log('新连接已创建:', data)
-                                // 保存连接到 store
-                                if (data && data.from && data.to) {
+                                if (data && data.source && data.target) {
                                     // 从连接数据中获取源节点和目标节点的ID
-                                    const fromNodeId = data.from.id
-                                    const toNodeId = data.to.id
+                                    const source_id = data.source.id
+                                    const target_id = data.target.id
 
-                                    if (fromNodeId && toNodeId) {
+                                    if (source_id && target_id) {
                                         workflow_store.add_connection(
-                                            fromNodeId,
-                                            toNodeId
+                                            source_id,
+                                            target_id
                                         )
                                         console.log(
-                                            `连接已保存到store: ${fromNodeId} -> ${toNodeId}`
+                                            `连接已保存到store: ${source_id}_to_${target_id}`
                                         )
                                     }
                                 }
                             } catch (error) {
                                 console.error(
                                     'Error in connection.created handler:',
+                                    error
+                                )
+                            }
+                        }
+                    )
+
+                    // 监听连线右键菜单事件
+                    node.on(
+                        'connector.context.menu',
+                        (data: {
+                            connector: unknown
+                            event: IPointerEvent
+                            from: NodeRect | null
+                            to: NodeRect | null
+                        }) => {
+                            try {
+                                // 将 leafer 事件转换为 MouseEvent
+                                const mouseEvent = new MouseEvent(
+                                    'contextmenu',
+                                    {
+                                        clientX: data.event.x,
+                                        clientY: data.event.y,
+                                        bubbles: true,
+                                        cancelable: true,
+                                    }
+                                )
+                                onConnectorMenu(mouseEvent, {
+                                    connector: data.connector,
+                                    from: data.from,
+                                    to: data.to,
+                                })
+                            } catch (error) {
+                                console.error(
+                                    'Error in connector.context.menu handler:',
                                     error
                                 )
                             }
@@ -456,7 +564,7 @@ const createNodeRect = (plugin: PluginResponse) => {
             config: config,
             ui: ui,
         }
-        const node_ui = new NodeRect(ui)
+        const node_ui = new NodeRect({ id: node.id, ...node.ui })
 
         // 使用全局设置函数为新节点添加监听器
         const setupFunctions = (

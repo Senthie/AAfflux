@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-19 15:49:12
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-26 15:47:39
+ * @LastEditTime: 2026-01-27 12:07:17
  * @FilePath: /web/src/utils/nodeReact.ts
  * @Description: 创建一个 node 的节点类型
  *
@@ -202,6 +202,9 @@ export class NodeRect extends Group {
         this.isDragging = true
         this.dragStartPoint = point
 
+        // 临时禁用节点的编辑功能，避免与连线冲突
+        this.editable = false
+
         // 获取起始点的世界坐标
         const startPoint = point === 'in' ? this.in : this.out
         const startWorldPos = startPoint.getWorldPoint({ x: 5, y: 5 }) // 连接点中心
@@ -286,7 +289,7 @@ export class NodeRect extends Group {
             // 创建连接
             void this.createConnection(targetNode)
         }
-
+        this.editable = true
         // 清理拖拽状态
         this.cleanupDragState()
     }
@@ -371,8 +374,10 @@ export class NodeRect extends Group {
     }
 
     // 从连接点获取对应的节点
-    private getNodeFromConnectionPoint(connectionPoint: IUI): NodeRect | null {
-        if (!this.leafer) return null
+    private getNodeFromConnectionPoint(
+        connectionPoint: IUI | null
+    ): NodeRect | null {
+        if (!this.leafer || !connectionPoint) return null
 
         const allNodes = this.leafer.children.filter(
             (child) => child instanceof NodeRect
@@ -403,44 +408,44 @@ export class NodeRect extends Group {
         try {
             // 动态导入 Connector
             const { Connector } = await import('leafer-connector')
-            let fromPoint: IUI
-            let toPoint: IUI
-
+            let source_point: IUI
+            let target_point: IUI
+            let id = `_to_`
             // 根据拖拽起始点确定连接方向
             if (this.dragStartPoint === 'in') {
                 // 从 in 拖出，连接到目标节点的 out
-                fromPoint = targetNode.out
-                toPoint = this.in
+                source_point = targetNode.out
+                target_point = this.in
+                id = `${targetNode.id}_to_${this.id}`
             } else {
                 // 从 out 拖出，连接到目标节点的 in
-                fromPoint = this.out
-                toPoint = targetNode.in
+                source_point = this.out
+                target_point = targetNode.in
+                id = `${this.id}_to_${targetNode.id}`
             }
 
             if (this.leafer) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const connector = new Connector(this.leafer as any, {
-                    from: fromPoint,
-                    to: toPoint,
+                    from: source_point,
+                    to: target_point,
                     stroke: '#32cd79',
                 })
+                connector.id = id
 
                 this.leafer.add(connector)
-
-                // 触发自定义事件，通知外部组件有新连接创建
-                this.emit('connection.created', {
+                const res = {
                     connector,
-                    from: this.dragStartPoint === 'out' ? this : targetNode,
-                    to: this.dragStartPoint === 'out' ? targetNode : this,
-                })
-
-                console.log('连接创建成功')
+                    source: this.dragStartPoint === 'in' ? targetNode : this,
+                    target: this.dragStartPoint === 'in' ? this : targetNode,
+                }
+                // 触发自定义事件，通知外部组件有新连接创建
+                this.emit('connection.created', res)
             }
         } catch (error) {
             console.error('创建连接失败:', error)
         }
     }
-
     // 显示连接警告
     private showConnectionWarning(message: string): void {
         console.warn(message)

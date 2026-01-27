@@ -2,12 +2,13 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-12 11:07:19
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-26 16:35:42
+ * @LastEditTime: 2026-01-27 11:30:45
  * @FilePath: /web/src/stores/workflow-store.ts
  * @Description: 用户当前打开的 workflow
  *
  * Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
  */
+import type { IUI } from 'leafer-ui'
 import { defineStore } from 'pinia'
 import type {
     IConnection,
@@ -31,6 +32,10 @@ export const useWorkflowStore = defineStore('workflowStore', () => {
         created_by: '',
         is_deleted: false,
     })
+
+    const app_nodeRects = ref(new Map<string, IUI>())
+    const app_connections = ref(new Map<string, IUI>())
+
     function get_node(): INode[] {
         return workflow.value.graph.nodes
     }
@@ -82,8 +87,35 @@ export const useWorkflowStore = defineStore('workflowStore', () => {
         workflow.value.graph.connections.push(connection)
     }
 
+    // 删除连接
+    function del_connection_by_id(connection_id: string) {
+        const index = workflow.value.graph.connections.findIndex(
+            (connection) => connection.id === connection_id
+        )
+        if (index !== -1) {
+            workflow.value.graph.connections.splice(index, 1)
+        }
+    }
+
+    // 根据源节点和目标节点删除连接
+    function del_connection_by_nodes(
+        source_node_id: string,
+        target_node_id: string
+    ) {
+        const index = workflow.value.graph.connections.findIndex(
+            (connection) =>
+                connection.source_node_id === source_node_id &&
+                connection.target_node_id === target_node_id
+        )
+        if (index !== -1) {
+            workflow.value.graph.connections.splice(index, 1)
+        }
+    }
+
     return {
         workflow,
+        app_nodeRects,
+        app_connections,
         add_node,
         get_node,
         get_node_by_id,
@@ -91,6 +123,8 @@ export const useWorkflowStore = defineStore('workflowStore', () => {
         update_node_config,
         get_connections,
         add_connection,
+        del_connection_by_id,
+        del_connection_by_nodes,
         set_workflow,
     }
 })
