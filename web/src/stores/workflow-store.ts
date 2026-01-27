@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-12 11:07:19
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-27 11:30:45
+ * @LastEditTime: 2026-01-27 15:19:26
  * @FilePath: /web/src/stores/workflow-store.ts
  * @Description: 用户当前打开的 workflow
  *
@@ -10,6 +10,7 @@
  */
 import type { IUI } from 'leafer-ui'
 import { defineStore } from 'pinia'
+import { v1_update_workflow } from 'src/apis/workflow_api'
 import type {
     IConnection,
     INode,
@@ -43,6 +44,7 @@ export const useWorkflowStore = defineStore('workflowStore', () => {
     // 添加 node 节点
     function add_node(node: INode) {
         workflow.value.graph.nodes.push(node)
+        update()
         console.log(workflow.value)
     }
 
@@ -85,6 +87,7 @@ export const useWorkflowStore = defineStore('workflowStore', () => {
             target_node_id: target_node_id,
         } as IConnection
         workflow.value.graph.connections.push(connection)
+        update()
     }
 
     // 删除连接
@@ -95,6 +98,7 @@ export const useWorkflowStore = defineStore('workflowStore', () => {
         if (index !== -1) {
             workflow.value.graph.connections.splice(index, 1)
         }
+        update()
     }
 
     // 根据源节点和目标节点删除连接
@@ -110,8 +114,12 @@ export const useWorkflowStore = defineStore('workflowStore', () => {
         if (index !== -1) {
             workflow.value.graph.connections.splice(index, 1)
         }
+        update()
     }
 
+    function update() {
+        void v1_update_workflow(workflow.value.id, workflow.value)
+    }
     return {
         workflow,
         app_nodeRects,
