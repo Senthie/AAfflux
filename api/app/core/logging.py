@@ -1,4 +1,13 @@
-"""Structured logging configuration using structlog."""
+"""
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:45:22
+FilePath: /api/app/core/logging.py
+Description: 日志配置
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
+"""
 
 import logging
 import sys

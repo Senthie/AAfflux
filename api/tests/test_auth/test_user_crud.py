@@ -1,3 +1,14 @@
+"""
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:36:55
+FilePath: /api/tests/test_auth/test_user_crud.py
+Description: Test User Crud测试
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
+"""
+
 """用户 CRUD 测试"""
 
 from uuid import uuid4

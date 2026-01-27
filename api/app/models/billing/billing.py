@@ -1,7 +1,12 @@
-"""计费和订阅模型 - 2张表。
+"""
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:47:59
+FilePath: /api/app/models/billing/billing.py
+Description: Billing数据模型
 
-本模块定义了计费和订阅管理的数据模型。
-支持订阅计划、用量追踪和计费统计。
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from datetime import datetime

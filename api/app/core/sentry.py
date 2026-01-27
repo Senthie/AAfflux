@@ -1,6 +1,16 @@
-"""Sentry error tracking configuration."""
+"""
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:45:38
+FilePath: /api/app/core/sentry.py
+Description: Sentry错误监控配置
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
+"""
 
 from typing import Optional
+
 import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration

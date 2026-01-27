@@ -1,7 +1,12 @@
-"""知识库模型 - 4张表。
+"""
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:49:36
+FilePath: /api/app/models/dataset/dataset.py
+Description: Dataset数据模型
 
-本模块定义了知识库（Dataset）的数据模型。
-支持文档上传、分段、向量化和检索。
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from datetime import datetime

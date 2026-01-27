@@ -1,16 +1,12 @@
 """
 Author: kk123047 3254834740@qq.com
-Date: 2025-12-02 11:12:23
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-09 09:20:10
-FilePath: : AAfflux: api: app: models: file: reference.py
-Description:实现了softdelete软删除的基础类继承
-"""
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:49:46
+FilePath: /api/app/models/file/reference.py
+Description: Reference数据模型
 
-"""文件引用模型 - 1张表。
-
-本模块定义了文件引用的数据模型。
-在PostgreSQL中存储文件元数据，实际文件存储在MongoDB中。
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from uuid import UUID

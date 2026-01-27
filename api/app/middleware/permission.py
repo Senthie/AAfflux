@@ -1,12 +1,13 @@
 """
 Author: kk123047 3254834740@qq.com
-Date: 2025-12-10 14:34:19
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-12 14:25:26
-FilePath: : AAfflux: api: app: middleware: permission.py
-Description:角色权限验证中间件
-"""
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:36:55
+FilePath: /api/app/middleware/permission.py
+Description: Permission中间件
 
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
+"""
 from typing import Callable, Optional
 from fastapi import Request, HTTPException, status
 from starlette.middleware.base import BaseHTTPMiddleware

@@ -1,16 +1,19 @@
 """
 Author: kk123047 3254834740@qq.com
-Date: 2025-12-05 17:49:41
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-09 17:50:51
-FilePath: : AAfflux: api: app: schemas: user.py
-Description:用户相关schemas
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:36:55
+FilePath: /api/app/schemas/user.py
+Description: 用户数据模型
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from datetime import datetime
-from uuid import UUID
 from typing import Optional
-from pydantic import BaseModel, Field, EmailStr
+from uuid import UUID
+
+from pydantic import BaseModel, EmailStr, Field
 
 
 class UserProfileResponse(BaseModel):

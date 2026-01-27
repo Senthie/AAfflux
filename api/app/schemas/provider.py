@@ -1,7 +1,14 @@
 """
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:52:45
+FilePath: /api/app/schemas/provider.py
+Description: Provider数据模式
 LLM提供商相关的Pydantic schemas
-
 本模块定义了LLM提供商管理相关的数据验证和序列化模式。
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from datetime import datetime

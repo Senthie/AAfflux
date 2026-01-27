@@ -1,10 +1,12 @@
 """
 Author: kk123047 3254834740@qq.com
-Date: 2025-12-05 17:49:22
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-17 09:21:43
-FilePath: : AAfflux: api: app: services: user_service.py
-Description:用户管理服务
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:55:06
+FilePath: /api/app/services/user_service.py
+Description: 用户服务
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from datetime import datetime

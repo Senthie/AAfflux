@@ -1,7 +1,17 @@
-"""PostgreSQL database connection and session management."""
+"""
+Author: Senthie seemoon2077@gmail.com
+Date: 2025-12-24 16:24:52
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:32:39
+FilePath: /api/app/core/database.py
+Description:PostgreSQL database connection and session management.
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
+"""
 
 from typing import AsyncGenerator
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlmodel import SQLModel
 
 from app.core.config import settings

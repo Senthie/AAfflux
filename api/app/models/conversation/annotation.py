@@ -1,7 +1,12 @@
-"""标注模型 - 2张表。
+"""
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:49:01
+FilePath: /api/app/models/conversation/annotation.py
+Description: Annotation数据模型
 
-本模块定义了消息标注和反馈的数据模型。
-支持类似 Dify 的标注回复功能，用于改进AI效果。
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from typing import Optional

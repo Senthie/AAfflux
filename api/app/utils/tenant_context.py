@@ -1,10 +1,12 @@
 """
 Author: kk123047 3254834740@qq.com
-Date: 2025-12-10 14:33:29
+Date: 2025-12-09 18:00:00
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-05 10:42:49
+LastEditTime: 2026-01-27 17:57:35
 FilePath: /api/app/utils/tenant_context.py
-Description:租户隔离和上下文管理
+Description: Tenant Context工具
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from dataclasses import dataclass

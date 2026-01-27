@@ -1,4 +1,16 @@
 #!/usr/bin/env python3
+
+"""
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:36:55
+FilePath: /api/test_comfyui_workflow_automation.py
+Description: Test Comfyui Workflow Automation测试
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
+"""
+
 """
 ComfyUI 工作流自动化测试脚本
 基于 test_base_comfyui 测试用例的完整 API 测试

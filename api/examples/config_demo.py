@@ -1,8 +1,19 @@
 #!/usr/bin/env python3
-"""演示如何读取 .env 文件的示例"""
 
-import sys
+"""
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:57:58
+FilePath: /api/examples/config_demo.py
+Description: Config Demo模块
+演示如何读取 .env 文件的示例
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
+"""
+
 from pathlib import Path
+import sys
 
 # 添加项目根目录到 Python 路径
 project_root = Path(__file__).parent.parent
@@ -96,6 +107,7 @@ def demo_custom_validator():
     print('=' * 70)
 
     from typing import Optional
+
     from pydantic import field_validator
     from pydantic_settings import BaseSettings
 

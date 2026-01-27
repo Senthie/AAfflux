@@ -1,4 +1,10 @@
-"""数据模型包 - 导出所有数据库模型。
+"""
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:51:41
+FilePath: /api/app/models/__init__.py
+Description: 数据模型包 - 导出所有数据库模型。
 
 本包包含系统的所有 SQLModel 数据模型定义。
 模型按业务域分组组织，便于维护和理解。
@@ -18,6 +24,8 @@
 12. 审计域 (audit/) - 审计日志（1张表）
 
 总计：37张核心表（31张主业务表 + 6张BPM表）+ MongoDB文件存储
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 # 基础模型

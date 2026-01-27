@@ -1,7 +1,14 @@
 """
-插件管理 API 端点
+Author: Senthie seemoon2077@gmail.com
+Date: 2026-01-27 16:58:45
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:34:19
+FilePath: /api/app/api/v1/plugins.py
+Description: 插件管理 API 端点
 
 本模块提供插件和已安装插件的 RESTful API 接口。
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from typing import Annotated, Optional

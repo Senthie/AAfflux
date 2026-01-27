@@ -1,12 +1,22 @@
-"""Permission checking service for role-based access control."""
+"""
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:54:39
+FilePath: /api/app/services/permission_checker.py
+Description: Permission Checker服务
 
-from typing import Optional
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
+"""
+
 from enum import Enum
+from typing import Optional
 from uuid import UUID
+
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from app.models.user import User, Team, TeamMember, Workspace
+from app.models.user import Team, TeamMember, User, Workspace
 
 
 class Role(str, Enum):

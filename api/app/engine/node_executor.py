@@ -1,8 +1,12 @@
 """
-Compatibility module for node executor.
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:46:51
+FilePath: /api/app/engine/node_executor.py
+Description: 节点执行器
 
-This module re-exports classes from app.engine.nodes.base
-for backward compatibility.
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from app.engine.nodes.base import (

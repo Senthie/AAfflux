@@ -1,12 +1,13 @@
 """
 Author: kk123047 3254834740@qq.com
-Date: 2025-12-10 17:44:58
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-16 12:10:21
-FilePath: : AAfflux: api: app: api: v1: teams.py
-Description:团队管理 API 端点，更新了接口使用的安全方法。
-"""
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:36:55
+FilePath: /api/app/api/v1/teams.py
+Description: 团队管理API端点
 
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
+"""
 from typing import Annotated
 from uuid import UUID
 

@@ -1,13 +1,13 @@
 """
 Author: kk123047 3254834740@qq.com
-Date: 2025-12-02 12:27:34
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-08 17:43:59
-FilePath: : AAfflux: api: app: models: bpm: form.py
-Description: 添加了softdelete软删除字段
-"""
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:48:21
+FilePath: /api/app/models/bpm/form.py
+Description: Form数据模型
 
-"""表单模型"""
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
+"""
 
 from datetime import datetime
 from typing import Optional

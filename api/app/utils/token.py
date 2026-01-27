@@ -1,9 +1,21 @@
+"""
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:36:55
+FilePath: /api/app/utils/token.py
+Description: 令牌工具
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
+"""
+
 """JWT token generation and verification utilities."""
 
-import jwt
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 from uuid import UUID
+
+import jwt
 
 from app.core.config import settings
 

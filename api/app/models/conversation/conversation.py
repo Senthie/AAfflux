@@ -1,7 +1,12 @@
-"""对话模型 - 2张表。
+"""
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:49:06
+FilePath: /api/app/models/conversation/conversation.py
+Description: Conversation数据模型
 
-本模块定义了对话和消息的数据模型。
-支持终端用户与AI应用的多轮对话。
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from typing import Optional

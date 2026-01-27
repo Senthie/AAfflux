@@ -1,17 +1,20 @@
 """
 Author: kk123047 3254834740@qq.com
-Date: 2025-12-10 14:41:10
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-16 16:09:32
-FilePath: : AAfflux: api: app: services: invitation_audit_service.py
-Description:邀请审计服务
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:54:08
+FilePath: /api/app/services/invitation_audit_service.py
+Description: Invitation Audit Service服务
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
-from typing import Optional, List, Dict, Any
-from uuid import UUID
 from datetime import datetime, timedelta
-from sqlmodel.ext.asyncio.session import AsyncSession
+from typing import Any, Dict, List, Optional
+from uuid import UUID
+
 from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.models.audit.audit_log import AuditLog
 from app.models.tenant.invitation import TeamInvitation

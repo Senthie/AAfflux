@@ -1,20 +1,24 @@
 """
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-22 10:29:13
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-22 14:23:22
-FilePath: : AAfflux: api: app: api: v1: app_runtime.py
-Description:运行时api端点 供外部调用
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:36:20
+FilePath: /api/app/api/v1/app_runtime.py
+Description: 运行时api端点 供外部调用
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, status, Header
+
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from app.api.dependencies import get_session
-from app.services.application_service import ApplicationService
-from app.services.execution_record_service import ExecutionRecordService
 from app.schemas.application import ApplicationRuntimeRequest, ApplicationRuntimeResponse
 from app.schemas.execution import ExecutionRecordCreate
+from app.services.application_service import ApplicationService
+from app.services.execution_record_service import ExecutionRecordService
 
 router = APIRouter(prefix='/runtime', tags=['runtime'])
 

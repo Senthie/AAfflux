@@ -1,4 +1,11 @@
-"""文件服务 - 使用 MongoDB GridFS 的统一文件管理接口。
+"""
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:50:06
+FilePath: /api/app/models/file/service.py
+Description: 文件服务 - 使用 MongoDB GridFS 的统一文件管理接口。
+
 
 本模块提供了完整的文件管理功能，包括：
 - 文件上传到 GridFS
@@ -8,13 +15,14 @@
 - 文件列表查询
 
 所有文件内容存储在 MongoDB GridFS 中，元数据存储在 upload_files 集合中。
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
-from typing import Optional
-from uuid import UUID, uuid4
 from datetime import datetime
 import hashlib
 from io import BytesIO
+from typing import Optional
+from uuid import UUID, uuid4
 
 from app.core.mongodb import mongodb_client
 

@@ -1,7 +1,15 @@
-"""团队邀请模型 - 1张表。
+"""
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:51:18
+FilePath: /api/app/models/tenant/invitation.py
+Description: Invitation数据模型
+团队邀请模型 - 1张表。
 
 本模块定义了团队邀请的数据模型。
 支持邀请成员加入团队的完整流程。
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from datetime import datetime

@@ -1,12 +1,13 @@
 """
 Author: kk123047 3254834740@qq.com
-Date: 2025-12-05 15:20:01
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-05 15:47:56
-FilePath: : AAfflux: api: app: core: storage: __init__.py
-Description:统一的文件存储接口
-"""
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:36:55
+FilePath: /api/app/core/storage/__init__.py
+Description: 模块初始化
 
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
+"""
 """存储模块
 
 提供统一的文件存储接口，支持多种存储后端。

@@ -1,7 +1,14 @@
 """
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:56:33
+FilePath: /api/app/utils/llm/retry.py
+Description: Retry工具
 LLM调用重试机制
-
 本模块实现了LLM调用的重试逻辑，支持指数退避和不同类型错误的重试策略。
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 import asyncio

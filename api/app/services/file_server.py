@@ -1,26 +1,24 @@
 """
 Author: kk123047 3254834740@qq.com
-Date: 2025-12-05 14:59:04
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-10 17:24:06
-FilePath: : AAfflux: api: app: services: file_server.py
-Description:
-1. 管理 PostgreSQL 中的文件元数据（FileReference）
-2. 协调 MongoDB GridFS 的文件存储
-3. 提供统一的文件上传、下载、删除接口
-4. 处理事务一致性（元数据和文件内容同步）
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:53:59
+FilePath: /api/app/services/file_server.py
+Description: 文件服务
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
-from typing import Optional, AsyncGenerator
+from typing import AsyncGenerator, Optional
 from uuid import UUID, uuid4
 
 from fastapi import UploadFile
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from app.models.file.reference import FileReference
-from app.core.storage import GridFSBackend, FileNotFoundError as StorageFileNotFoundError
 from app.core.logging import get_logger
+from app.core.storage import FileNotFoundError as StorageFileNotFoundError, GridFSBackend
+from app.models.file.reference import FileReference
 
 logger = get_logger(__name__)
 

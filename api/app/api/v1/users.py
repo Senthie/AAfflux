@@ -1,10 +1,12 @@
 """
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-05 17:50:01
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-12 11:35:21
-FilePath: : AAfflux: api: app: api: v1: users.py
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:35:03
+FilePath: /api/app/api/v1/users.py
 Description: 用户管理，增删改查
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from typing import Annotated

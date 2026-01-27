@@ -1,10 +1,12 @@
 """
 Author: kk123047 3254834740@qq.com
-Date: 2025-12-22 10:27:08
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-22 15:00:47
-FilePath: : AAfflux: api: app: utils: api_key.py
-Description:api密钥生成和验证
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:56:43
+FilePath: /api/app/utils/api_key.py
+Description: Api Key工具
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from datetime import datetime, timedelta

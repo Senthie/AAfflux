@@ -2,9 +2,11 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-10 17:45:21
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-07 17:22:35
+LastEditTime: 2026-01-27 17:35:55
 FilePath: /api/app/api/v1/workspaces.py
-Description:工作空间管理 API 端点"
+Description: Description:工作空间管理 API 端点"
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from typing import Annotated

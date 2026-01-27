@@ -1,16 +1,19 @@
 """
 Author: kk123047 3254834740@qq.com
-Date: 2025-12-10 17:46:00
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-11 10:10:01
-FilePath: : AAfflux: api: app: schemas: team.py
-Description:团队管理相关的 Pydantic Schemas
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:53:30
+FilePath: /api/app/schemas/team.py
+Description: Team数据模式
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
-from pydantic import BaseModel, Field, EmailStr
+
+from pydantic import BaseModel, EmailStr, Field
 
 from app.utils.rbac import Role
 

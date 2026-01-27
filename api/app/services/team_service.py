@@ -1,10 +1,12 @@
 """
 Author: kk123047 3254834740@qq.com
-Date: 2025-12-10 14:41:10
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-22 14:28:14
-FilePath: : AAfflux: api: app: services: team_service.py
-Description:团队管理服务，实现了团队的crud操作，还有团队成员的邀请链接，令牌的审查。
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:55:03
+FilePath: /api/app/services/team_service.py
+Description: 团队服务
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from datetime import datetime, timedelta

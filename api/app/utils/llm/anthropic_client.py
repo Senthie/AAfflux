@@ -1,7 +1,15 @@
 """
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:55:39
+FilePath: /api/app/utils/llm/anthropic_client.py
+Description: Anthropic Client工具
 Anthropic客户端实现
 
 本模块实现了Anthropic Claude API的客户端，支持Claude系列模型的调用。
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 import json

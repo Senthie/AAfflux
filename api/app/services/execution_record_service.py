@@ -1,10 +1,12 @@
 """
 Author: kk123047 3254834740@qq.com
-Date: 2025-12-22 10:18:19
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-22 14:12:47
-FilePath: : AAfflux: api: app: services: execution_record_service.py
-Description:记录创建、查询、清理
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:36:55
+FilePath: /api/app/services/execution_record_service.py
+Description: Execution Record Service服务
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from datetime import datetime, timedelta

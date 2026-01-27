@@ -1,10 +1,12 @@
 """
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-22 10:28:40
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-22 14:39:25
-FilePath: : AAfflux: api: app: api: v1: applications.py
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:24:30
+FilePath: /api/app/api/v1/applications.py
 Description:应用管理api端点
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from math import ceil

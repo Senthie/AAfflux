@@ -1,7 +1,12 @@
 """
-插件服务
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:55:00
+FilePath: /api/app/services/plugin_service.py
+Description: 插件服务
 
-本模块实现插件管理的业务逻辑。
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from typing import Optional

@@ -1,16 +1,12 @@
 """
 Author: kk123047 3254834740@qq.com
-Date: 2025-12-02 11:31:11
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-08 14:46:26
-FilePath: : AAfflux: api: app: models: conversation: end_user.py
-Description:添加了softdelete软删除字段
-"""
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:49:17
+FilePath: /api/app/models/conversation/end_user.py
+Description: 用户数据模型
 
-"""终端用户模型 - 1张表。
-
-本模块定义了终端用户（C端用户）的数据模型。
-终端用户是使用已发布应用的最终用户，与租户用户（B端）不同。
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from datetime import datetime

@@ -1,10 +1,12 @@
 """
 Author: kk123047 3254834740@qq.com
-Date: 2025-12-10 16:44:17
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-11 12:15:44
-FilePath: : AAfflux: api: app: services: organization_service.py
-Description:企业服务管理
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:54:29
+FilePath: /api/app/services/organization_service.py
+Description: 组织服务
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from typing import List, Optional

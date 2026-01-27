@@ -1,4 +1,13 @@
-"""FastAPI application initialization."""
+"""
+Author: Senthie seemoon2077@gmail.com
+Date: 2026-01-08 14:12:08
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:31:36
+FilePath: /api/app/main.py
+Description: FastAPI application initialization.
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
+"""
 
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
@@ -8,8 +17,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
 
-from app.api.v1 import router as api_v1_router
 from app.api.errors import register_exception_handlers
+from app.api.v1 import router as api_v1_router
 from app.core.config import settings
 from app.core.database import close_db, init_db
 from app.core.logging import configure_logging, get_logger
@@ -17,7 +26,7 @@ from app.core.mongodb import mongodb_client
 from app.core.redis import redis_client
 from app.core.sentry import init_sentry
 from app.middleware.auth import AuthMiddleware
-from app.middleware.request_logger import RequestLoggingMiddleware, PerformanceLoggingMiddleware
+from app.middleware.request_logger import PerformanceLoggingMiddleware, RequestLoggingMiddleware
 
 # Configure logging
 configure_logging()

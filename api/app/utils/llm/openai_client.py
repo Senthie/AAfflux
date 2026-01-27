@@ -1,7 +1,14 @@
 """
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:56:02
+FilePath: /api/app/utils/llm/openai_client.py
+Description: Openai Client工具
 OpenAI客户端实现
-
 本模块实现了OpenAI API的客户端，支持GPT系列模型的调用。
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 import json

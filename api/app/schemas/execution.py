@@ -1,15 +1,18 @@
 """
 Author: kk123047 3254834740@qq.com
-Date: 2025-12-22 10:19:06
-LastEditors: kk123047 3254834740@qq.com
-LastEditTime: 2025-12-22 14:38:40
-FilePath: : AAfflux: api: app: schemas: execution.py
-Description:执行记录相关的Pydantic schemas
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:52:22
+FilePath: /api/app/schemas/execution.py
+Description: Execution数据模式
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from datetime import datetime
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
 from uuid import UUID
+
 from pydantic import BaseModel, Field
 
 

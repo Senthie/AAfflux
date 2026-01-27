@@ -1,10 +1,12 @@
 """
 Author: kk123047 3254834740@qq.com
-Date: 2025-12-10 14:41:43
+Date: 2025-12-09 18:00:00
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-09 12:04:01
+LastEditTime: 2026-01-27 17:36:55
 FilePath: /api/app/services/workspace_service.py
-Description:工作空间管理服务
+Description: 工作空间服务
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from typing import Any, Dict, List, Optional

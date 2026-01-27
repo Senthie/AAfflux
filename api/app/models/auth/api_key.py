@@ -1,7 +1,12 @@
-"""API密钥模型 - 1张表。
+"""
+Author: kk123047 3254834740@qq.com
+Date: 2025-12-09 18:00:00
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:47:34
+FilePath: /api/app/models/auth/api_key.py
+Description: Api Key数据模型
 
-本模块定义了API密钥的数据模型。
-支持应用的API访问控制和密钥管理。
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from datetime import datetime

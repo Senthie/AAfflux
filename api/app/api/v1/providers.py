@@ -1,7 +1,14 @@
 """
-LLM提供商管理API端点
+Author: Senthie seemoon2077@gmail.com
+Date: 2026-01-08 14:12:08
+LastEditors: Senthie seemoon2077@gmail.com
+LastEditTime: 2026-01-27 17:34:27
+FilePath: /api/app/api/v1/providers.py
+Description:LLM提供商管理API端点
 
 本模块实现了LLM提供商配置的REST API接口。
+
+Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 import logging
