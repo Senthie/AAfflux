@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-14 15:07:09
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-27 12:07:50
+ * @LastEditTime: 2026-01-27 15:21:52
  * @FilePath: /web/src/pages/workflows/MainPage.vue
  * @Description: 工作流的主要页面
  *
@@ -32,7 +32,7 @@ import { useWorkflowStore } from 'src/stores/workflow-store'
 import type { INode } from 'src/interfaces/IWorkflows'
 import { PluginUtil } from 'src/utils/PluginUtil'
 import { v4 as uuid4 } from 'uuid'
-import MouseCoordinateDisplay from 'src/components/MouseCoordinateDisplay.vue'
+import MouseCoordinateDisplay from 'src/components/workflows/MouseCoordinateDisplay.vue'
 const workflow_store = useWorkflowStore()
 
 const route = useRoute()
