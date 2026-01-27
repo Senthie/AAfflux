@@ -172,7 +172,7 @@ class WorkflowService:
         statement = (
             select(WorkflowModel)
             .where(WorkflowModel.workspace_id == workspace_id)
-            .where(WorkflowModel.is_deleted == False)
+            .where(not WorkflowModel.is_deleted)
             .offset(skip)
             .limit(page_req.size)
         )
@@ -183,7 +183,7 @@ class WorkflowService:
         count_statement = (
             select(WorkflowModel)
             .where(WorkflowModel.workspace_id == workspace_id)
-            .where(WorkflowModel.is_deleted == False)
+            .where(not WorkflowModel.is_deleted)
         )
         count_result = await self.db.execute(count_statement)
         total = len(count_result.scalars().all())

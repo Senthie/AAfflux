@@ -8,6 +8,7 @@ Description: Approval数据模型
 
 Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
+
 from datetime import datetime
 from enum import Enum
 from typing import Optional

@@ -8,6 +8,7 @@ Description: Request Logger中间件
 
 Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
+
 import time
 import uuid
 from typing import Callable

@@ -49,8 +49,8 @@ class TestDatabaseSetup:
         # 查询所有表
         result = await test_session.execute(
             text("""
-            SELECT table_name 
-            FROM information_schema.tables 
+            SELECT table_name
+            FROM information_schema.tables
             WHERE table_schema = 'public'
             ORDER BY table_name
         """)
@@ -83,9 +83,9 @@ class TestDatabaseSetup:
         # 检查 users 表的软删除字段
         result = await test_session.execute(
             text("""
-            SELECT column_name 
-            FROM information_schema.columns 
-            WHERE table_name = 'users' 
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_name = 'users'
             AND column_name IN ('deleted_at', 'is_deleted')
         """)
         )
@@ -100,8 +100,9 @@ class TestDatabaseSetup:
     @pytest.mark.asyncio
     async def test_transaction_rollback(self, test_session):
         """测试事务回滚功能"""
-        from app.models.auth.user import User
         from uuid import uuid4
+
+        from app.models.auth.user import User
 
         # 创建测试用户
         test_user = User(
@@ -136,7 +137,7 @@ class TestEnvironmentConfig:
         database_url = os.getenv('DATABASE_URL', '')
         assert 'lowcode_test' in database_url, '未使用测试数据库'
 
-        print(f'\n✅ 测试环境配置正确')
+        print('\n✅ 测试环境配置正确')
         print(f'   数据库: {database_url}')
 
     def test_settings_isolation(self):
@@ -146,6 +147,6 @@ class TestEnvironmentConfig:
         # 测试环境应该使用测试数据库
         assert 'lowcode_test' in settings.database_url
 
-        print(f'\n✅ 配置隔离正确')
+        print('\n✅ 配置隔离正确')
         print(f'   App Name: {settings.app_name}')
         print(f'   Database: {settings.database_url}')

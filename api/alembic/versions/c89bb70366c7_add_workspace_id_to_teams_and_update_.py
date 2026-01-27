@@ -179,12 +179,12 @@ def upgrade() -> None:
     connection = op.get_bind()
     connection.execute(
         sa.text("""
-        UPDATE workspaces 
-        SET encrypt_public_key = '', 
-            plan = 'FREE', 
+        UPDATE workspaces
+        SET encrypt_public_key = '',
+            plan = 'FREE',
             status = 'NORMAL'
-        WHERE encrypt_public_key IS NULL 
-           OR plan IS NULL 
+        WHERE encrypt_public_key IS NULL
+           OR plan IS NULL
            OR status IS NULL
     """)
     )
@@ -210,9 +210,9 @@ def upgrade() -> None:
         # 创建一个默认的 workspace 用于现有的 teams
         default_workspace_id = connection.execute(
             sa.text("""
-            INSERT INTO workspaces (id, name, description, created_by, created_at, updated_at, 
+            INSERT INTO workspaces (id, name, description, created_by, created_at, updated_at,
                                   encrypt_public_key, plan, status, is_deleted, deleted_at)
-            SELECT 
+            SELECT
                 gen_random_uuid(),
                 'Default Workspace',
                 'Auto-created workspace for existing teams',
@@ -224,7 +224,7 @@ def upgrade() -> None:
                 'NORMAL',
                 false,
                 NULL
-            FROM teams 
+            FROM teams
             LIMIT 1
             RETURNING id
         """)
@@ -233,7 +233,7 @@ def upgrade() -> None:
         # 更新所有现有的 teams 记录使用这个默认 workspace
         connection.execute(
             sa.text(f"""
-            UPDATE teams 
+            UPDATE teams
             SET workspace_id = '{default_workspace_id}'
             WHERE workspace_id IS NULL
         """)

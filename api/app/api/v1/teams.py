@@ -8,6 +8,7 @@ Description: 团队管理API端点
 
 Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
+
 from typing import Annotated
 from uuid import UUID
 

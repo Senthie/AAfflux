@@ -90,7 +90,7 @@ class TestUserCRUD:
     @pytest.mark.asyncio
     async def test_update_user(self, test_session):
         """测试更新用户"""
-        user = User(
+        user = UserEntity(
             id=uuid4(),
             name='Original Name',
             email='update@example.com',
@@ -240,7 +240,7 @@ class TestUserCRUD:
         test_session.add(user2)
 
         # 应该抛出异常
-        with pytest.raises(Exception):  # IntegrityError
+        with pytest.raises((Exception, ValueError)):  # IntegrityError
             await test_session.commit()
 
     @pytest.mark.asyncio

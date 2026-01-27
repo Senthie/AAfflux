@@ -8,6 +8,7 @@ Description: 基础数据模型
 
 Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
+
 from abc import ABC, abstractmethod
 from typing import AsyncGenerator, Any, Optional
 from fastapi import UploadFile

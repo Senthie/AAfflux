@@ -8,6 +8,7 @@ Description: Error Handler中间件
 
 Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
+
 import time
 import traceback
 from typing import Callable

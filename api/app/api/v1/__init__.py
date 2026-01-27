@@ -8,6 +8,7 @@ Description: 模块初始化
 
 Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
+
 from fastapi import APIRouter
 
 from app.api.v1 import (

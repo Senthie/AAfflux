@@ -8,6 +8,7 @@ Description: 自定义异常类
 
 Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
+
 """存储系统自定义异常"""
 
 from typing import Optional

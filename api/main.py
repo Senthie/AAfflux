@@ -8,6 +8,7 @@ Description: 应用入口点
 
 Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
+
 import uvicorn
 
 from app.core.config import settings

@@ -8,6 +8,7 @@ Description: 执行记录API端点
 
 Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
+
 from math import ceil
 from typing import List
 from uuid import UUID

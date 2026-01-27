@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-30 09:00:15
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-02 12:18:32
+LastEditTime: 2026-01-27 17:59:57
 FilePath: /api/app/engine/nodes/__init__.py
 Description:Node Types Module
 
@@ -50,7 +50,7 @@ def register_all_nodes() -> None:
 
     # 基础节点 (无依赖其他节点)
     from app.engine.nodes.chat.chat import ChatNode  # noqa: F401
-    from app.engine.nodes.http.http_node import HttpNodeData
+    from app.engine.nodes.http.http_node import HttpNode  # noqa: F401
     from app.engine.nodes.provider.ollama_node import OllamaNode  # noqa: F401
 
     _nodes_registered = True
