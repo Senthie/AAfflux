@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-09 03:25:28
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-26 14:06:21
+LastEditTime: 2026-01-28 10:10:35
 FilePath: /api/app/services/workflow_service.py
 Description:Workflow management service.
 
@@ -103,12 +103,18 @@ class WorkflowService:
             raise WorkspaceException(CustomResponseCodeEnum.FORBIDDEN)
 
         # 3. ceate workflow
+        from app.models.workflow.workflow import GraphModel
+
+        # 初始化空的图结构
+        empty_graph = GraphModel(nodes=[], connections=[])
+
         workflow = WorkflowModel(
             name=workflow_data.name,
             description=workflow_data.description,
             workspace_id=workspace_id,  # type: ignore
             input_schema=workflow_data.input_schema,
             output_schema=workflow_data.output_schema,
+            graph=empty_graph.model_dump(),  # 转换为字典
             created_by=user.id,  # type: ignore
         )
 

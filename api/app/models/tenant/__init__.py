@@ -10,7 +10,13 @@ Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from app.models.tenant.invitation import TeamInvitation
-from app.models.tenant.organization import Organization, Team, TeamMember, Workspace
+from app.models.tenant.organization import (
+    Organization,
+    Team,
+    TeamMember,
+    Workspace,
+    WorkspaceAccountUser,
+)
 
 __all__ = [
     'Organization',
@@ -18,4 +24,5 @@ __all__ = [
     'Workspace',
     'TeamMember',
     'TeamInvitation',
+    'WorkspaceAccountUser',
 ]

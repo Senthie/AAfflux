@@ -50,7 +50,7 @@ def register_all_nodes() -> None:
 
     # 基础节点 (无依赖其他节点)
     from app.engine.nodes.chat.chat import ChatNode  # noqa: F401
-    from app.engine.nodes.http.http_node import HttpNode  # noqa: F401
+    from app.engine.nodes.http.http_node import HTTPNodeExecutor  # noqa: F401
     from app.engine.nodes.provider.ollama_node import OllamaNode  # noqa: F401
 
     _nodes_registered = True
