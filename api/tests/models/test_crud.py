@@ -74,7 +74,8 @@ class TestConfiguration:
 
     def test_settings_loaded(self):
         """Test that settings are loaded correctly."""
-        assert settings.app_name == 'Low-Code Platform Backend'
+        # 测试环境的应用名称会包含 "- Test" 后缀
+        assert 'Low-Code Platform Backend' in settings.app_name
         assert settings.jwt_algorithm == 'HS256'
         assert settings.database_url is not None
 
@@ -260,6 +261,7 @@ class TestTeamCRUD:
     async def test_team_crud(self, test_db_session: AsyncSession):
         """Test Team CRUD operations."""
         organization_id = uuid4()
+        workspace_id = uuid4()
         user_id = uuid4()
         unique_id = str(uuid4())[:8]
 
@@ -267,6 +269,7 @@ class TestTeamCRUD:
             name=f'Test Team {unique_id}',
             description='Test team description',
             organization_id=organization_id,
+            workspace_id=workspace_id,
             created_by=user_id,
         )
         test_db_session.add(team)

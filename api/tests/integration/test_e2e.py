@@ -81,8 +81,27 @@ class TestEndToEndIntegration:
         self, test_session: AsyncSession, test_user: UserEntity, test_organization: Organization
     ):
         """测试数据库CRUD操作"""
+        from app.models.tenant import Workspace, WorkspaceAccountUser
+
         workflow_service = WorkflowService(test_session)
-        workspace_id = uuid4()
+
+        # 创建工作空间
+        workspace = Workspace(
+            id=uuid4(),
+            name='Test Workspace',
+            organization_id=test_organization.id,
+            created_by=test_user.id,
+        )
+        test_session.add(workspace)
+
+        # 创建用户工作空间关联
+        workspace_user = WorkspaceAccountUser(
+            user_id=test_user.id,
+            workspace_id=workspace.id,
+            role='admin',
+        )
+        test_session.add(workspace_user)
+        await test_session.commit()
 
         # Create
         workflow_data = WorkflowCreateRequest(
@@ -91,26 +110,31 @@ class TestEndToEndIntegration:
         )
 
         created_workflow = await workflow_service.create_workflow(
-            workflow_data, workspace_id, test_user.id
+            workflow_data, workspace.id, test_user
         )
         assert created_workflow is not None
 
         # Read
-        retrieved_workflow = await workflow_service.get_workflow(created_workflow.id)
+        retrieved_workflow = await workflow_service.get_workflow(created_workflow.id, test_user)
         assert retrieved_workflow is not None
 
         # Update
-        update_data = WorkflowUpdateRequest(name='Updated CRUD Test Workflow')
-        updated_workflow = await workflow_service.update_workflow(created_workflow.id, update_data)
+        from app.models.workflow.workflow import GraphModel
+
+        empty_graph = GraphModel(nodes=[], connections=[])
+        update_data = WorkflowUpdateRequest(name='Updated CRUD Test Workflow', graph=empty_graph)
+        updated_workflow = await workflow_service.update_workflow(
+            created_workflow.id, update_data, test_user
+        )
         assert updated_workflow.name == 'Updated CRUD Test Workflow'
 
         # Delete
-        await workflow_service.delete_workflow(created_workflow.id)
+        await workflow_service.delete_workflow(created_workflow.id, test_user)
         # Verify deletion by checking it raises error
-        from app.services.workflow_service import WorkflowNotFoundError
+        from app.core.exceptions import WorkflowError
 
-        with pytest.raises(WorkflowNotFoundError):
-            await workflow_service.get_workflow(created_workflow.id)
+        with pytest.raises(WorkflowError):
+            await workflow_service.get_workflow(created_workflow.id, test_user)
 
     async def test_system_health_check(self, client: TestClient, test_session: AsyncSession):
         """测试系统健康检查"""
@@ -172,16 +196,35 @@ class TestEndToEndIntegration:
         self, test_session: AsyncSession, test_user: UserEntity, test_organization: Organization
     ):
         """测试跨服务数据一致性"""
+        from app.models.tenant import Workspace, WorkspaceAccountUser
+
         workflow_service = WorkflowService(test_session)
         application_service = ApplicationService(test_session)
-        workspace_id = uuid4()
+
+        # 创建工作空间
+        workspace = Workspace(
+            id=uuid4(),
+            name='Test Workspace',
+            organization_id=test_organization.id,
+            created_by=test_user.id,
+        )
+        test_session.add(workspace)
+
+        # 创建用户工作空间关联
+        workspace_user = WorkspaceAccountUser(
+            user_id=test_user.id,
+            workspace_id=workspace.id,
+            role='admin',
+        )
+        test_session.add(workspace_user)
+        await test_session.commit()
 
         workflow_data = WorkflowCreateRequest(
             name='Consistency Test Workflow',
             description='Test workflow for consistency',
         )
 
-        workflow = await workflow_service.create_workflow(workflow_data, workspace_id, test_user.id)
+        workflow = await workflow_service.create_workflow(workflow_data, workspace.id, test_user)
 
         app_data = ApplicationCreate(
             name='Consistency Test App',

@@ -26,8 +26,8 @@ from uuid import uuid4
 import pytest
 
 
-class TestUploadFile:
-    """测试文件上传对象"""
+class MockUploadFile:
+    """模拟文件上传对象"""
 
     def __init__(self, content: bytes, filename: str, content_type: str):
         self.file = BytesIO(content)
@@ -52,7 +52,7 @@ async def test_file_storage():
     await mongodb_client.connect()
 
     test_content = b'Hello, this is a test file!'
-    test_file = TestUploadFile(test_content, 'test.txt', 'text/plain')
+    test_file = MockUploadFile(test_content, 'test.txt', 'text/plain')
 
     session_gen = get_session()
     session = await anext(session_gen)
