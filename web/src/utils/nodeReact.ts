@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-19 15:49:12
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-27 12:07:17
+ * @LastEditTime: 2026-01-29 17:25:20
  * @FilePath: /web/src/utils/nodeReact.ts
  * @Description: 创建一个 node 的节点类型
  *
@@ -23,7 +23,7 @@ import type {
     IPointerEvent,
 } from '@leafer-ui/interface'
 import { Rect, Text, Ellipse, Line } from 'leafer-ui'
-
+import { PointerEvent } from 'leafer-ui'
 // 定义数据
 export interface INodeRectInputData extends IGroupInputData {
     title?: string
@@ -73,6 +73,9 @@ export class NodeRect extends Group {
         this.create_title()
         // TOOD Node之间会形成回环，需要添加条件进行控制
         this.setupConnectionEvents()
+
+        // 添加双击元素事件
+        this.setupDoubleTapEvents()
     }
 
     create_rect(): void {
@@ -534,5 +537,16 @@ export class NodeRect extends Group {
 
     public get currentDragStartPoint(): 'in' | 'out' | null {
         return this.dragStartPoint
+    }
+
+    private setupDoubleTapEvents(): void {
+        this.on(PointerEvent.DOUBLE_TAP, (e: PointerEvent) => {
+            // emitter.emit('noderect:double.tap', e)
+            const data = {
+                event: e,
+                id: this.id,
+            }
+            this.emit('noderect:double.tap', data)
+        })
     }
 }

@@ -56,6 +56,9 @@ importers:
       leafer-x-dotwuxian:
         specifier: ^0.0.3
         version: 0.0.3(@leafer-ui/core@1.12.3)(@leafer-ui/interface@1.12.3)
+      mitt:
+        specifier: ^3.0.1
+        version: 3.0.1
       pinia:
         specifier: ^3.0.1
         version: 3.0.4(typescript@5.9.3)(vue@3.5.25(typescript@5.9.3))

@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-14 15:07:09
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-27 15:57:52
+ * @LastEditTime: 2026-01-29 17:27:31
  * @FilePath: /web/src/pages/workflows/MainPage.vue
  * @Description: 工作流的主要页面
  *
@@ -504,6 +504,13 @@ onMounted(async () => {
                                     error
                                 )
                             }
+                        }
+                    )
+
+                    node.on(
+                        'noderect:double.tap',
+                        (data: { event: IPointerEvent; id: string }) => {
+                            console.log(data.id)
                         }
                     )
                 },
