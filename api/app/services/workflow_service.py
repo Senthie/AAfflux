@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-09 03:25:28
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-28 10:10:35
+LastEditTime: 2026-01-29 14:47:31
 FilePath: /api/app/services/workflow_service.py
 Description:Workflow management service.
 
@@ -178,7 +178,7 @@ class WorkflowService:
         statement = (
             select(WorkflowModel)
             .where(WorkflowModel.workspace_id == workspace_id)
-            .where(not WorkflowModel.is_deleted)
+            .where(WorkflowModel.is_deleted != True)
             .offset(skip)
             .limit(page_req.size)
         )
@@ -189,7 +189,7 @@ class WorkflowService:
         count_statement = (
             select(WorkflowModel)
             .where(WorkflowModel.workspace_id == workspace_id)
-            .where(not WorkflowModel.is_deleted)
+            .where(WorkflowModel.is_deleted != True)
         )
         count_result = await self.db.execute(count_statement)
         total = len(count_result.scalars().all())
