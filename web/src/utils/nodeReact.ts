@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-19 15:49:12
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-29 17:25:20
+ * @LastEditTime: 2026-02-02 16:36:22
  * @FilePath: /web/src/utils/nodeReact.ts
  * @Description: 创建一个 node 的节点类型
  *
@@ -21,6 +21,7 @@ import type {
     IGroupData,
     IUI,
     IPointerEvent,
+    IText,
 } from '@leafer-ui/interface'
 import { Rect, Text, Ellipse, Line } from 'leafer-ui'
 import { PointerEvent } from 'leafer-ui'
@@ -58,6 +59,7 @@ export class NodeRect extends Group {
     @dataType('')
     declare public icon: string // 增加自定义属性
 
+    private title_ui: IText = null as unknown as IText
     public in: IUI = null as unknown as IUI
     public out: IUI = null as unknown as IUI
 
@@ -149,6 +151,7 @@ export class NodeRect extends Group {
         // 获取 text的长度
         text.x = this.x_center_position(text.boxBounds.width, 100)
         this.add(text)
+        this.title_ui = text
     }
 
     x_center_position(width: number, canvas_w: number) {
@@ -548,5 +551,10 @@ export class NodeRect extends Group {
             }
             this.emit('noderect:double.tap', data)
         })
+    }
+
+    // 方便外部更新 node信息
+    public updateNode(ui: INodeRectInputData) {
+        this.title_ui.text = ui.title as string
     }
 }

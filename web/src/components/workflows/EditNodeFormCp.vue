@@ -139,7 +139,12 @@ onUnmounted(() => {
 const debouncedNodeUpdate = debounce(() => {
     node.value.ui.title = node.value.config.title
     workflow_store.update()
-}, 1000) // 1秒防抖延迟
+    emitter.emit('noderect:edit.ui.update', {
+        node_id: node.value.id,
+        ui_config: node.value.ui,
+    })
+    // 更新 node rect
+}, 300) // 1秒防抖延迟
 
 watch(
     node,
@@ -157,10 +162,10 @@ watch(
                     <EditableTitleCp
                         class="text-h4"
                         v-model="node.config.title as string"
-                    ></EditableTitleCp>
-                    <EditableTitleCp
-                        v-model="node.config.desc as string"
-                    ></EditableTitleCp>
+                    >
+                    </EditableTitleCp>
+                    <EditableTitleCp v-model="node.config.desc as string">
+                    </EditableTitleCp>
                 </q-card-section>
 
                 <q-card-section class="q-pt-none">

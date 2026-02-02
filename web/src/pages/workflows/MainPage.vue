@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-14 15:07:09
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-30 17:20:34
+ * @LastEditTime: 2026-02-02 16:53:57
  * @FilePath: /web/src/pages/workflows/MainPage.vue
  * @Description: 工作流的主要页面
  *
@@ -23,6 +23,7 @@ import '@leafer-in/find' // 导入查找元素插件
 import type { IPageReq, IPageRes } from 'src/interfaces/Ipage'
 import type { PluginConfigRecord, PluginResponse } from 'src/interfaces/IPlugin'
 import { v1_plugins_list } from 'src/apis/plugin_api'
+import type { INodeRectInputData } from 'src/utils/nodeReact'
 import { NodeRect } from 'src/utils/nodeReact'
 import { Platform } from 'leafer-ui'
 import { useRoute, useRouter } from 'vue-router'
@@ -389,6 +390,14 @@ const load_ui = async () => {
     }
 }
 
+const update_nodeRect_by_id = (data: {
+    node_id: string
+    ui_config: INodeRectInputData
+}) => {
+    const node_rect = app.findId(data.node_id) as NodeRect
+    node_rect.updateNode(data.ui_config)
+}
+
 onMounted(async () => {
     try {
         // Check if store is properly initialized
@@ -541,6 +550,9 @@ onMounted(async () => {
         await load_ui()
         // 获取插件
         await handle_get_plugins()
+
+        // 添加监听事件
+        emitter.on('noderect:edit.ui.update', update_nodeRect_by_id)
     } catch (error) {
         console.error('Error in onMounted hook:', error)
         Notify.create({
