@@ -36,7 +36,7 @@ const makeEditable = () => {
         originalTitle.value = title.value
 
         // 聚焦并选择所有文本
-        nextTick(() => {
+        void nextTick(() => {
             if (titleEl.value != null) {
                 titleEl.value.focus()
                 selectAllText(titleEl.value)

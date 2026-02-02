@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-29 16:48:28
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-30 10:31:42
+ * @LastEditTime: 2026-02-02 10:54:51
  * @FilePath: /web/src/boot/mitt.ts
  * @Description: 初始化 mitt 事件总线
  *
@@ -11,6 +11,17 @@
 import mitt from 'mitt'
 type Events = {
     'noderect:edit.dialog.open': { visiable: boolean; node_id: string }
+    'formfield:value.update': {
+        fieldKey: string
+        value: unknown
+        nodeId?: string
+    }
+    'formfield:validate': {
+        fieldKey: string
+        isValid: boolean
+        error?: string
+        nodeId?: string
+    }
     // 可以添加其他事件
 }
 const emitter = mitt<Events>()
