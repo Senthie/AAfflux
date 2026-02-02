@@ -2,20 +2,52 @@
  * 防抖工具函数
  * @param func 需要防抖的函数
  * @param delay 延迟时间（毫秒）
- * @returns 防抖后的函数
+ * @returns 防抖后的函数，包含 flush 方法用于立即执行
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const debounce = <T extends (...args: any[]) => void>(
     func: T,
     delay: number
-): ((...args: Parameters<T>) => void) => {
+): ((...args: Parameters<T>) => void) & {
+    flush: () => void
+    cancel: () => void
+} => {
     let timeoutId: NodeJS.Timeout | null = null
-    return (...args: Parameters<T>) => {
+    let lastArgs: Parameters<T> | null = null
+
+    const debouncedFunc = (...args: Parameters<T>) => {
+        lastArgs = args
         if (timeoutId) {
             clearTimeout(timeoutId)
         }
-        timeoutId = setTimeout(() => func(...args), delay)
+        timeoutId = setTimeout(() => {
+            func(...args)
+            lastArgs = null
+        }, delay)
     }
+
+    // 立即执行函数
+    debouncedFunc.flush = () => {
+        if (timeoutId) {
+            clearTimeout(timeoutId)
+            timeoutId = null
+        }
+        if (lastArgs) {
+            func(...lastArgs)
+            lastArgs = null
+        }
+    }
+
+    // 取消执行
+    debouncedFunc.cancel = () => {
+        if (timeoutId) {
+            clearTimeout(timeoutId)
+            timeoutId = null
+        }
+        lastArgs = null
+    }
+
+    return debouncedFunc
 }
 
 /**

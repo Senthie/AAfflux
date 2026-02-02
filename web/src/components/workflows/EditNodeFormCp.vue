@@ -13,6 +13,7 @@ const workflow_store = useWorkflowStore()
 const node_id = ref<string>('')
 const dialog_visiable = ref<boolean>(false)
 const errors = ref<Record<string, string>>({})
+const isSaving = ref<boolean>(false) // 保存状态指示器
 
 const node = ref<INode>({
     id: '',
@@ -146,6 +147,39 @@ const debouncedNodeUpdate = debounce(() => {
     // 更新 node rect
 }, 300) // 1秒防抖延迟
 
+// 处理对话框关闭
+const handleDialogClose = async () => {
+    try {
+        isSaving.value = true // 显示保存状态
+
+        // 立即执行所有待处理的防抖更新
+        // 1. 立即执行字段变化的防抖更新
+        if (debouncedFieldChange.flush) {
+            debouncedFieldChange.flush()
+        }
+
+        // 2. 立即执行节点更新的防抖更新
+        if (debouncedNodeUpdate.flush) {
+            debouncedNodeUpdate.flush()
+        }
+
+        // 3. 确保 workflow store 立即更新
+        workflow_store.updateImmediate()
+
+        // 4. 等待一小段时间确保所有更新完成
+        await new Promise((resolve) => setTimeout(resolve, 200))
+
+        // 5. 关闭对话框
+        dialog_visiable.value = false
+    } catch (error) {
+        console.error('Error closing dialog:', error)
+        // 即使出错也要关闭对话框
+        dialog_visiable.value = false
+    } finally {
+        isSaving.value = false // 隐藏保存状态
+    }
+}
+
 watch(
     node,
     () => {
@@ -156,16 +190,32 @@ watch(
 </script>
 <template>
     <div>
-        <q-dialog v-model="dialog_visiable">
+        <q-dialog v-model="dialog_visiable" persistent>
             <q-card style="min-width: 350px">
                 <q-card-section>
-                    <EditableTitleCp
-                        class="text-h4"
-                        v-model="node.config.title as string"
-                    >
-                    </EditableTitleCp>
-                    <EditableTitleCp v-model="node.config.desc as string">
-                    </EditableTitleCp>
+                    <div class="row items-center justify-between">
+                        <div class="col">
+                            <EditableTitleCp
+                                class="text-h4"
+                                v-model="node.config.title as string"
+                            >
+                            </EditableTitleCp>
+                            <EditableTitleCp
+                                v-model="node.config.desc as string"
+                            >
+                            </EditableTitleCp>
+                        </div>
+                        <div class="col-auto">
+                            <q-btn
+                                icon="close"
+                                flat
+                                round
+                                dense
+                                v-close-popup
+                                @click="handleDialogClose"
+                            />
+                        </div>
+                    </div>
                 </q-card-section>
 
                 <q-card-section class="q-pt-none">
@@ -192,6 +242,14 @@ watch(
                 </q-card-section>
 
                 <q-card-actions align="right" class="text-primary">
+                    <q-btn
+                        flat
+                        label="完成"
+                        color="primary"
+                        :loading="isSaving"
+                        :disable="isSaving"
+                        @click="handleDialogClose"
+                    />
                 </q-card-actions>
             </q-card>
         </q-dialog>
