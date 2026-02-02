@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import FormFieldCp from './FormFieldCp.vue'
 import emitter from 'src/boot/mitt'
 import { useWorkflowStore } from 'src/stores/workflow-store'
@@ -7,6 +7,8 @@ import type { INode } from 'src/interfaces/IWorkflows'
 import type { IPluginBase } from 'src/interfaces/IPlugin'
 import { v1_plugins_id } from 'src/apis/plugin_api'
 import EditableTitleCp from './EditableTitleCp.vue'
+import { debounce } from 'src/utils/debounce'
+
 const workflow_store = useWorkflowStore()
 const node_id = ref<string>('')
 const dialog_visiable = ref<boolean>(false)
@@ -64,17 +66,24 @@ const handleFieldValidation = (
     }
 }
 
-// 处理字段值变化，自动同步到store
-const handleFieldChange = (key: string, value: unknown) => {
+// 处理字段值变化，自动同步到store - 添加防抖
+const debouncedFieldChange = debounce((key: string, value: unknown) => {
     // 更新本地node配置
     ;(node.value.config as Record<string, unknown>)[key] = value
 
     // 同步到workflow store
     workflow_store.update_node_config(node.value.id, node.value.config)
+}, 800) // 800ms 防抖延迟，比FormFieldCp稍长一些
+
+const handleFieldChange = (key: string, value: unknown) => {
+    // 立即更新本地显示
+    ;(node.value.config as Record<string, unknown>)[key] = value
+
+    // 防抖更新到store
+    debouncedFieldChange(key, value)
 }
 
-// 设置di\
-
+// 设置 di
 onMounted(() => {
     const dialogHandler = async (data: {
         visiable: boolean
@@ -94,7 +103,6 @@ onMounted(() => {
         nodeId?: string
     }) => {
         // 只处理当前节点的字段更新
-        console.log('fieldUpdateHandler:', data)
         if (data.nodeId === node.value.id || !data.nodeId) {
             handleFieldChange(data.fieldKey, data.value)
         }
@@ -126,6 +134,20 @@ onUnmounted(() => {
     emitter.off('formfield:value.update')
     emitter.off('formfield:validate')
 })
+
+// 防抖的节点更新函数
+const debouncedNodeUpdate = debounce(() => {
+    node.value.ui.title = node.value.config.title
+    workflow_store.update()
+}, 1000) // 1秒防抖延迟
+
+watch(
+    node,
+    () => {
+        debouncedNodeUpdate()
+    },
+    { deep: true }
+)
 </script>
 <template>
     <div>

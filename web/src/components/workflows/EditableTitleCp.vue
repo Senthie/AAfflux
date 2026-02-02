@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-30 17:51:25
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-02-02 10:32:51
+ * @LastEditTime: 2026-02-02 15:37:09
  * @FilePath: /web/src/components/workflows/EditableTitleCp.vue
  * @Description: 标题或者其他文字的修改
  *
@@ -23,6 +23,7 @@
 
 <script lang="ts" setup>
 import { nextTick, ref } from 'vue'
+import { debounce } from 'src/utils/debounce'
 
 const title = defineModel({ default: '' })
 
@@ -45,12 +46,19 @@ const makeEditable = () => {
     }
 }
 
+// 防抖的保存函数
+const debouncedSave = debounce((newTitle: string) => {
+    if (newTitle && newTitle !== originalTitle.value) {
+        title.value = newTitle
+    }
+}, 300) // 300ms 防抖延迟
+
 const saveContent = () => {
     if (isEditing.value && titleEl.value != null) {
-        const newTitle = titleEl.value.textContent.trim()
-        if (newTitle && newTitle !== originalTitle.value) {
-            title.value = newTitle
-        } else if (!newTitle) {
+        const newTitle = titleEl.value.textContent?.trim() || ''
+        if (newTitle) {
+            debouncedSave(newTitle)
+        } else {
             titleEl.value.textContent = originalTitle.value
         }
         isEditing.value = false

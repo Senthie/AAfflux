@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-12 11:07:19
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-27 15:54:41
+ * @LastEditTime: 2026-02-02 15:35:53
  * @FilePath: /web/src/stores/workflow-store.ts
  * @Description: 用户当前打开的 workflow
  *
@@ -17,6 +17,7 @@ import type {
     IWorkflowResponse,
 } from 'src/interfaces/IWorkflows'
 import { ref } from 'vue'
+import { debounce } from 'src/utils/debounce'
 export const useWorkflowStore = defineStore('workflowStore', () => {
     const workflow = ref<IWorkflowResponse>({
         graph: {
@@ -70,6 +71,7 @@ export const useWorkflowStore = defineStore('workflowStore', () => {
         const node = get_node_by_id(id)
         if (node) {
             node.config = config
+            update()
         }
     }
 
@@ -118,7 +120,17 @@ export const useWorkflowStore = defineStore('workflowStore', () => {
         update()
     }
 
+    // 防抖的更新函数
+    const debouncedUpdate = debounce(() => {
+        void v1_update_workflow(workflow.value.id, workflow.value)
+    }, 1500) // 1.5秒防抖延迟
+
     function update() {
+        debouncedUpdate()
+    }
+
+    // 立即更新函数（用于需要立即同步的场景）
+    function updateImmediate() {
         void v1_update_workflow(workflow.value.id, workflow.value)
     }
     return {
@@ -135,5 +147,7 @@ export const useWorkflowStore = defineStore('workflowStore', () => {
         del_connection_by_id,
         del_connection_by_nodes,
         set_workflow,
+        update,
+        updateImmediate,
     }
 })

@@ -3,6 +3,7 @@ import type { ManifestItem } from 'src/interfaces/IPlugin'
 import { isFileManifestItem } from 'src/interfaces/IPlugin'
 import { ref, computed, watch, nextTick } from 'vue'
 import emitter from 'src/boot/mitt'
+import { debounce } from 'src/utils/debounce'
 
 // TODO: 验证 `config` 的参数
 // TODO: 设置相应事件
@@ -137,8 +138,8 @@ const removeArrayItem = (index: number) => {
     }
 }
 
-// 处理输入
-const handleInput = () => {
+// 处理输入 - 添加防抖
+const handleInput = debounce(() => {
     // 通过mitt发出更新事件
     const updatePayload: { fieldKey: string; value: unknown; nodeId?: string } =
         {
@@ -168,7 +169,7 @@ const handleInput = () => {
         validatePayload.nodeId = props.nodeId
     }
     emitter.emit('formfield:validate', validatePayload)
-}
+}, 500) // 500ms 防抖延迟
 
 // 处理失去焦点
 const handleBlur = () => {
@@ -199,45 +200,48 @@ watch(
     }
 )
 
-// 监听本地值变化并验证
+// 监听本地值变化并验证 - 添加防抖
+const debouncedWatchHandler = debounce((newValue: unknown) => {
+    void nextTick(() => {
+        // 通过mitt发出更新事件
+        const updatePayload: {
+            fieldKey: string
+            value: unknown
+            nodeId?: string
+        } = {
+            fieldKey: props.field.key,
+            value: newValue,
+        }
+        if (props.nodeId) {
+            updatePayload.nodeId = props.nodeId
+        }
+        emitter.emit('formfield:value.update', updatePayload)
+
+        // 验证并通过mitt发出验证事件
+        const error = validate(newValue)
+        const validatePayload: {
+            fieldKey: string
+            isValid: boolean
+            error?: string
+            nodeId?: string
+        } = {
+            fieldKey: props.field.key,
+            isValid: !error,
+        }
+        if (error) {
+            validatePayload.error = error
+        }
+        if (props.nodeId) {
+            validatePayload.nodeId = props.nodeId
+        }
+        emitter.emit('formfield:validate', validatePayload)
+    })
+}, 500) // 500ms 防抖延迟
+
 watch(
     localValue,
     (newValue) => {
-        void nextTick(() => {
-            // 通过mitt发出更新事件
-            const updatePayload: {
-                fieldKey: string
-                value: unknown
-                nodeId?: string
-            } = {
-                fieldKey: props.field.key,
-                value: newValue,
-            }
-            if (props.nodeId) {
-                updatePayload.nodeId = props.nodeId
-            }
-            console.log('发生更新')
-            emitter.emit('formfield:value.update', updatePayload)
-
-            // 验证并通过mitt发出验证事件
-            const error = validate(newValue)
-            const validatePayload: {
-                fieldKey: string
-                isValid: boolean
-                error?: string
-                nodeId?: string
-            } = {
-                fieldKey: props.field.key,
-                isValid: !error,
-            }
-            if (error) {
-                validatePayload.error = error
-            }
-            if (props.nodeId) {
-                validatePayload.nodeId = props.nodeId
-            }
-            emitter.emit('formfield:validate', validatePayload)
-        })
+        debouncedWatchHandler(newValue)
     },
     { deep: true }
 )
