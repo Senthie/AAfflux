@@ -153,18 +153,22 @@ watch(
     <div>
         <q-dialog v-model="dialog_visiable">
             <q-card style="min-width: 350px">
-                <q-card-section
-                    ><EditableTitleCp
+                <q-card-section>
+                    <EditableTitleCp
+                        class="text-h4"
                         v-model="node.config.title as string"
+                    ></EditableTitleCp>
+                    <EditableTitleCp
+                        v-model="node.config.desc as string"
                     ></EditableTitleCp>
                 </q-card-section>
 
                 <q-card-section class="q-pt-none">
                     <!-- 参数配置部分 -->
                     <div>
-                        <h5>
+                        <h6 style="margin-top: 1%; margin-bottom: 1%">
                             <span>参数配置</span>
-                        </h5>
+                        </h6>
 
                         <div class="fields-grid">
                             <template

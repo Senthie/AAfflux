@@ -11,7 +11,7 @@
 <template>
     <div
         ref="titleEl"
-        class="text-h6 editable-title"
+        class="editable-title"
         :contenteditable="isEditing"
         @click="makeEditable"
         @blur="saveContent"
