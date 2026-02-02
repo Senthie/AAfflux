@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-19 14:51:12
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-26 14:32:36
+ * @LastEditTime: 2026-01-30 17:04:03
  * @FilePath: /web/src/interfaces/IPlugin.ts
  * @Description: plugin 的请求和返回值的抽象
  *
@@ -46,6 +46,7 @@ export interface TextInputManifestItem extends BaseManifestItem {
 }
 
 export interface TextAreaManifestItem extends BaseManifestItem {
+    rows: number
     type: 'textarea'
 }
 
@@ -67,7 +68,6 @@ export interface FileManifestItem extends BaseManifestItem {
     accept?: string
     multiple?: boolean
 }
-
 export interface BooleanManifestItem extends BaseManifestItem {
     type: 'boolean'
 }
@@ -86,6 +86,49 @@ export type ManifestItem =
     | FileManifestItem
     | BooleanManifestItem
     | SelectManifestItem
+
+// 类型保护函数 - 检查是否是特定类型的 ManifestItem
+export function isTextInputManifestItem(
+    item: BaseManifestItem
+): item is TextInputManifestItem {
+    return item.type === 'textinput'
+}
+
+export function isTextAreaManifestItem(
+    item: BaseManifestItem
+): item is TextAreaManifestItem {
+    return item.type === 'textarea'
+}
+
+export function isNumberManifestItem(
+    item: BaseManifestItem
+): item is NumberManifestItem {
+    return item.type === 'number'
+}
+
+export function isArrayManifestItem(
+    item: BaseManifestItem
+): item is ArrayManifestItem {
+    return item.type === 'array'
+}
+
+export function isFileManifestItem(
+    item: BaseManifestItem
+): item is FileManifestItem {
+    return item.type === 'file'
+}
+
+export function isBooleanManifestItem(
+    item: BaseManifestItem
+): item is BooleanManifestItem {
+    return item.type === 'boolean'
+}
+
+export function isSelectManifestItem(
+    item: BaseManifestItem
+): item is SelectManifestItem {
+    return item.type === 'select'
+}
 
 // 根据 type 映射到对应的 TypeScript 类型
 export type ManifestTypeMapping<T extends string> = T extends 'textinput'
