@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-14 15:07:09
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-29 17:27:31
+ * @LastEditTime: 2026-01-30 17:20:34
  * @FilePath: /web/src/pages/workflows/MainPage.vue
  * @Description: 工作流的主要页面
  *
@@ -33,6 +33,9 @@ import type { INode } from 'src/interfaces/IWorkflows'
 import { PluginUtil } from 'src/utils/PluginUtil'
 import { v4 as uuid4 } from 'uuid'
 import MouseCoordinateDisplay from 'src/components/workflows/MouseCoordinateDisplay.vue'
+import EditNodeFormCp from 'src/components/workflows/EditNodeFormCp.vue'
+
+import emitter from 'src/boot/mitt'
 const workflow_store = useWorkflowStore()
 
 const route = useRoute()
@@ -510,7 +513,10 @@ onMounted(async () => {
                     node.on(
                         'noderect:double.tap',
                         (data: { event: IPointerEvent; id: string }) => {
-                            console.log(data.id)
+                            emitter.emit('noderect:edit.dialog.open', {
+                                visiable: true,
+                                node_id: data.id,
+                            })
                         }
                     )
                 },
@@ -564,8 +570,11 @@ const createNodeRect = (plugin: PluginResponse) => {
             x: click_xy.x,
             y: click_xy.y,
         }
+        // 创建一个默认的plugin
         const config: PluginConfigRecord =
             PluginUtil.createPluginConfigRecord(plugin)
+
+        config.title = ui.title
 
         const node: INode = {
             id: uuid4(),
@@ -614,7 +623,7 @@ onBeforeUnmount(() => {
     <div>
         <!-- 鼠标坐标显示组件 -->
         <MouseCoordinateDisplay :app="app" />
-
+        <EditNodeFormCp />
         <template>
             <q-dialog v-model="add_node_dialog_visiable">
                 <q-card style="min-width: 350px">
@@ -640,6 +649,9 @@ onBeforeUnmount(() => {
                 </q-card>
             </q-dialog>
         </template>
+
+        <!-- 编辑节点配置 -->
+
         <div id="leafer-app"></div>
     </div>
 </template>
