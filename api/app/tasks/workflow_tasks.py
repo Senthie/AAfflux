@@ -200,7 +200,7 @@ async def _execute_workflow_async(
             )
 
         # Execute workflow
-        result = await engine.execute(workflow_id, inputs)
+        result = await engine.execute(workflow_id)
 
         # Update task progress
         if task:

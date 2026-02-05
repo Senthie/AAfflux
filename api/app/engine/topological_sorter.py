@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-10 15:57:56
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-10 16:14:53
+LastEditTime: 2026-02-04 17:19:33
 FilePath: /api/app/engine/topological_sorter.py
 Description: Topological sorting for workflow execution.
 
@@ -12,7 +12,7 @@ building on the DAG utilities but with workflow-specific enhancements.
 Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Tuple
 from uuid import UUID
 
 from app.models.workflow.workflow import ConnectionModel, NodeModel
@@ -40,7 +40,7 @@ class TopologicalSorter:
             Dictionary mapping node IDs to their successor node IDs
         """
         # Convert connections to tuples
-        connection_tuples = [
+        connection_tuples: List[Tuple[UUID, UUID]] = [
             (conn.source_node_id, conn.target_node_id) for conn in self.connections
         ]
 

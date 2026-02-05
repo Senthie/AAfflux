@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-23 15:29:15
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-26 11:18:08
+LastEditTime: 2026-02-04 09:56:12
 FilePath: /api/app/engine/nodes/base/entities.py
 Description: node 的简单的基类
 
@@ -261,7 +261,7 @@ class BaseNode(ABC):
             if missing_inputs:
                 raise NodeExecutionError(
                     f'Missing required inputs: {missing_inputs}',
-                    node.id,
+                    str(node.id),
                     {'missing_inputs': missing_inputs},
                 )
 

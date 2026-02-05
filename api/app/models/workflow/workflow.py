@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-24 16:24:52
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-26 11:51:40
+LastEditTime: 2026-02-04 17:20:12
 FilePath: /api/app/models/workflow/workflow.py
 Description:工作流模型 - 5张表。
     本模块定义了DAG工作流相关的数据模型：
@@ -37,6 +37,13 @@ class NodeModel(PydanticBaseModel):
     config: Dict[str, Any]
     ui: Dict[str, Any]  # {x, y, width, height, ...}
 
+    def get(self, key, default=None):
+        """Get attribute value with default fallback, mimicking dict.get() behavior."""
+        try:
+            return getattr(self, key, default)
+        except AttributeError:
+            return default
+
 
 class ConnectionModel(PydanticBaseModel):
     """
@@ -46,8 +53,8 @@ class ConnectionModel(PydanticBaseModel):
     """
 
     id: str
-    source_node_id: str
-    target_node_id: str
+    source_node_id: UUID
+    target_node_id: UUID
 
 
 class GraphModel(PydanticBaseModel):
@@ -163,7 +170,7 @@ class NodeExecutionResultModel(BaseModel, table=True):  # type: ignore
     __tablename__ = 'node_execution_results'  # type: ignore
 
     execution_record_id: UUID = Field(index=True)  # Logical FK to execution_records
-    node_id: str = Field(index=True)  # Logical FK to nodes (now string ID)
+    node_id: UUID = Field(index=True)  # Logical FK to nodes (now string ID)
     status: str = Field(max_length=20)
     inputs: dict = Field(default_factory=dict, sa_column=Column(JSONB))
     outputs: Optional[dict] = Field(default=None, sa_column=Column(JSONB))

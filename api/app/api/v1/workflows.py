@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-09 03:26:58
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-26 14:25:28
+LastEditTime: 2026-02-04 15:57:31
 FilePath: /api/app/api/v1/workflows.py
 Description:Workflow management API endpoints.
 
@@ -234,4 +234,57 @@ async def delete_workflow(
         return response_base.fail(
             res=e.response_code,
             data=str(e),
+        )
+
+
+# ============================================================================
+# Workflow Testing Endpoints
+# ============================================================================
+
+
+@router.post(
+    '/{workflow_id}/run',
+    summary='Test workflow execution',
+)
+async def run_workflow(
+    workflow_id: UUID,
+    current_user: CurrentUser,
+    session: DbSession,
+) -> ResponseSchemaModel | ResponseModel:
+    """
+    Test a workflow with provided inputs without saving to production execution records.
+
+    This endpoint allows users to test their workflows during development.
+    The execution is performed in a sandbox environment and results are returned immediately.
+
+    Args:
+        workflow_id: ID of the workflow to test
+        test_request: Test request containing inputs and options
+        current_user: Current authenticated user
+        session: Database session
+
+    Returns:
+        Test execution results including outputs, node results, and performance metrics
+    """
+    workflow_service = WorkflowService(session)
+
+    try:
+        # Verify user has access to the workflow
+        record_id = await workflow_service.run_workflow(workflow_id, current_user)
+
+        # Execute workflow test
+
+        return response_base.success(data=record_id)
+
+    except WorkflowError as e:
+        return response_base.fail(res=e.response_code, data=e.message)
+    except WorkspaceException as e:
+        return response_base.fail(
+            res=e.response_code,
+            data=f'Failed to test workflow: {str(e)}',
+        )
+    except Exception as e:
+        return response_base.fail(
+            res=CustomResponseCodeEnum.INTERNAL_SERVER_ERROR,
+            data=f'Failed to test workflow: {str(e)}',
         )

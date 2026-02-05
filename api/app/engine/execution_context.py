@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-10 15:58:38
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-26 11:19:47
+LastEditTime: 2026-02-04 16:36:40
 FilePath: /api/app/engine/execution_context.py
 Description:Execution context management for workflow execution.
 
@@ -24,7 +24,6 @@ from app.models.workflow.workflow import (
     ExecutionRecordModel,
     NodeExecutionResultModel,
     NodeModel,
-    WorkflowModel,
 )
 
 
@@ -39,7 +38,7 @@ class ExecutionContext:
 
     def __init__(
         self,
-        workflow: WorkflowModel,
+        workflow: Any,  # Can be WorkflowModel or WorkflowResponse
         execution_record: ExecutionRecordModel,
         initial_inputs: Dict[str, Any],
     ):

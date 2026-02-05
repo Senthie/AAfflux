@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-09 03:25:28
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-29 14:47:31
+LastEditTime: 2026-02-04 15:57:57
 FilePath: /api/app/services/workflow_service.py
 Description:Workflow management service.
 
@@ -19,6 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
 from app.core.exceptions import WorkflowError, WorkspaceException
+from app.engine.workflow_engine import WorkflowEngine
 from app.enums.custom_response_code_enum import CustomResponseCodeEnum
 from app.models.auth.user import UserEntity
 from app.models.tenant.organization import TenantAccountRole, WorkspaceAccountUser
@@ -178,7 +179,7 @@ class WorkflowService:
         statement = (
             select(WorkflowModel)
             .where(WorkflowModel.workspace_id == workspace_id)
-            .where(WorkflowModel.is_deleted != True)
+            .where(WorkflowModel.is_deleted != True)  # noqa: E712
             .offset(skip)
             .limit(page_req.size)
         )
@@ -189,7 +190,7 @@ class WorkflowService:
         count_statement = (
             select(WorkflowModel)
             .where(WorkflowModel.workspace_id == workspace_id)
-            .where(WorkflowModel.is_deleted != True)
+            .where(WorkflowModel.is_deleted != True)  # noqa: E712
         )
         count_result = await self.db.execute(count_statement)
         total = len(count_result.scalars().all())
@@ -302,3 +303,14 @@ class WorkflowService:
         if not workflow or workflow.is_deleted:
             raise WorkflowError(CustomResponseCodeEnum.WORKFLOW_NOT_EXISTS)
         return workflow
+
+    async def run_workflow(self, workflow_id: UUID, user: UserEntity) -> UUID:
+        # 1. 获取 workflow 并验证用户权限
+        await self.get_workflow(workflow_id=workflow_id, user=user)
+
+        # 2. 创建 workflow 执行引擎
+        workflow_engine = WorkflowEngine(self.db)
+        # 3. 异步使用引擎执行workflow
+        recode_id = await workflow_engine.execute_async(workflow_id=workflow_id)
+        # 4. 返r回任务ID，前端通过任务ID读取redis上的任务执行结果
+        return recode_id

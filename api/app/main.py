@@ -59,6 +59,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         await redis_client.connect()
         logger.info('Redis connected')
 
+        # Register all workflow nodes
+        from app.engine.nodes import register_all_nodes
+
+        register_all_nodes()
+        logger.info('Workflow nodes registered')
+
     except Exception as e:
         logger.error('Failed to initialize application', error=str(e))
         raise

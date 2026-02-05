@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-24 16:42:24
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-30 17:04:47
+LastEditTime: 2026-02-04 12:06:04
 FilePath: /api/app/engine/nodes/base/registry.py
 Description: 注册节点
 
@@ -35,6 +35,8 @@ class NodeExecutorRegistry:
             node_type: The node type identifier (e.g., "LLM", "CONDITION")
             executor_class: The executor class for this node type
         """
+        # 统一使用小写
+        node_type = node_type.lower()
         if not issubclass(executor_class, BaseNode):
             raise ValueError('Executor class must inherit from BaseNodeExecutor')
 
@@ -79,7 +81,7 @@ class NodeExecutorRegistry:
         Returns:
             True if the node type is registered, False otherwise
         """
-        return node_type in self._executors
+        return node_type.lower() in self._executors
 
     def get_registered_types(self) -> list[str]:
         """Get all registered node types.

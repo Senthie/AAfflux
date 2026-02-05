@@ -2,7 +2,7 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-09 18:00:00
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-27 17:52:40
+LastEditTime: 2026-02-04 11:49:35
 FilePath: /api/app/schemas/plugin.py
 Description: 插件数据模型
 插件相关的 Pydantic schemas
@@ -46,9 +46,6 @@ class PluginBase(BaseModel):
     @validator('plugin_type')
     def validate_plugin_type(cls, v):
         """验证插件类型"""
-        allowed_types = ['builtin', 'custom', 'marketplace']
-        if v.lower() not in allowed_types:
-            raise ValueError(f'Plugin type must be one of: {allowed_types}')
         return v.lower()
 
 

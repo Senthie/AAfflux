@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-10 16:00:21
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-10 16:14:04
+LastEditTime: 2026-02-04 18:01:05
 FilePath: /api/app/engine/workflow_engine.py
 Description: Workflow execution engine.
 
@@ -22,6 +22,7 @@ from sqlmodel import select
 
 from app.engine.execution_context import ExecutionContext
 from app.engine.node_executor import node_executor_registry
+from app.engine.nodes import register_all_nodes
 from app.engine.topological_sorter import TopologicalSorter
 from app.models.workflow.workflow import (
     ConnectionModel,
@@ -30,6 +31,7 @@ from app.models.workflow.workflow import (
     NodeModel,
     WorkflowModel,
 )
+from app.schemas.workflow import WorkflowResponse
 from app.utils.dag import CycleDetectedError
 
 
@@ -61,13 +63,17 @@ class WorkflowEngine:
             db: Database session
         """
         self.db = db
+        # 确保所有节点都已注册
+        register_all_nodes()
 
-    async def execute(self, workflow_id: UUID, inputs: Dict[str, Any]) -> ExecutionRecordModel:
+    async def execute(
+        self, workflow_id: UUID, execution_record: Optional[ExecutionRecordModel] = None
+    ) -> ExecutionRecordModel:
         """Execute a workflow synchronously.
 
         Args:
             workflow_id: ID of the workflow to execute
-            inputs: Input data for the workflow
+            execution_record: Optional existing execution record to use
 
         Returns:
             ExecutionRecord with execution results
@@ -76,20 +82,18 @@ class WorkflowEngine:
             WorkflowExecutionError: If execution fails
         """
         # Load workflow and related data
-        workflow = await self._load_workflow(workflow_id)
-        nodes = await self._load_nodes(workflow_id)
-        connections = await self._load_connections(workflow_id)
+        workflow: WorkflowResponse = await self._load_workflow(workflow_id)
+        nodes = await self._load_nodes(workflow)
+        connections = await self._load_connections(workflow)
 
-        # Validate inputs against workflow schema
-        self._validate_inputs(workflow, inputs)
-
-        # Create execution record
-        execution_record = await self._create_execution_record(workflow, inputs)
+        # Create execution record if not provided
+        if execution_record is None:
+            execution_record = await self._create_execution_record(workflow, workflow.input_schema)
 
         try:
             # Create execution context
-            context = ExecutionContext(workflow, execution_record, inputs)
-
+            context = ExecutionContext(workflow, execution_record, workflow.input_schema)
+            context.set_connections(connections=connections)
             # Execute the workflow
             await self._execute_workflow(workflow, nodes, connections, context)
 
@@ -107,7 +111,7 @@ class WorkflowEngine:
                 {'workflow_id': workflow_id, 'original_error': str(e)},
             ) from e
 
-    async def execute_async(self, workflow_id: UUID, inputs: Dict[str, Any]) -> UUID:
+    async def execute_async(self, workflow_id: UUID) -> UUID:
         """Execute a workflow asynchronously.
 
         Args:
@@ -123,11 +127,11 @@ class WorkflowEngine:
         """
         # Create execution record first
         workflow = await self._load_workflow(workflow_id)
-        execution_record = await self._create_execution_record(workflow, inputs)
+        execution_record = await self._create_execution_record(workflow, workflow.input_schema)
 
         # Start execution in background task
         # In a real implementation, this would use Celery
-        asyncio.create_task(self._execute_async_task(workflow_id, inputs, execution_record.id))
+        asyncio.create_task(self._execute_async_task(workflow_id, execution_record.id))
 
         return execution_record.id
 
@@ -149,7 +153,7 @@ class WorkflowEngine:
 
         return execution_record
 
-    async def _load_workflow(self, workflow_id: UUID) -> WorkflowModel:
+    async def _load_workflow(self, workflow_id: UUID) -> WorkflowResponse:
         """Load workflow by ID.
 
         Args:
@@ -164,10 +168,10 @@ class WorkflowEngine:
         workflow = await self.db.get(WorkflowModel, workflow_id)
         if not workflow or workflow.is_deleted:
             raise ValueError(f'Workflow {workflow_id} not found')
-
+        workflow = WorkflowResponse.model_validate(workflow)
         return workflow
 
-    async def _load_nodes(self, workflow_id: UUID) -> List[NodeModel]:
+    async def _load_nodes(self, workflow: WorkflowResponse) -> List[NodeModel]:
         """Load all nodes for a workflow.
 
         Args:
@@ -176,13 +180,10 @@ class WorkflowEngine:
         Returns:
             List of nodes
         """
-        statement = select(NodeModel).where(
-            NodeModel.workflow_id == workflow_id, ~NodeModel.is_deleted
-        )
-        result = await self.db.execute(statement)
-        return list(result.scalars().all())
+        nodes = workflow.graph.nodes
+        return nodes
 
-    async def _load_connections(self, workflow_id: UUID) -> List[ConnectionModel]:
+    async def _load_connections(self, workflow: WorkflowResponse) -> List[ConnectionModel]:
         """Load all connections for a workflow.
 
         Args:
@@ -191,9 +192,7 @@ class WorkflowEngine:
         Returns:
             List of connections
         """
-        statement = select(ConnectionModel).where(ConnectionModel.workflow_id == workflow_id)
-        result = await self.db.execute(statement)
-        return list(result.scalars().all())
+        return workflow.graph.connections
 
     def _validate_inputs(self, workflow: WorkflowModel, inputs: Dict[str, Any]) -> None:
         """Validate inputs against workflow schema.
@@ -213,7 +212,7 @@ class WorkflowEngine:
                 raise ValueError(f'Missing required input fields: {missing_fields}')
 
     async def _create_execution_record(
-        self, workflow: WorkflowModel, inputs: Dict[str, Any]
+        self, workflow: WorkflowResponse, inputs: Dict[str, Any]
     ) -> ExecutionRecordModel:
         """Create an execution record.
 
@@ -239,7 +238,7 @@ class WorkflowEngine:
 
     async def _execute_workflow(
         self,
-        workflow: WorkflowModel,
+        workflow: Any,  # Can be WorkflowModel or WorkflowResponse
         nodes: List[NodeModel],
         connections: List[ConnectionModel],
         context: ExecutionContext,
@@ -347,9 +346,7 @@ class WorkflowEngine:
 
         await self.db.commit()
 
-    async def _execute_async_task(
-        self, workflow_id: UUID, inputs: Dict[str, Any], execution_id: UUID
-    ) -> None:
+    async def _execute_async_task(self, workflow_id: UUID, execution_id: UUID) -> None:
         """Execute workflow asynchronously.
 
         This is a placeholder for async execution. In a real implementation,
@@ -357,7 +354,6 @@ class WorkflowEngine:
 
         Args:
             workflow_id: ID of the workflow
-            inputs: Input data
             execution_id: ID of the execution record
         """
         try:
@@ -366,8 +362,8 @@ class WorkflowEngine:
             if not execution_record:
                 return
 
-            # Execute workflow
-            await self.execute(workflow_id, inputs)
+            # Execute workflow using the existing execution record
+            await self.execute(workflow_id, execution_record)
 
         except Exception as e:
             # Mark as failed

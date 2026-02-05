@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2026-01-08 14:12:08
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-26 14:24:02
+LastEditTime: 2026-02-04 15:01:55
 FilePath: /api/app/schemas/workflow.py
 Description:Workflow-related Pydantic schemas for request/response validation.
 
@@ -124,7 +124,10 @@ class WorkflowUpdateRequest(BaseModel):
 
 
 class WorkflowResponse(BaseModel):
-    """Response schema for a workflow."""
+    """
+    Response schema for a workflow.
+    this schema field is WOrkflowModel
+    """
 
     id: UUID
     name: str
