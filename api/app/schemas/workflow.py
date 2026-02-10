@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2026-01-08 14:12:08
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-02-04 15:01:55
+LastEditTime: 2026-02-07 17:02:38
 FilePath: /api/app/schemas/workflow.py
 Description:Workflow-related Pydantic schemas for request/response validation.
 
@@ -17,6 +17,8 @@ from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
+
+from app.models.workflow.workflow import GraphModel
 
 # ============================================================================
 # Node Schemas
@@ -96,8 +98,6 @@ class NodeUpdateRequest(BaseModel):
     config: Optional[Dict[str, Any]] = Field(None, description='Node configuration')
     ui: Optional[Dict[str, Any]] = Field(None, description='Node UI information (x, y, etc.)')
 
-
-from app.models.workflow.workflow import GraphModel
 
 # ============================================================================
 # Workflow Schemas

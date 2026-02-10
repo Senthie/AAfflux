@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-23 15:29:15
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-02-04 09:56:12
+LastEditTime: 2026-02-09 12:07:14
 FilePath: /api/app/engine/nodes/base/entities.py
 Description: node 的简单的基类
 
@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, Any, Dict, Union
 from pydantic import BaseModel, model_validator
 
 from app.engine.nodes.base.emum import ErrorStrategy, NodeExecutionTypeEnum
-from app.engine.nodes.base.exc import DefaultValueTypeError, NodeExecutionError
+from app.engine.nodes.base.exc import DefaultValueTypeError
 from app.models.workflow.workflow import NodeExecutionResultModel, NodeModel
 
 if TYPE_CHECKING:
@@ -49,6 +49,15 @@ class DefaultValueType(StrEnum):
     ARRAY_STRING = 'array[string]'
     ARRAY_OBJECT = 'array[object]'
     ARRAY_FILES = 'array[file]'
+
+
+class ExecuteData(BaseModel):
+    """
+    用于规定 节点的返回格式
+    """
+
+    title: str
+    output: Dict[str, Any]
 
 
 class DefaultValue(BaseModel):
@@ -190,7 +199,7 @@ class BaseNode(ABC):
         ...
 
     @abstractmethod
-    async def execute(self, node: NodeModel, context: 'ExecutionContext') -> Dict[str, Any]:
+    async def execute(self, node: NodeModel, context: 'ExecutionContext') -> ExecuteData:
         """Execute a node and return its outputs.
 
         Args:
@@ -252,19 +261,6 @@ class BaseNode(ABC):
         start_time = datetime.utcnow()
 
         try:
-            # Get inputs for this node
-            inputs = context.get_node_input(node, connections)
-
-            # Validate required inputs
-            required_inputs = self.get_required_inputs()
-            missing_inputs = [inp for inp in required_inputs if inp not in inputs]
-            if missing_inputs:
-                raise NodeExecutionError(
-                    f'Missing required inputs: {missing_inputs}',
-                    str(node.id),
-                    {'missing_inputs': missing_inputs},
-                )
-
             # Execute the node
             outputs = await self.execute(node, context)
 
@@ -277,8 +273,8 @@ class BaseNode(ABC):
                 execution_record_id=context.execution_record.id,
                 node_id=node.id,
                 status='SUCCESS',
-                inputs=inputs,
-                outputs=outputs,
+                inputs={},
+                outputs=outputs.model_dump(),
                 error=None,
                 duration_ms=duration_ms,
             )
@@ -297,7 +293,6 @@ class BaseNode(ABC):
                 execution_record_id=context.execution_record.id,
                 node_id=node.id,
                 status='FAILED',
-                inputs=context.get_node_input(node, connections),
                 outputs=None,
                 error=error_message,
                 duration_ms=duration_ms,

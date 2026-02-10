@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-23 15:27:46
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-30 14:38:15
+LastEditTime: 2026-02-09 15:26:05
 FilePath: /api/app/engine/nodes/agent/agent.py
 Description: Agent Node - LLM代理节点
 
@@ -21,6 +21,7 @@ from app.engine.nodes.base import (
     RetryConfig,
     register_node_executor,
 )
+from app.engine.nodes.base.entities import ExecuteData
 from app.engine.nodes.provider.ollama_node import OllamaNode
 from app.models.workflow import NodeModel
 from app.utils.json_path import JsonPathUtil
@@ -99,7 +100,7 @@ class AgentNode(BaseNode):
         self, content: str, extraction_pattern: str | None = None
     ) -> Dict[str, Any]:
         """通过re对输出结果进行提取"""
-        result = OllamaNode.extract_structured_output(content, extraction_pattern)
+        result = OllamaNode.extract_structured_output(content, extraction_pattern)  # type: ignore
         if 'raw_content' not in result:
             result['raw_content'] = content
         return result
@@ -131,47 +132,53 @@ class AgentNode(BaseNode):
         # 3. 遍历入边，查找 provider 节点
         for conn in incoming_connections:
             source_node_id = conn.source_node_id
+            node_result = context.node_results.get(source_node_id)
 
-            # 从 node_outputs 中获取源节点的输出
-            node_outputs = context.node_outputs.get('outputs', {})
+            if node_result is None:
+                continue
 
-            for _, node_data in node_outputs.items():
-                outputs = node_data.get('outputs', {})
+            outputs = node_result.outputs or {}
+            output_data = outputs.get('output', {})
 
-                # 检查是否是源节点且包含 provider_key
-                if node_data.get('id') == str(source_node_id) and 'provider_key' in outputs:
-                    provider_key = outputs['provider_key']
-                    provider = context.get_global_variable(provider_key)
+            # 检查是否包含 provider_key
+            if 'provider_key' in output_data:
+                provider_key = output_data['provider_key']
+                provider = context.get_global_variable(provider_key)
 
-                    if isinstance(provider, OllamaNode):
-                        return provider
+                if isinstance(provider, OllamaNode):
+                    return provider
 
         return None
 
-    async def execute(self, node: NodeModel, context: ExecutionContext) -> Dict[str, Any]:
+    async def execute(self, node: NodeModel, context: ExecutionContext) -> ExecuteData:
         """执行Agent节点"""
         config = node.config
         # 初始化节点数据
         self.init_node_data(config)
-
+        title = self._get_title()
         # 从连接关系中查找 provider
         provider: OllamaNode | None = self._find_provider_from_connections(node, context)
 
         # 如果仍未找到，尝试获取默认 provider
         if not provider:
-            provider = OllamaNode.get_provider_from_context(context, None)
+            provider = OllamaNode.get_provider_from_context(context, None)  # type: ignore
 
         if not provider:
-            return {
-                'content': '',
-                'extracted': {},
-                'error': '未找到Ollama Provider，请确保OllamaNode已在工作流中执行并正确连接',
-            }
+            return ExecuteData.model_validate(
+                {
+                    'title': title,
+                    'output': {
+                        'content': '',
+                        'extracted': {},
+                        'error': '未找到Ollama Provider，请确保OllamaNode已在工作流中执行并正确连接',
+                    },
+                }
+            )
 
         # 从context获取消息缓存实例
         cache_key = self._node_data.agent_strategy_name
         max_messages = config.get('memory', {}).get('max_messages', 50)
-        message_cache = OllamaNode.get_message_cache_from_context(context, cache_key, max_messages)
+        message_cache = OllamaNode.get_message_cache_from_context(context, cache_key, max_messages)  # type: ignore
 
         # 添加系统消息（如果配置了且缓存为空）
         system_prompt = config.get('system_prompt')
@@ -221,18 +228,26 @@ class AgentNode(BaseNode):
             extracted_output = self._extract_output(content, extraction_pattern)
 
             # 设置节点输出到 context
-            result = {
-                'content': content,
-                'extracted': extracted_output,
-                'model': provider._node_data.model if provider._node_data else 'unknown',
-                'usage': response.get('usage', {}),
-            }
-            return result
+            return ExecuteData.model_validate(
+                {
+                    'title': title,
+                    'output': {
+                        'content': content,
+                        'extracted': extracted_output,
+                        'model': provider._node_data.model if provider._node_data else 'unknown',
+                        'usage': response.get('usage', {}),
+                    },
+                }
+            )
 
         except Exception as e:
-            error_result = {
-                'content': '',
-                'extracted': {},
-                'error': f'Agent执行失败: {str(e)}',
-            }
-            return error_result
+            return ExecuteData.model_validate(
+                {
+                    'title': title,
+                    'output': {
+                        'content': '',
+                        'extracted': {},
+                        'error': f'Agent执行失败: {str(e)}',
+                    },
+                }
+            )

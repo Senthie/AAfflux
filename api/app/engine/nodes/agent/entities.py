@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-23 15:27:57
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-29 10:49:06
+LastEditTime: 2026-02-06 16:13:32
 FilePath: /api/app/engine/nodes/agent/entities.py
 Description: Agent 的实体类
 

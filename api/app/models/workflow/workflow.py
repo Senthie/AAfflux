@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-24 16:24:52
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-02-04 17:20:12
+LastEditTime: 2026-02-07 14:25:52
 FilePath: /api/app/models/workflow/workflow.py
 Description:工作流模型 - 5张表。
     本模块定义了DAG工作流相关的数据模型：
@@ -157,7 +157,6 @@ class NodeExecutionResultModel(BaseModel, table=True):  # type: ignore
     Attributes:
     已经继承
         id: 节点执行结果唯一标识符（UUID）
-
         execution_record_id: 所属执行记录ID（逻辑外键）
         node_id: 节点ID（逻辑外键）
         status: 执行状态

@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-10 15:58:38
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-02-04 16:36:40
+LastEditTime: 2026-02-09 12:31:18
 FilePath: /api/app/engine/execution_context.py
 Description:Execution context management for workflow execution.
 
@@ -13,7 +13,7 @@ Copyright (c) 2025 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Dict, List, Optional, Set
 from uuid import UUID
 
 from jsonpath_ng import parse
@@ -25,6 +25,7 @@ from app.models.workflow.workflow import (
     NodeExecutionResultModel,
     NodeModel,
 )
+from app.schemas.workflow_engine_execution import WorkflowEngineModel
 
 
 class ExecutionContext:
@@ -38,9 +39,8 @@ class ExecutionContext:
 
     def __init__(
         self,
-        workflow: Any,  # Can be WorkflowModel or WorkflowResponse
+        workflow: WorkflowEngineModel,  # Can be WorkflowModel or WorkflowResponse
         execution_record: ExecutionRecordModel,
-        initial_inputs: Dict[str, Any],
     ):
         """
         Initialize execution context.
@@ -59,57 +59,51 @@ class ExecutionContext:
         """
         self.workflow = workflow
         self.execution_record = execution_record
-        self.initial_inputs = initial_inputs.copy()
+        # Global variables available to all nodes
+        self.global_variables: Dict[str, Any] = {}
 
         # Node execution state
         self.node_outputs: Dict[str, Dict[str, Dict[str, Any]]] = {'outputs': {}}
         self.node_results: Dict[UUID, NodeExecutionResultModel] = {}
+
         self.completed_nodes: Set[UUID] = set()
         self.failed_nodes: Set[UUID] = set()
-
-        # Global variables available to all nodes
-        self.global_variables: Dict[str, Any] = {'init': initial_inputs.copy()}
 
         # Execution metadata 执行元数据
         self.start_time = datetime.utcnow()
         self.current_node: Optional[NodeModel] = None
 
-        # workflow connect
-        self.connections = []
-
         self.adjacency_list: Dict[UUID, List[UUID]] = {}
 
-    def set_node_output(
-        self, node: Union[NodeModel, Dict[str, Any]], outputs: Dict[str, Any]
-    ) -> None:
+    def set_node_output(self, node_result: NodeExecutionResultModel) -> None:
         """
         Set the output data for a node.
         Args:
-            node: 当前运行的node节点
-            outputs: Output data from the node
+            node_result: node result
 
-        设置节点的输出数据。
-        Args:
-            node_id：节点的ID
-            outputs：节点的输出数据
+        example:
+        ```
+            self.node_outputs = {
+                'outputs': {
+                    'node_title': {
+                        'output': _node_outputs
+                    }
+                }
+            }
+
+        ```
         """
-        # 判断 node 的类型
-        if isinstance(node, NodeModel):
-            # 获取node 的原始数据
-            node_title = node.config.get('title', str(node.id))
-
-            _node = node.model_dump()
-
-        else:
-            node_title: str = node.get('config', {}).get('title', 'unknown')
-            _node = node
-
-        _node['outputs'] = outputs
+        node_title = ''
+        _node_outputs = {}
+        # 获取node 的原始数据
+        if node_result.outputs is not None:
+            node_title = node_result.outputs.get('title', str(node_result.node_id))
+            _node_outputs = node_result.outputs.get('output', {})
         # 对 node_title 将空格替换为下划线
         node_title = node_title.replace(' ', '_')
 
         # 以 output 为根节点，设置返回值
-        self.node_outputs['outputs'][node_title] = _node
+        self.node_outputs['outputs'][node_title] = _node_outputs
 
     def get_node_output(self, expr: str) -> Dict[str, Any] | str | int | None:
         """Get the output data for a node.
@@ -129,37 +123,6 @@ class ExecutionContext:
             return match.value
         return None
 
-    def get_node_input(self, node: NodeModel, connections: List[Any]) -> Dict[str, Any]:
-        """Get input data for a node based on its connections.
-
-        Args:
-            node: The node to get inputs for
-            connections: List of connections in the workflow
-
-        Returns:
-            Dictionary of input data for the node
-        """
-        inputs = {}
-
-        # Find all connections targeting this node
-        for connection in connections:
-            if connection.target_node_id == node.id:
-                source_outputs = self.get_node_output(connection.source_node_id)
-
-                # Map source output to target input
-                if (
-                    source_outputs
-                    and isinstance(source_outputs, dict)
-                    and connection.source_output in source_outputs
-                ):
-                    inputs[connection.target_input] = source_outputs[connection.source_output]
-
-        # If no connections, use global variables for root nodes
-        if not inputs:
-            inputs = self.global_variables.copy()
-
-        return inputs
-
     def set_node_result(self, node_result: NodeExecutionResultModel) -> None:
         """Set the execution result for a node.
 
@@ -168,12 +131,12 @@ class ExecutionContext:
         """
         self.node_results[node_result.node_id] = node_result
 
-        if node_result.status == NodeExecutionResultStatusEnum.SUCCESS:
+        if node_result.status.lower() == NodeExecutionResultStatusEnum.SUCCESS.lower():
             self.completed_nodes.add(node_result.node_id)
             # Set outputs if successful
             if node_result.outputs:
                 # 使用 node_id 构建一个简单的 node 字典
-                self.set_node_output(node_result.inputs, node_result.outputs)
+                self.set_node_output(node_result)
         elif node_result.status == 'FAILED':
             self.failed_nodes.add(node_result.node_id)
 
@@ -224,12 +187,11 @@ class ExecutionContext:
         Collects outputs from all leaf nodes (nodes with no dependents).
 
         Returns:
-            Dictionary of final workflow outputs
+            Dictionary of final workflow outputs (JSON-serializable only)
         """
-        # For now, return all global variables as final output
-        # In a more sophisticated implementation, this could be based on
-        # the workflow's output schema or designated output nodes
-        return self.global_variables.copy()
+        # Return the node_outputs which contains only serializable data
+        # instead of global_variables which may contain Node instances
+        return self.node_outputs.copy()
 
     def get_execution_summary(self) -> Dict[str, Any]:
         """Get a summary of the execution.
@@ -271,18 +233,20 @@ class ExecutionContext:
         """
         return self.global_variables.get(key, default)
 
-    def _get_node_name(self, node_id: UUID) -> str:
+    def _get_node_by_id(self, node_id: UUID) -> NodeModel:
         """Get the name of a node by its ID.
 
         Args:
             node_id: ID of the node
 
         Returns:
-            Node name or string representation of ID if not found
+            Node or string representation of ID if not found
         """
-        # This would need to be populated with actual node data
-        # For now, return a placeholder
-        return f'node_{str(node_id)[:8]}'
+        for node in self.workflow.graph.nodes:
+            if node.id == node_id:
+                return node
+
+        raise ValueError(f'Node with id {node_id} not found')
 
     def _get_execution_time_ms(self) -> int:
         """Get the execution time in milliseconds.
@@ -303,7 +267,6 @@ class ExecutionContext:
         return {
             'workflow_id': str(self.workflow.id),
             'execution_record_id': str(self.execution_record.id),
-            'initial_inputs': self.initial_inputs,
             'global_variables': self.global_variables,
             'completed_nodes': [str(node_id) for node_id in self.completed_nodes],
             'failed_nodes': [str(node_id) for node_id in self.failed_nodes],
@@ -316,15 +279,8 @@ class ExecutionContext:
         Returns:
             List of connections
         """
-        return self.connections
 
-    def set_connections(self, connections: List[ConnectionModel]) -> None:
-        """Set the connections in the workflow.
-
-        Args:
-            connections: List of connections
-        """
-        self.connections = connections
+        return self.workflow.graph.connections
 
     def get_adjacency_list(self) -> Dict[UUID, List[UUID]]:
         """Get the adjacency list of the workflow.

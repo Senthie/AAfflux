@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-10 16:00:21
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-02-04 18:01:05
+LastEditTime: 2026-02-09 18:04:22
 FilePath: /api/app/engine/workflow_engine.py
 Description: Workflow execution engine.
 
@@ -31,7 +31,7 @@ from app.models.workflow.workflow import (
     NodeModel,
     WorkflowModel,
 )
-from app.schemas.workflow import WorkflowResponse
+from app.schemas.workflow_engine_execution import WorkflowEngineModel
 from app.utils.dag import CycleDetectedError
 
 
@@ -82,7 +82,7 @@ class WorkflowEngine:
             WorkflowExecutionError: If execution fails
         """
         # Load workflow and related data
-        workflow: WorkflowResponse = await self._load_workflow(workflow_id)
+        workflow: WorkflowEngineModel = await self._load_workflow(workflow_id)
         nodes = await self._load_nodes(workflow)
         connections = await self._load_connections(workflow)
 
@@ -92,8 +92,7 @@ class WorkflowEngine:
 
         try:
             # Create execution context
-            context = ExecutionContext(workflow, execution_record, workflow.input_schema)
-            context.set_connections(connections=connections)
+            context = ExecutionContext(workflow, execution_record)
             # Execute the workflow
             await self._execute_workflow(workflow, nodes, connections, context)
 
@@ -153,7 +152,7 @@ class WorkflowEngine:
 
         return execution_record
 
-    async def _load_workflow(self, workflow_id: UUID) -> WorkflowResponse:
+    async def _load_workflow(self, workflow_id: UUID) -> WorkflowEngineModel:
         """Load workflow by ID.
 
         Args:
@@ -168,10 +167,10 @@ class WorkflowEngine:
         workflow = await self.db.get(WorkflowModel, workflow_id)
         if not workflow or workflow.is_deleted:
             raise ValueError(f'Workflow {workflow_id} not found')
-        workflow = WorkflowResponse.model_validate(workflow)
+        workflow = WorkflowEngineModel.model_validate(workflow)
         return workflow
 
-    async def _load_nodes(self, workflow: WorkflowResponse) -> List[NodeModel]:
+    async def _load_nodes(self, workflow: WorkflowEngineModel) -> List[NodeModel]:
         """Load all nodes for a workflow.
 
         Args:
@@ -183,7 +182,7 @@ class WorkflowEngine:
         nodes = workflow.graph.nodes
         return nodes
 
-    async def _load_connections(self, workflow: WorkflowResponse) -> List[ConnectionModel]:
+    async def _load_connections(self, workflow: WorkflowEngineModel) -> List[ConnectionModel]:
         """Load all connections for a workflow.
 
         Args:
@@ -212,7 +211,7 @@ class WorkflowEngine:
                 raise ValueError(f'Missing required input fields: {missing_fields}')
 
     async def _create_execution_record(
-        self, workflow: WorkflowResponse, inputs: Dict[str, Any]
+        self, workflow: WorkflowEngineModel, inputs: Dict[str, Any]
     ) -> ExecutionRecordModel:
         """Create an execution record.
 
@@ -286,13 +285,14 @@ class WorkflowEngine:
                 context.current_node = node
                 node_result = await executor.execute_with_result(node, context, connections)
 
-                # Save node result
+                # Save node result in database
                 self.db.add(node_result)
                 context.set_node_result(node_result)
 
+                # recorde last node run output
+                context.execution_record.outputs = node_result.outputs
                 # Commit after each node for progress tracking
                 await self.db.commit()
-
         except CycleDetectedError as e:
             raise WorkflowExecutionError(
                 f'Workflow contains cycles: {str(e)}',

@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-23 17:54:48
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2025-12-30 14:32:25
+LastEditTime: 2026-02-06 17:02:07
 FilePath: /api/app/engine/nodes/provider/ollama_node.py
 Description: Ollama Provider Node - 继承BaseNode的Ollama供应商节点
 
@@ -27,6 +27,7 @@ from app.engine.nodes.base import (
     RetryConfig,
     register_node_executor,
 )
+from app.engine.nodes.base.entities import ExecuteData
 from app.models.workflow import NodeModel
 
 # ============ 数据模型 ============
@@ -243,7 +244,7 @@ class OllamaNode(BaseNode):
 
     # ============ Node Execution ============
 
-    async def execute(self, node: NodeModel, context: ExecutionContext) -> Dict[str, Any]:
+    async def execute(self, node: NodeModel, context: ExecutionContext) -> ExecuteData:
         """
         执行Ollama节点
 
@@ -256,12 +257,17 @@ class OllamaNode(BaseNode):
 
         # 将自身实例存储到context中
         context.update_global_variable(provider_key, self)
-        return {
-            'provider_key': provider_key,
-            'model': self._node_data.model,
-            'base_url': self._node_data.base_url,
-            'status': 'initialized',
-        }
+        return ExecuteData.model_validate(
+            {
+                'title': provider_key,
+                'output': {
+                    'provider_key': provider_key,
+                    'model': self._node_data.model,
+                    'base_url': self._node_data.base_url,
+                    'status': 'initialized',
+                },
+            }
+        )
 
     # ============ Context Helper Methods ============
 

@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-10 15:59:26
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-26 11:19:26
+LastEditTime: 2026-02-09 10:30:55
 FilePath: /api/app/engine/nodes/base/node.py
 Description: Node executor base class and registry.
 
@@ -62,7 +62,7 @@ class StartNodeExecutor(BaseNode):
         Returns:
             Initial workflow inputs
         """
-        return context.initial_inputs
+        return {}
 
     def validate_config(self, config: Dict[str, Any]) -> bool:
         """Validate start node configuration.
@@ -103,7 +103,7 @@ class EndNodeExecutor(BaseNode):
     def _get_description(self) -> Optional[str]:
         return None
 
-    async def execute(self, node: NodeModel, context: 'ExecutionContext') -> Dict[str, Any]:
+    async def execute(self, node: NodeModel, context: 'ExecutionContext'):
         """Execute end node by collecting inputs as final outputs.
 
         Args:
@@ -114,8 +114,8 @@ class EndNodeExecutor(BaseNode):
             Collected inputs as final outputs
         """
         # Get all inputs to this node
-        inputs = context.get_node_input(node, [])
-        return inputs
+
+        return {}
 
     def validate_config(self, config: Dict[str, Any]) -> bool:
         """Validate end node configuration.
@@ -169,7 +169,7 @@ class PassthroughNodeExecutor(BaseNode):
         Returns:
             Input data unchanged
         """
-        inputs = context.get_node_input(node, [])
+        inputs = {}
         return inputs
 
     def validate_config(self, config: Dict[str, Any]) -> bool:
