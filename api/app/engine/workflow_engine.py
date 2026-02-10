@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-10 16:00:21
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-02-09 18:04:22
+LastEditTime: 2026-02-10 12:04:51
 FilePath: /api/app/engine/workflow_engine.py
 Description: Workflow execution engine.
 
@@ -81,32 +81,47 @@ class WorkflowEngine:
         Raises:
             WorkflowExecutionError: If execution fails
         """
-        # Load workflow and related data
-        workflow: WorkflowEngineModel = await self._load_workflow(workflow_id)
-        nodes = await self._load_nodes(workflow)
-        connections = await self._load_connections(workflow)
-
-        # Create execution record if not provided
-        if execution_record is None:
-            execution_record = await self._create_execution_record(workflow, workflow.input_schema)
-
         try:
-            # Create execution context
-            context = ExecutionContext(workflow, execution_record)
-            # Execute the workflow
-            await self._execute_workflow(workflow, nodes, connections, context)
+            # 使用单一事务边界
+            async with self.db.begin():
+                # Load workflow and related data
+                workflow: WorkflowEngineModel = await self._load_workflow(workflow_id)
+                nodes = await self._load_nodes(workflow)
+                connections = await self._load_connections(workflow)
 
-            # Update execution record with results
-            await self._finalize_execution_record(execution_record, context)
+                # Create execution record if not provided
+                if execution_record is None:
+                    execution_record = await self._create_execution_record(
+                        workflow, workflow.input_schema
+                    )
 
-            return execution_record
+                # Create execution context
+                context = ExecutionContext(workflow, execution_record)
+
+                # Execute the workflow
+                await self._execute_workflow(workflow, nodes, connections, context)
+
+                # Update execution record with results
+                await self._finalize_execution_record(execution_record, context)
+
+                # 提交事务
+                await self.db.commit()
+
+                return execution_record
 
         except Exception as e:
-            # Mark execution as failed
-            await self._mark_execution_failed(execution_record, str(e))
+            # 回滚事务
+            await self.db.rollback()
+
+            # 标记执行失败（使用新的事务）
+            if execution_record:
+                await self._mark_execution_failed(execution_record, str(e))
+
             raise WorkflowExecutionError(
                 f'Workflow execution failed: {str(e)}',
-                execution_record.id,
+                execution_record.id
+                if execution_record
+                else UUID('00000000-0000-0000-0000-000000000000'),
                 {'workflow_id': workflow_id, 'original_error': str(e)},
             ) from e
 
@@ -230,14 +245,13 @@ class WorkflowEngine:
         )
 
         self.db.add(execution_record)
-        await self.db.commit()
-        await self.db.refresh(execution_record)
-
+        # 不再单独提交，由外层事务统一提交
+        await self.db.flush()  # 只刷新以获取ID，不提交事务
         return execution_record
 
     async def _execute_workflow(
         self,
-        workflow: Any,  # Can be WorkflowModel or WorkflowResponse
+        workflow: WorkflowEngineModel,
         nodes: List[NodeModel],
         connections: List[ConnectionModel],
         context: ExecutionContext,
@@ -256,7 +270,6 @@ class WorkflowEngine:
         """
         # Update execution record status
         context.execution_record.status = 'RUNNING'
-        await self.db.commit()
 
         try:
             # Create topological sorter
@@ -289,10 +302,11 @@ class WorkflowEngine:
                 self.db.add(node_result)
                 context.set_node_result(node_result)
 
-                # recorde last node run output
+                # record last node run output
                 context.execution_record.outputs = node_result.outputs
-                # Commit after each node for progress tracking
-                await self.db.commit()
+
+                # 不再在这里提交，由外层统一提交
+
         except CycleDetectedError as e:
             raise WorkflowExecutionError(
                 f'Workflow contains cycles: {str(e)}',
@@ -321,8 +335,6 @@ class WorkflowEngine:
             execution_record.status = 'SUCCESS'
             execution_record.outputs = context.get_final_outputs()
 
-        await self.db.commit()
-
     async def _mark_execution_failed(
         self, execution_record: ExecutionRecordModel, error_message: str
     ) -> None:
@@ -332,19 +344,22 @@ class WorkflowEngine:
             execution_record: The execution record
             error_message: Error message
         """
-        execution_record.status = 'FAILED'
-        execution_record.error = error_message
-        execution_record.completed_at = datetime.utcnow()
+        # 使用新的事务上下文
+        async with self.db.begin():
+            # 重新加载执行记录以确保我们操作的是最新状态
+            await self.db.refresh(execution_record)
 
-        # Calculate duration if not set
-        if execution_record.duration_ms is None:
-            start_time = execution_record.started_at
-            end_time = execution_record.completed_at
-            if start_time and end_time:
-                duration = end_time - start_time
-                execution_record.duration_ms = int(duration.total_seconds() * 1000)
+            execution_record.status = 'FAILED'
+            execution_record.error = error_message
+            execution_record.completed_at = datetime.utcnow()
 
-        await self.db.commit()
+            # Calculate duration if not set
+            if execution_record.duration_ms is None:
+                start_time = execution_record.started_at
+                end_time = execution_record.completed_at
+                if start_time and end_time:
+                    duration = end_time - start_time
+                    execution_record.duration_ms = int(duration.total_seconds() * 1000)
 
     async def _execute_async_task(self, workflow_id: UUID, execution_id: UUID) -> None:
         """Execute workflow asynchronously.
@@ -363,8 +378,13 @@ class WorkflowEngine:
                 return
 
             # Execute workflow using the existing execution record
-            await self.execute(workflow_id, execution_record)
+            # 建议添加超时控制
+            await asyncio.wait_for(self.execute(workflow_id, execution_record), timeout=3600)
 
+        except asyncio.TimeoutError:
+            execution_record = await self.db.get(ExecutionRecordModel, execution_id)
+            if execution_record:
+                await self._mark_execution_failed(execution_record, 'Execution timeout')
         except Exception as e:
             # Mark as failed
             execution_record = await self.db.get(ExecutionRecordModel, execution_id)

@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2026-01-08 14:12:08
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-27 17:31:36
+LastEditTime: 2026-02-10 12:21:53
 FilePath: /api/app/main.py
 Description: FastAPI application initialization.
 
@@ -10,6 +10,8 @@ Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 """
 
 from contextlib import asynccontextmanager
+import logging
+from logging.handlers import TimedRotatingFileHandler
 from typing import AsyncGenerator
 
 from fastapi import FastAPI
@@ -31,7 +33,10 @@ from app.middleware.request_logger import PerformanceLoggingMiddleware, RequestL
 # Configure logging
 configure_logging()
 logger = get_logger(__name__)
-
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+file_handler = TimedRotatingFileHandler(filename='app.log', when='D', backupCount=7)
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 # Initialize Sentry
 init_sentry()
 
