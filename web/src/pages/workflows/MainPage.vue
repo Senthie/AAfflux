@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-14 15:07:09
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-02-11 11:04:15
+ * @LastEditTime: 2026-02-11 11:32:59
  * @FilePath: /web/src/pages/workflows/MainPage.vue
  * @Description: 工作流的主要页面
  *
@@ -50,7 +50,7 @@ interface NodeListeners {
 // 允许跨域图片渲染，但不支持导出画板内容（浏览器的限制）。
 Platform.image.crossOrigin = 'anonymous'
 
-let app: App = null as unknown as App
+const app = ref<App | null>(null)
 const add_node_dialog_visiable = ref(false)
 const page_res = ref<IPageRes<PluginResponse>>({
     total: 0,
@@ -90,9 +90,9 @@ const onContextMenu = (e: MouseEvent) => {
     try {
         // 阻止浏览器默认菜单
         e.preventDefault()
-        if (app && app.leafer) {
-            // 转换事件为 rect 坐标 = app.leafer.getPagePoint
-            const worldPoint = app.leafer.getPagePoint({
+        if (app.value && app.value.leafer) {
+            // 转换事件为 rect 坐标 = app.value.leafer.getPagePoint
+            const worldPoint = app.value.leafer.getPagePoint({
                 x: e.clientX,
                 y: e.clientY,
             })
@@ -270,7 +270,7 @@ const isDraggingConnection = ref(false)
 const draggingNode = ref<NodeRect>(null as unknown as NodeRect)
 const create_app = () => {
     //TOOD 当 view设置为window的时候，后退的页面会失去所有点击事件
-    app = new App({
+    app.value = new App({
         view: window,
         editor: {},
         wheel: { preventDefault: true }, // 阻止浏览器默认滚动页面事件
@@ -278,7 +278,8 @@ const create_app = () => {
         pointer: { preventDefaultMenu: true }, // 阻止浏览器默认菜单事件，改为 true
     })
     //  点阵图
-    const dot = new DotMatrix(app, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const dot = new DotMatrix(app.value as any, {
         dotColor: '#D2D4D7',
         gridGap: 45,
         gridType: 'dots', // 'dots' | 'lines'
@@ -287,10 +288,10 @@ const create_app = () => {
     })
     dot.enableDotMatrix(true)
     // 监听 leafer-ui 的右键事件
-    app.on('pointer.menu', (e: { origin: MouseEvent }) => {
+    app.value.on('pointer.menu', (e: { origin: MouseEvent }) => {
         try {
-            if (app?.editor.single) {
-                const { element } = app.editor
+            if (app.value?.editor.single) {
+                const { element } = app.value.editor
                 onNodeMenu(e.origin, element as IUI)
             } else {
                 onContextMenu(e.origin)
@@ -301,12 +302,12 @@ const create_app = () => {
     })
 
     // 全局鼠标事件处理，用于连线功能
-    app.on('pointer.move', (e: IPointerEvent) => {
+    app.value.on('pointer.move', (e: IPointerEvent) => {
         try {
-            if (isDraggingConnection.value && draggingNode) {
+            if (isDraggingConnection.value && draggingNode && app.value) {
                 // 禁用编辑器选择功能
-                if (app.editor) {
-                    app.editor.cancel()
+                if (app.value.editor) {
+                    app.value.editor.cancel()
                 }
                 draggingNode.value.updateDragLineExternal(e)
             }
@@ -315,7 +316,7 @@ const create_app = () => {
         }
     })
 
-    app.on('pointer.up', (e: IPointerEvent) => {
+    app.value.on('pointer.up', (e: IPointerEvent) => {
         try {
             if (isDraggingConnection.value && draggingNode) {
                 draggingNode.value.endDragConnectionExternal(e)
@@ -329,6 +330,8 @@ const create_app = () => {
 }
 
 const load_ui = async () => {
+    if (!app.value) return
+
     const nodes = workflow_store.get_node()
     const nodeMap = new Map<string, NodeRect>()
 
@@ -343,7 +346,7 @@ const load_ui = async () => {
             setupFunctions.setupNodeDragListeners(node_ui)
             setupFunctions.setupConnectionListeners(node_ui)
         }
-        app.tree.add(node_ui)
+        app.value.tree.add(node_ui)
         nodeMap.set(node.id, node_ui)
     }
 
@@ -360,7 +363,7 @@ const load_ui = async () => {
 
                 // 创建连接线：从源节点的 out 连接到目标节点的 in
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const connector = new Connector(app as any, {
+                const connector = new Connector(app.value as any, {
                     from: sourceNode.out,
                     to: targetNode.in,
                     stroke: '#32cd79',
@@ -386,7 +389,7 @@ const load_ui = async () => {
                     })
                 })
 
-                app.tree.add(connector)
+                app.value.tree.add(connector)
                 console.log(
                     `连接已创建: ${connection.source_node_id} -> ${connection.target_node_id}`
                 )
@@ -405,7 +408,8 @@ const update_nodeRect_by_id = (data: {
     node_id: string
     ui_config: INodeRectInputData
 }) => {
-    const node_rect = app.findId(data.node_id) as NodeRect
+    if (!app.value) return
+    const node_rect = app.value.findId(data.node_id) as NodeRect
     node_rect.updateNode(data.ui_config)
 }
 
@@ -453,8 +457,8 @@ onMounted(async () => {
                             draggingNode.value = node
 
                             // 禁用编辑器的选择功能
-                            if (app.editor) {
-                                app.editor.cancel()
+                            if (app.value?.editor) {
+                                app.value.editor.cancel()
                             }
                         } catch (error) {
                             console.error(
@@ -543,10 +547,12 @@ onMounted(async () => {
                 setupNodeDragListeners: (node: NodeRect) => {
                     node.on('drag.end', () => {
                         try {
+                            if (!app.value) return
                             // 拖动结束时更新所有连接线
-                            const allConnectors = app.tree.children.filter(
-                                (child) => child instanceof Connector
-                            )
+                            const allConnectors =
+                                app.value.tree.children.filter(
+                                    (child) => child instanceof Connector
+                                )
                             allConnectors.forEach((connector) => {
                                 if (connector.update) {
                                     connector.update()
@@ -575,6 +581,14 @@ onMounted(async () => {
 
 const createNodeRect = (plugin: PluginResponse) => {
     try {
+        if (!app.value) {
+            Notify.create({
+                type: 'negative',
+                message: '应用未初始化',
+            })
+            return
+        }
+
         // Check if store is available
         if (!workflow_store || typeof workflow_store.add_node !== 'function') {
             console.error('Workflow store not available in createNodeRect')
@@ -617,7 +631,7 @@ const createNodeRect = (plugin: PluginResponse) => {
             setupFunctions.setupConnectionListeners(node_ui)
         }
 
-        app.tree.add(node_ui)
+        app.value.tree.add(node_ui)
         workflow_store.add_node(node)
         add_node_dialog_visiable.value = false
     } catch (error) {
@@ -632,10 +646,10 @@ const createNodeRect = (plugin: PluginResponse) => {
 onBeforeUnmount(() => {
     try {
         // leafer-editor 不同版本销毁方法名可能不同，这里尽量兜底
-        if (app && typeof app.destroy === 'function') {
-            app.destroy()
+        if (app.value && typeof app.value.destroy === 'function') {
+            app.value.destroy()
         }
-        app = null as unknown as App
+        app.value = null
     } catch (error) {
         console.error('Error during cleanup:', error)
     }

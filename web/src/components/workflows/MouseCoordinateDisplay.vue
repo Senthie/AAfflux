@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-27 15:00:00
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-02-11 10:57:28
+ * @LastEditTime: 2026-02-11 11:24:18
  * @FilePath: /web/src/components/workflows/MouseCoordinateDisplay.vue
  * @Description: 鼠标坐标显示组件
  *
@@ -10,11 +10,11 @@
 -->
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-import type { App } from 'leafer-ui'
 
 // 定义 props
 interface Props {
-    app?: App | null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    app?: any
 }
 
 const props = withDefaults(defineProps<Props>(), {
