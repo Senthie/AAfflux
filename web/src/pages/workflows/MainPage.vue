@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-14 15:07:09
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-02-02 16:53:57
+ * @LastEditTime: 2026-02-11 11:04:15
  * @FilePath: /web/src/pages/workflows/MainPage.vue
  * @Description: 工作流的主要页面
  *
@@ -90,8 +90,19 @@ const onContextMenu = (e: MouseEvent) => {
     try {
         // 阻止浏览器默认菜单
         e.preventDefault()
-        click_xy.x = e.x
-        click_xy.y = e.y
+        if (app && app.leafer) {
+            // 转换事件为 rect 坐标 = app.leafer.getPagePoint
+            const worldPoint = app.leafer.getPagePoint({
+                x: e.clientX,
+                y: e.clientY,
+            })
+            click_xy.x = worldPoint.x
+            click_xy.y = worldPoint.y
+            console.log('worldPoint:', worldPoint)
+        } else {
+            click_xy.x = e.x
+            click_xy.y = e.y
+        }
 
         // 显示自定义右键菜单
         ContextMenu.showContextMenu({

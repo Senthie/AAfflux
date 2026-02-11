@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-27 15:00:00
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-01-27 15:58:15
+ * @LastEditTime: 2026-02-11 10:57:28
  * @FilePath: /web/src/components/workflows/MouseCoordinateDisplay.vue
  * @Description: 鼠标坐标显示组件
  *
@@ -30,7 +30,7 @@ const handleMouseMove = (event: MouseEvent) => {
     // 如果有 app 实例，计算画布坐标
     if (props.app && props.app.leafer) {
         try {
-            const worldPoint = props.app.leafer.getWorldPoint({
+            const worldPoint = props.app.leafer.getPagePoint({
                 x: event.clientX,
                 y: event.clientY,
             })
