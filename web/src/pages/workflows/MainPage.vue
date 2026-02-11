@@ -98,7 +98,6 @@ const onContextMenu = (e: MouseEvent) => {
             })
             click_xy.x = worldPoint.x
             click_xy.y = worldPoint.y
-            console.log('worldPoint:', worldPoint)
         } else {
             click_xy.x = e.x
             click_xy.y = e.y
