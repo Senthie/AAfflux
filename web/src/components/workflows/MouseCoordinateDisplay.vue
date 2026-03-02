@@ -27,6 +27,11 @@ const canvasY = ref(0)
 
 // 鼠标移动事件处理函数
 const handleMouseMove = (event: MouseEvent) => {
+    // 检查文档是否可见，避免在最小化时处理事件
+    if (document.hidden) {
+        return
+    }
+
     // 如果有 app 实例，计算画布坐标
     if (props.app && props.app.leafer) {
         try {
@@ -49,9 +54,9 @@ const handleMouseMove = (event: MouseEvent) => {
     }
 }
 
-// 组件挂载时添加事件监听
+// 组件挂载时添加事件监听，使用 passive 选项提高性能
 onMounted(() => {
-    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mousemove', handleMouseMove, { passive: true })
 })
 
 // 组件卸载时移除事件监听

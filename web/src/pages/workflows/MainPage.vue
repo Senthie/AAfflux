@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-14 15:07:09
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-02-11 11:32:59
+ * @LastEditTime: 2026-03-02 10:27:31
  * @FilePath: /web/src/pages/workflows/MainPage.vue
  * @Description: 工作流的主要页面
  *
@@ -268,13 +268,19 @@ const get_workflow_by_workflow_id = async (workflow_id: string) => {
 const isDraggingConnection = ref(false)
 const draggingNode = ref<NodeRect>(null as unknown as NodeRect)
 const create_app = () => {
-    //TOOD 当 view设置为window的时候，后退的页面会失去所有点击事件
+    // 使用特定的容器元素而不是 window，避免全局事件干扰
+    const container = document.getElementById('leafer-app')
+    if (!container) {
+        console.error('Leafer container not found')
+        return
+    }
+
     app.value = new App({
-        view: window,
+        view: container,
         editor: {},
         wheel: { preventDefault: true }, // 阻止浏览器默认滚动页面事件
         touch: { preventDefault: true }, // 阻止移动端默认触摸屏滑动页面事件
-        pointer: { preventDefaultMenu: true }, // 阻止浏览器默认菜单事件，改为 true
+        pointer: { preventDefaultMenu: true }, // 阻止浏览器默认菜单事件
     })
     //  点阵图
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -644,6 +650,9 @@ const createNodeRect = (plugin: PluginResponse) => {
 
 onBeforeUnmount(() => {
     try {
+        // 移除事件监听
+        emitter.off('noderect:edit.ui.update', update_nodeRect_by_id)
+
         // leafer-editor 不同版本销毁方法名可能不同，这里尽量兜底
         if (app.value && typeof app.value.destroy === 'function') {
             app.value.destroy()
@@ -656,7 +665,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div>
+    <div class="workflow-page">
         <!-- 鼠标坐标显示组件 -->
         <MouseCoordinateDisplay :app="app" />
         <EditNodeFormCp />
@@ -692,4 +701,14 @@ onBeforeUnmount(() => {
     </div>
 </template>
 
-<style lang="sass" scoped></style>
+<style lang="sass" scoped>
+.workflow-page
+  width: 100vw
+  height: 100vh
+  overflow: hidden
+  position: relative
+
+#leafer-app
+  width: 100%
+  height: 100%
+</style>
