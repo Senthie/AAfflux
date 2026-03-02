@@ -2,7 +2,7 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-09 18:00:00
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-27 17:53:59
+LastEditTime: 2026-03-02 15:50:54
 FilePath: /api/app/services/file_server.py
 Description: 文件服务
 
@@ -18,7 +18,10 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.logging import get_logger
 from app.core.storage import FileNotFoundError as StorageFileNotFoundError, GridFSBackend
+from app.models.auth.user import UserEntity
 from app.models.file.reference import FileReference
+from app.schemas.file import FileListItem
+from app.schemas.page_schemas import PageRequest, PageResponse
 
 logger = get_logger(__name__)
 
@@ -42,7 +45,7 @@ class FileService:
         self,
         file: UploadFile,
         workspace_id: UUID,
-        uploaded_by: UUID,
+        user: UserEntity,
     ) -> FileReference:
         """上传文件
 
@@ -63,12 +66,12 @@ class FileService:
             FileUploadError: 上传失败
         """
         mongo_id = None
-
+        user_id = str(user.id)
         try:
             # 1. 上传到 GridFS
             metadata = {
                 'workspace_id': str(workspace_id),
-                'uploaded_by': str(uploaded_by),
+                'uploaded_by': str(user.id),
             }
 
             mongo_id = await self.storage.upload(file, metadata=metadata)
@@ -86,20 +89,12 @@ class FileService:
                 size_bytes=file_size,
                 storage_type=storage_type,
                 mongo_id=mongo_id,
-                uploaded_by=uploaded_by,
+                uploaded_by=user_id,
             )
 
             self.session.add(file_reference)
             await self.session.commit()
             await self.session.refresh(file_reference)
-
-            logger.info(
-                'File uploaded successfully',
-                file_id=str(file_reference.file_id),
-                filename=file.filename,
-                size=file_size,
-                storage_type=storage_type,
-            )
 
             return file_reference
 
@@ -230,11 +225,8 @@ class FileService:
         return result.scalar_one_or_none()
 
     async def list_files(
-        self,
-        workspace_id: UUID,
-        limit: int = 100,
-        offset: int = 0,
-    ) -> list[FileReference]:
+        self, workspace_id: UUID, page_req: PageRequest
+    ) -> PageResponse[FileListItem]:
         """列出工作空间的文件
 
         Args:
@@ -245,16 +237,32 @@ class FileService:
         Returns:
             list[FileReference]: 文件列表
         """
+        offset = (page_req.current - 1) * page_req.size
         statement = (
             select(FileReference)
             .where(FileReference.workspace_id == workspace_id)
             .order_by(FileReference.created_at.desc())
-            .limit(limit)
+            .limit(page_req.maxLimit)
             .offset(offset)
         )
 
         result = await self.session.execute(statement)
-        return list(result.scalars().all())
+        datas = result.scalars().all()
+        items = [FileListItem.model_validate(f) for f in datas]
+
+        count_statement = (
+            select(FileReference)
+            .where(FileReference.workspace_id == workspace_id)
+            .where(FileReference.is_deleted != True)  # noqa: E712
+        )
+        count_result = await self.session.execute(count_statement)
+
+        total = len(count_result.scalars().all())
+        page_res = PageResponse.model_validate(page_req.model_dump())
+        page_res.records = items
+        page_res.total = total
+
+        return page_res
 
     async def check_file_exists(self, file_id: UUID) -> bool:
         """检查文件是否存在

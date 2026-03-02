@@ -2,7 +2,7 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-09 18:00:00
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-01-27 17:36:55
+LastEditTime: 2026-03-02 15:52:08
 FilePath: /api/app/api/v1/file.py
 Description: 文件管理API端点
 
@@ -18,19 +18,25 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.database import get_session
 from app.core.logging import get_logger
+from app.core.response import ResponseSchemaModel, response_base
 from app.core.storage.exceptions import FileNotFoundError
+from app.middleware.auth import get_current_user
+from app.models.auth.user import UserEntity
 from app.schemas.file import (
     FileDeleteResponse,
     FileListItem,
-    FileListResponse,
     FileMetadataResponse,
     FileUploadResponse,
 )
+from app.schemas.page_schemas import PageRequest, PageResponse
 from app.services.file_server import FileService
 
 logger = get_logger(__name__)
 
 router = APIRouter(prefix='/files', tags=['Files'])
+# Dependency injection definitions
+DbSession = Annotated[AsyncSession, Depends(get_session)]
+CurrentUser = Annotated[UserEntity, Depends(get_current_user)]
 
 
 # 依赖注入：获取文件服务
@@ -49,7 +55,8 @@ async def get_file_service(session: Annotated[AsyncSession, Depends(get_session)
 async def upload_file(
     file: Annotated[UploadFile, File(description='要上传的文件')],
     workspace_id: Annotated[UUID, Query(description='工作空间 ID')],
-    uploaded_by: Annotated[UUID, Query(description='上传者用户 ID')],
+    current_user: CurrentUser,
+    session: DbSession,
     file_service: Annotated[FileService, Depends(get_file_service)],
 ) -> FileUploadResponse:
     """上传文件
@@ -68,7 +75,7 @@ async def upload_file(
     """
     try:
         file_reference = await file_service.upload_file(
-            file=file, workspace_id=workspace_id, uploaded_by=uploaded_by
+            file=file, workspace_id=workspace_id, user=current_user
         )
 
         return FileUploadResponse(
@@ -251,31 +258,26 @@ async def view_file(
         ) from e
 
 
-@router.get(
-    '',
-    response_model=FileListResponse,
+@router.post(
+    '/list',
     summary='列出文件',
     description='列出指定工作空间的文件列表',
 )
 async def list_files(
     workspace_id: Annotated[UUID, Query(description='工作空间 ID')],
     file_service: Annotated[FileService, Depends(get_file_service)],
-    limit: Annotated[int, Query(ge=1, le=1000, description='每页数量')] = 100,
-    offset: Annotated[int, Query(ge=0, description='偏移量')] = 0,
-) -> FileListResponse:
+    page_req: PageRequest,
+) -> ResponseSchemaModel[PageResponse[FileListItem]]:
     """列出文件
 
     Args:
         workspace_id: 工作空间 ID
-        limit: 每页数量（1-1000）
-        offset: 偏移量
+        page_req: 分页请求参数
         file_service: 文件服务实例
 
     Returns:
-        FileListResponse: 文件列表响应
+        ResponseModel: 包含PageResponse[FileListItem]的响应
     """
-    files = await file_service.list_files(workspace_id=workspace_id, limit=limit, offset=offset)
+    res = await file_service.list_files(workspace_id=workspace_id, page_req=page_req)
 
-    items = [FileListItem.model_validate(f) for f in files]
-
-    return FileListResponse(total=len(items), items=items, limit=limit, offset=offset)
+    return response_base.success(data=res)
