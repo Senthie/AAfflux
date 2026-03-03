@@ -2,7 +2,7 @@
 Author: kk123047 3254834740@qq.com
 Date: 2025-12-09 18:00:00
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-03-02 15:52:08
+LastEditTime: 2026-03-02 16:55:32
 FilePath: /api/app/api/v1/file.py
 Description: 文件管理API端点
 
@@ -47,7 +47,6 @@ async def get_file_service(session: Annotated[AsyncSession, Depends(get_session)
 
 @router.post(
     '/upload',
-    response_model=FileUploadResponse,
     status_code=status.HTTP_201_CREATED,
     summary='上传文件',
     description='上传文件到系统，自动选择存储方式（小文件用 MongoDB，大文件用 GridFS）',
@@ -58,7 +57,7 @@ async def upload_file(
     current_user: CurrentUser,
     session: DbSession,
     file_service: Annotated[FileService, Depends(get_file_service)],
-) -> FileUploadResponse:
+) -> ResponseSchemaModel[FileUploadResponse]:
     """上传文件
 
     Args:
@@ -78,15 +77,17 @@ async def upload_file(
             file=file, workspace_id=workspace_id, user=current_user
         )
 
-        return FileUploadResponse(
-            file_id=file_reference.file_id,
-            filename=file_reference.filename,
-            content_type=file_reference.content_type,
-            size_bytes=file_reference.size_bytes,
-            storage_type=file_reference.storage_type,
-            workspace_id=file_reference.workspace_id,
-            uploaded_by=file_reference.uploaded_by,
-            created_at=file_reference.created_at,
+        return response_base.success(
+            data=FileUploadResponse(
+                file_id=file_reference.file_id,
+                filename=file_reference.filename,
+                content_type=file_reference.content_type,
+                size_bytes=file_reference.size_bytes,
+                storage_type=file_reference.storage_type,
+                workspace_id=file_reference.workspace_id,
+                uploaded_by=file_reference.uploaded_by,
+                created_at=file_reference.created_at,
+            )
         )
 
     except Exception as e:
