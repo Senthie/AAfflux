@@ -2,7 +2,7 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-12 11:07:19
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-02-02 15:35:53
+ * @LastEditTime: 2026-03-03 11:18:50
  * @FilePath: /web/src/stores/workflow-store.ts
  * @Description: 用户当前打开的 workflow
  *
@@ -10,7 +10,7 @@
  */
 import type { IUI } from 'leafer-ui'
 import { defineStore } from 'pinia'
-import { v1_update_workflow } from 'src/apis/workflow_api'
+import { v1_run_workflow, v1_update_workflow } from 'src/apis/workflow_api'
 import type {
     IConnection,
     INode,
@@ -133,6 +133,11 @@ export const useWorkflowStore = defineStore('workflowStore', () => {
     function updateImmediate() {
         void v1_update_workflow(workflow.value.id, workflow.value)
     }
+
+    // 执行工作流
+    function execute() {
+        void v1_run_workflow(workflow.value.id)
+    }
     return {
         workflow,
         app_nodeRects,
@@ -149,5 +154,6 @@ export const useWorkflowStore = defineStore('workflowStore', () => {
         set_workflow,
         update,
         updateImmediate,
+        execute,
     }
 })

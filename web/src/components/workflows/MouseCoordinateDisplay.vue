@@ -2,15 +2,16 @@
  * @Author: Senthie seemoon2077@gmail.com
  * @Date: 2026-01-27 15:00:00
  * @LastEditors: Senthie seemoon2077@gmail.com
- * @LastEditTime: 2026-02-11 11:24:18
+ * @LastEditTime: 2026-03-03 11:19:21
  * @FilePath: /web/src/components/workflows/MouseCoordinateDisplay.vue
  * @Description: 鼠标坐标显示组件
  *
  * Copyright (c) 2026 by Senthie email: seemoon2077@gmail.com, All Rights Reserved.
 -->
 <script setup lang="ts">
+import { useWorkflowStore } from 'src/stores/workflow-store'
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-
+const workflow_store = useWorkflowStore()
 // 定义 props
 interface Props {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -63,11 +64,23 @@ onMounted(() => {
 onBeforeUnmount(() => {
     document.removeEventListener('mousemove', handleMouseMove)
 })
+
+const execute_workflow = () => {
+    workflow_store.execute()
+}
 </script>
 
 <template>
     <div class="mouse-coordinate-display">
-        X: {{ canvasX }} Y: {{ canvasY }}
+        <q-btn
+            color="white"
+            text-color="black"
+            label="execute"
+            size="sm"
+            class="execute-btn"
+            @click="execute_workflow"
+        />
+        <span class="coordinate-text">X: {{ canvasX }} Y: {{ canvasY }}</span>
     </div>
 </template>
 
@@ -82,6 +95,14 @@ onBeforeUnmount(() => {
   font-size: 14px
   font-weight: 600
   z-index: 1000
-  pointer-events: none
+  display: flex
+  align-items: center
+  gap: 12px
   text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8)
+
+.coordinate-text
+  pointer-events: none
+
+.execute-btn
+  pointer-events: auto
 </style>
