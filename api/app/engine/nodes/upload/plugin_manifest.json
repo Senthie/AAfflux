@@ -1,0 +1,170 @@
+{
+  "name": "upload",
+  "display_name": "文件上传",
+  "description": "文件上传节点，支持将文件上传到MongoDB GridFS存储，并将文件流传递给后续节点",
+  "version": "1.0.0",
+  "author": "AAflux",
+  "icon": "https://example.com/upload-icon.png",
+  "category": "node",
+  "plugin_type": "upload",
+  "manifest": {
+    "internal": [
+      {
+        "type": "textinput",
+        "key": "title",
+        "label": "节点标题",
+        "placeholder": "请输入节点标题",
+        "default": "文件上传",
+        "required": true,
+        "maxLength": 50,
+        "validation": {
+          "regex": "^[a-zA-Z0-9_\\u4e00-\\u9fa5\\s]+$",
+          "message": "只能包含中英文、数字、下划线和空格"
+        }
+      },
+      {
+        "type": "textarea",
+        "key": "desc",
+        "label": "节点描述",
+        "placeholder": "请输入节点描述",
+        "default": "",
+        "required": false,
+        "maxLength": 200
+      }
+    ],
+    "parameters": [
+      {
+        "type": "file-upload",
+        "key": "file_data",
+        "label": "上传文件",
+        "placeholder": "点击选择文件",
+        "accept": ".png,image/png",
+        "required": true,
+        "maxSize": 104857600,
+        "description": "支持PNG格式，最大100MB",
+        "uploadButton": {
+          "text": "选择文件",
+          "icon": "upload",
+          "style": "primary"
+        },
+        "preview": true,
+        "showFileInfo": true
+      },
+      {
+        "type": "number",
+        "key": "max_size_mb",
+        "label": "最大文件大小(MB)",
+        "placeholder": "文件大小限制",
+        "default": 100,
+        "required": false,
+        "readonly": true,
+        "min": 1,
+        "max": 100,
+        "description": "当前限制为100MB"
+      },
+      {
+        "type": "select",
+        "key": "allowed_types",
+        "label": "允许的文件类型",
+        "default": ["png"],
+        "required": false,
+        "readonly": true,
+        "options": [
+          {
+            "label": "PNG图片",
+            "value": "png"
+          }
+        ],
+        "description": "当前仅支持PNG格式"
+      }
+    ],
+    "outputs": [
+      {
+        "key": "file_id",
+        "label": "文件ID",
+        "type": "string",
+        "description": "MongoDB中的文件唯一标识符"
+      },
+      {
+        "key": "filename",
+        "label": "文件名",
+        "type": "string",
+        "description": "原始文件名"
+      },
+      {
+        "key": "size",
+        "label": "文件大小(字节)",
+        "type": "integer",
+        "description": "文件大小（字节）"
+      },
+      {
+        "key": "size_mb",
+        "label": "文件大小(MB)",
+        "type": "number",
+        "description": "文件大小（MB）"
+      },
+      {
+        "key": "extension",
+        "label": "文件扩展名",
+        "type": "string",
+        "description": "文件扩展名"
+      },
+      {
+        "key": "mime_type",
+        "label": "MIME类型",
+        "type": "string",
+        "description": "文件的MIME类型"
+      },
+      {
+        "key": "hash",
+        "label": "文件哈希",
+        "type": "string",
+        "description": "文件的SHA256哈希值"
+      },
+      {
+        "key": "created_at",
+        "label": "上传时间",
+        "type": "string",
+        "description": "文件上传时间（ISO格式）"
+      },
+      {
+        "key": "success",
+        "label": "上传状态",
+        "type": "boolean",
+        "description": "文件是否上传成功"
+      },
+      {
+        "key": "file_stream",
+        "label": "文件流",
+        "type": "bytes",
+        "description": "原始文件字节流，供后续节点使用"
+      },
+      {
+        "key": "file_base64",
+        "label": "Base64编码",
+        "type": "string",
+        "description": "Base64编码的文件数据"
+      }
+    ]
+  },
+  "source_url": "https://github.com/AAflux/upload-node",
+  "documentation_url": "https://docs.example.com/nodes/upload",
+  "is_active": true,
+  "is_verified": true,
+  "tags": ["upload", "file", "storage", "mongodb", "gridfs", "stream"],
+  "requirements": {
+    "mongodb": ">=4.0",
+    "gridfs": true
+  },
+  "features": {
+    "file_stream": "文件流传递给后续节点",
+    "mongodb_storage": "持久化存储到MongoDB GridFS",
+    "base64_encoding": "提供Base64编码数据",
+    "file_validation": "自动验证文件类型和大小"
+  },
+  "limitations": {
+    "max_file_size": "100MB",
+    "supported_formats": ["png"],
+    "storage_backend": "MongoDB GridFS"
+  }
+}

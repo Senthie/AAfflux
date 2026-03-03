@@ -1,0 +1,80 @@
+{
+  "name": "upload",
+  "display_name": "文件上传",
+  "description": "文件上传节点，支持PNG格式，最大100MB",
+  "version": "1.0.0",
+  "author": "AAflux",
+  "icon": "https://example.com/upload-icon.png",
+  "category": "node",
+  "plugin_type": "upload",
+  "manifest": {
+    "internal": [
+      {
+        "type": "textinput",
+        "key": "title",
+        "label": "标题",
+        "placeholder": "请输入标题",
+        "default": "文件上传",
+        "required": true,
+        "maxLength": 50,
+        "validation": {
+          "regex": "^[a-zA-Z0-9_\\u4e00-\\u9fa5]+$",
+          "message": "只能包含中英文、数字和下划线"
+        }
+      },
+      {
+        "type": "textinput",
+        "key": "desc",
+        "label": "描述",
+        "placeholder": "节点描述",
+        "default": "",
+        "required": false,
+        "maxLength": 50
+      }
+    ],
+    "parameters": [
+      {
+        "type": "file",
+        "key": "file_data",
+        "label": "上传文件",
+        "placeholder": "点击上传文件",
+        "accept": ".png",
+        "required": true,
+        "maxSize": 104857600,
+        "description": "支持PNG格式，最大100MB"
+      },
+      {
+        "type": "textinput",
+        "key": "file_id",
+        "label": "文件id",
+        "placeholder": "文件id",
+        "required": true,
+        "maxSize": 104857600,
+        "description": "文件id",
+        "visible":"false"
+      },
+      {
+        "type": "textinput",
+        "key": "max_size_mb",
+        "label": "最大文件大小(MB)",
+        "placeholder": "最大100MB",
+        "default": "100",
+        "required": false,
+        "readonly": true
+      },
+      {
+        "type": "textinput",
+        "key": "allowed_types",
+        "label": "允许的文件类型",
+        "placeholder": "当前仅支持png",
+        "default": "png",
+        "required": false,
+        "readonly": true
+      }
+    ]
+  },
+  "source_url": "https://github.com/AAflux/upload-node",
+  "documentation_url": "https://docs.example.com/nodes/upload",
+  "is_active": true,
+  "is_verified": false
+}

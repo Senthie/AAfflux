@@ -48,7 +48,7 @@ htmlcov/
 # Logs
 *.log
 logs/
-
+*.log.*
 # Database
 *.db
 *.sqlite

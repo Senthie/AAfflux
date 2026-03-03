@@ -52,6 +52,7 @@ def register_all_nodes() -> None:
     from app.engine.nodes.chat.chat import ChatNode  # noqa: F401
     from app.engine.nodes.http.http_node import HTTPNodeExecutor  # noqa: F401
     from app.engine.nodes.provider.ollama_node import OllamaNode  # noqa: F401
+    from app.engine.nodes.upload.upload_node import UploadNodeExecutor  # noqa: F401
 
     _nodes_registered = True
 
