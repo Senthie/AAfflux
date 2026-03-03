@@ -8,6 +8,7 @@ import type { IPluginBase } from 'src/interfaces/IPlugin'
 import { v1_plugins_id } from 'src/apis/plugin_api'
 import EditableTitleCp from './EditableTitleCp.vue'
 import { debounce } from 'src/utils/debounce'
+import { v1_file_upload } from 'src/apis/file_api'
 
 const workflow_store = useWorkflowStore()
 const node_id = ref<string>('')
@@ -68,7 +69,18 @@ const handleFieldValidation = (
 }
 
 // 处理字段值变化，自动同步到store - 添加防抖
-const debouncedFieldChange = debounce((key: string, value: unknown) => {
+const debouncedFieldChange = debounce(async (key: string, value: unknown) => {
+    // TODO: 只通过file_data的名字去检测是否上传文件，不方便扩展
+    if (key === 'file_data') {
+        const res = await v1_file_upload(
+            workflow_store.workflow.workspace_id,
+            value as File
+        )
+        if (res.code === 200) {
+            key = 'file_id'
+            value = res.data.file_id
+        }
+    }
     // 更新本地node配置
     ;(node.value.config as Record<string, unknown>)[key] = value
 
