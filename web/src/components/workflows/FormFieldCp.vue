@@ -138,6 +138,16 @@ const removeArrayItem = (index: number) => {
     }
 }
 
+// select handle input
+const handleSelectInput = (val: {
+    label: string
+    value: string
+    disabled: boolean
+}) => {
+    localValue.value = val.value
+    handleInput()
+}
+
 // 处理输入 - 添加防抖
 const handleInput = debounce(() => {
     // 通过mitt发出更新事件
@@ -309,31 +319,18 @@ watch(
                 outlined
                 v-else-if="field.type === 'select'"
                 :id="field.key"
+                :options="field.options"
                 v-model="localValue"
-                :disabled="disabled"
                 class="field-select"
-                @update:model-value="handleInput"
+                @update:model-value="handleSelectInput"
             >
-                <q-item
-                    v-if="!field.required"
-                    clickable
-                    v-close-popup
-                    @click="((localValue = ''), handleInput())"
-                >
-                    <q-item-section>{{
-                        field.placeholder || '请选择'
-                    }}</q-item-section>
-                </q-item>
-                <q-item
-                    v-for="option in field.options"
-                    :key="option.value"
-                    clickable
-                    v-close-popup
-                    @click="((localValue = option.value), handleInput())"
-                >
-                    >
-                    <q-item-section>{{ option.label }}</q-item-section>
-                </q-item>
+                <template v-slot:option="scope">
+                    <q-item v-bind="scope.itemProps">
+                        <q-item-section>
+                            <q-item-label>{{ scope.opt.label }}</q-item-label>
+                        </q-item-section>
+                    </q-item>
+                </template>
             </q-select>
 
             <!-- 布尔值开关 -->
