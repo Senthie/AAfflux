@@ -1,0 +1,116 @@
+{
+    "name": "agent",
+    "display_name": "Angent LLM",
+    "description": "A custom plugin",
+    "version": "0.0.1",
+    "author": "AAflux",
+    "icon": "https://example.com/icon.png",
+    "category": "node",
+    "plugin_type": "agent",
+    "manifest": {
+        "internal": [
+            {
+                "key": "title",
+                "type": "textinput",
+                "label": "标题",
+                "default": "默认标题",
+                "required": true,
+                "maxLength": 50,
+                "validation": {
+                    "regex": "^[a-zA-Z0-9_\\u4e00-\\u9fa5]+$",
+                    "message": "只能包含中英文、数字和下划线"
+                },
+                "placeholder": "请输入标题"
+            },
+            {
+                "key": "desc",
+                "type": "textinput",
+                "label": "描述",
+                "default": "",
+                "required": false,
+                "maxLength": 50,
+                "placeholder": "节点描述"
+            }
+        ],
+        "parameters": [
+            {
+                "key": "generate_type",
+                "type": "select",
+                "label": "check llm generate type",
+                "default": "generate",
+                "options": [
+                    {
+                        "label": "generate",
+                        "value": "generate",
+                        "disabled": false
+                    },
+                    {
+                        "label": "chat",
+                        "value": "chat",
+                        "disabled": false
+                    }
+                ]
+            },
+            {
+                "key": "prompt_is_expr",
+                "type": "boolean",
+                "label": "user expr",
+                "default": "",
+                "required": true,
+                "placeholder": "enable prompt expr"
+            },
+            {
+                "key": "prompt",
+                "type": "textarea",
+                "label": "Prompt (User Message)",
+                "default": "",
+                "required": true,
+                "placeholder": "e.g. Hello, how can help me"
+            },
+            {
+                "key": "need_upload_image",
+                "type": "boolean",
+                "label": "need_upload_image",
+                "default": "",
+                "required": true,
+                "placeholder": ""
+            },
+            {
+                "key": "images",
+                "type": "textarea",
+                "label": "images base64",
+                "default": "",
+                "required": true,
+                "placeholder": "e.g. images base64"
+            },
+            {
+                "key": "agent_strategy_provider_name",
+                "type": "textinput",
+                "label": "agent strategy provider name",
+                "default": "",
+                "required": true,
+                "placeholder": "e.g. Hello, how can help me"
+            },
+            {
+                "key": "agent_strategy_name",
+                "type": "textinput",
+                "label": "agent strategy name",
+                "default": "",
+                "required": true,
+                "placeholder": ""
+            },
+            {
+                "key": "agent_strategy_label",
+                "type": "textinput",
+                "label": "agent strategy label",
+                "default": "",
+                "required": true,
+                "placeholder": ""
+            }
+        ]
+    },
+    "source_url": "https://github.com/user/plugin",
+    "documentation_url": "https://docs.example.com",
+    "is_active": true,
+    "is_verified": false
+}

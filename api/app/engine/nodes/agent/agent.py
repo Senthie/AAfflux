@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-23 15:27:46
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-02-09 15:26:05
+LastEditTime: 2026-03-04 17:50:48
 FilePath: /api/app/engine/nodes/agent/agent.py
 Description: Agent Node - LLM代理节点
 
@@ -43,6 +43,8 @@ class AgentNode(BaseNode):
     execution_type = NodeExecutionTypeEnum.EXECUTABLE
     _node_data: AgentNodeData
 
+    _output = dict()
+
     def __init__(self):
         super().__init__()
 
@@ -69,6 +71,9 @@ class AgentNode(BaseNode):
     def validate_config(self, config: Dict[str, Any]) -> bool:
         required_fields = ['agent_strategy_name']
         return all(field in config for field in required_fields)
+
+    def _set_output(self, key, value):
+        self._output[key] = value
 
     def _get_structured_output_schema(self, config: Dict[str, Any]) -> str | None:
         """从config获取结构化输出的字符串"""
@@ -207,36 +212,62 @@ class AgentNode(BaseNode):
         # 将结构化输出字符串添加进提示词的最后
         user_prompt = self._build_prompt_with_schema(prompt, output_schema)
 
-        message_cache.add_user_message(user_prompt)
+        image_base64s = []
+        if self._node_data.need_upload_image and self._node_data.images is not None:
+            # 获取image的表达式
+            exprs = JsonPathUtil.get_exprs(self._node_data.images)
+            # 获取表达式的值
+            for expr in exprs:
+                value = context.get_node_output(expr.expr)
+                # 设置image的base64值
+                image_base64s.append(value)
 
         try:
             # 根据模型供应商的实例，创建请求并获取结果
-            response = await provider.chat(
-                messages=message_cache.get_messages(),
-                temperature=config.get('temperature', 0.7),
-                max_tokens=config.get('max_tokens'),
-            )
+            if self._node_data.generate_type == 'chat':
+                message_cache.add_user_message(user_prompt)
+                chat_params = {
+                    'messages': message_cache.get_messages(),
+                    'temperature': config.get('temperature', 0.7),
+                    'max_tokens': config.get('max_tokens'),
+                }
+                # 只有当 image_base64 不为空时才添加 images 参数
+                if image_base64s:
+                    chat_params['images'] = image_base64s
+
+                response = await provider.chat(**chat_params)  # type: ignore
+
+            else:
+                params = {
+                    'prompt': user_prompt,
+                    'temperature': config.get('temperature', 0.7),
+                    'max_tokens': config.get('max_tokens'),
+                }
+                # 只有当 image_base64 不为空时才添加 images 参数
+                if image_base64s:
+                    params['images'] = image_base64s
+
+                response = await provider.generate(**params)  # type: ignore
 
             # 提取响应内容
-            content = provider.extract_content(response)
-
+            content = provider.extract_content(response)  # type: ignore
+            self._set_output('content', content)
             # 添加助手回复到缓存
             message_cache.add_assistant_message(content)
 
             # 通过re对输出结果进行提取
             extraction_pattern = config.get('extraction_pattern')
             extracted_output = self._extract_output(content, extraction_pattern)
-
+            self._set_output('extracted_output', extracted_output)
+            self._set_output('usage', response.get('usage', {}))
+            self._set_output(
+                'model', provider._node_data.model if provider._node_data else 'unknown'
+            )
             # 设置节点输出到 context
             return ExecuteData.model_validate(
                 {
                     'title': title,
-                    'output': {
-                        'content': content,
-                        'extracted': extracted_output,
-                        'model': provider._node_data.model if provider._node_data else 'unknown',
-                        'usage': response.get('usage', {}),
-                    },
+                    'output': self._output,
                 }
             )
 
