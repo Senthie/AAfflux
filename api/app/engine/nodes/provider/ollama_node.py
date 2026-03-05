@@ -2,7 +2,7 @@
 Author: Senthie seemoon2077@gmail.com
 Date: 2025-12-23 17:54:48
 LastEditors: Senthie seemoon2077@gmail.com
-LastEditTime: 2026-02-06 17:02:07
+LastEditTime: 2026-03-04 16:42:56
 FilePath: /api/app/engine/nodes/provider/ollama_node.py
 Description: Ollama Provider Node - 继承BaseNode的Ollama供应商节点
 
@@ -169,6 +169,7 @@ class OllamaNode(BaseNode):
         temperature: float = 0.7,
         max_tokens: int | None = None,
         stream: bool = False,
+        **kwargs,
     ) -> dict[str, Any]:
         """发送聊天请求"""
         payload = {
@@ -177,6 +178,9 @@ class OllamaNode(BaseNode):
             'stream': stream,
             'options': {'temperature': temperature},
         }
+        for k, v in kwargs.items():
+            if k not in payload:
+                payload[k] = v
 
         if max_tokens:
             payload['options']['num_predict'] = max_tokens
@@ -192,6 +196,7 @@ class OllamaNode(BaseNode):
         system: str | None = None,
         temperature: float = 0.7,
         max_tokens: int | None = None,
+        **kwargs,
     ) -> dict[str, Any]:
         """发送生成请求"""
         payload = {
@@ -205,6 +210,10 @@ class OllamaNode(BaseNode):
             payload['system'] = system
         if max_tokens:
             payload['options']['num_predict'] = max_tokens
+
+        for k, v in kwargs.items():
+            if k not in payload:
+                payload[k] = v
 
         response = await self.client.post('/api/generate', json=payload)
         response.raise_for_status()
